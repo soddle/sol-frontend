@@ -5,16 +5,31 @@ import { ReactNode } from "react";
 import Footer from "./footer";
 import Header from "./header";
 import Spinner from "../spinner";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { useRootStore } from "@/stores/rootStore";
-import { useGameState, useSoddleProgram } from "@/hooks/useGameState";
+import { useGameState } from "@/hooks/useGameState";
+import { useRootStore } from "@/stores/storeProvider";
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const { ui } = useRootStore();
+  const rootStore = useRootStore();
+  const { fetchGameState } = useGameState();
+
+  React.useEffect(() => {
+    async function fetchGState() {
+      const gameState = await fetchGameState();
+      console.log("gameState in main.tsx component", gameState);
+      if (gameState) {
+        console.log("setting game state in main.tsx component");
+        console.log(gameState);
+        rootStore.game((state) => state.setGameState(gameState));
+      }
+    }
+    fetchGState();
+  }, [fetchGameState, rootStore.game]);
+
+  const isLoading = rootStore.ui((state) => state.isLoading);
 
   return (
     <>
-      {ui.isLoading && (
+      {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-10 ">
           <Spinner />
         </div>

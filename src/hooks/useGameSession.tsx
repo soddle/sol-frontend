@@ -43,9 +43,7 @@ export const useGameSession = () => {
   };
 
   const startGameSession = async (gameType: number, kol: KOL) => {
-    console.log(gameType, kol);
     try {
-      setLoading(true);
       const program = getProgram();
 
       if (!program) {
@@ -71,7 +69,7 @@ export const useGameSession = () => {
         program.programId
       );
 
-      program.methods
+      const txSig = await program.methods
         .startGameSession(gameType, kol)
         .accounts({
           gameState: gameStatePDA,
@@ -82,10 +80,9 @@ export const useGameSession = () => {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-
-      // fetchGameSession(wallet?.adapter.publicKey!);
+      return txSig;
     } catch (err) {
-      console.error("Error in startGameSession", err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -189,7 +186,6 @@ export const useGameSession = () => {
 
   return {
     gameSession,
-    loading,
     error,
     fetchGameSession,
     startGameSession,

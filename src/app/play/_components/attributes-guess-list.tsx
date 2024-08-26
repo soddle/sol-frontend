@@ -74,6 +74,7 @@ function TableItem({ guess }: TableItemProps) {
       <Cell result={result[0]} className="bg-transparent p-0 m-0">
         <Image
           src={"/user-icon.svg"}
+          unoptimized
           alt="user"
           width={40}
           height={20}
@@ -85,9 +86,6 @@ function TableItem({ guess }: TableItemProps) {
       </Cell>
       <Cell result={result[2]}>
         <span className={cellTextStyle}>{kol.country}</span>
-      </Cell>
-      <Cell result={result[3]}>
-        <span className={cellTextStyle}>{kol.pfp}</span>
       </Cell>
       <Cell result={result[4]}>
         <span className={cellTextStyle}>{kol.accountCreation}</span>

@@ -1,8 +1,20 @@
 import { useState, useEffect } from "react";
-import { TimeInput } from "@/lib/utils";
+import { useGameState } from "./useGameState";
+import { GameState } from "@/lib/types/idl-types";
 
-export const useCountdown = (endTime: number | null): TimeInput => {
-  const [timeRemaining, setTimeRemaining] = useState<TimeInput>({
+interface TimeRemaining {
+  hours: string;
+  minutes: string;
+  seconds: string;
+}
+
+export const useCountdown = (gameState: GameState): TimeRemaining => {
+  const endTime = gameState?.currentCompetition?.endTime;
+  const startTime = gameState?.currentCompetition?.startTime;
+
+  console.log(endTime, startTime);
+
+  const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>({
     hours: "00",
     minutes: "00",
     seconds: "00",
@@ -11,29 +23,33 @@ export const useCountdown = (endTime: number | null): TimeInput => {
   useEffect(() => {
     if (!endTime) return;
 
-    const updateCountdown = () => {
+    const updateRemainingTime = () => {
       const now = Date.now();
-      const remaining = Math.max(0, endTime - now);
+      const distance = Math.max(0, endTime - now);
 
-      if (remaining > 0) {
-        const hours = Math.floor(remaining / (1000 * 60 * 60));
-        const minutes = Math.floor(
-          (remaining % (1000 * 60 * 60)) / (1000 * 60)
-        );
-        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+      const hours = Math.floor(distance / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-        setTimeRemaining({
-          hours: hours.toString().padStart(2, "0"),
-          minutes: minutes.toString().padStart(2, "0"),
-          seconds: seconds.toString().padStart(2, "0"),
-        });
-      } else {
-        setTimeRemaining({ hours: "00", minutes: "00", seconds: "00" });
-      }
+      setTimeRemaining({
+        hours: hours.toString().padStart(2, "0"),
+        minutes: minutes.toString().padStart(2, "0"),
+        seconds: seconds.toString().padStart(2, "0"),
+      });
+
+      return distance > 0;
     };
 
-    updateCountdown(); // Initial update
-    const intervalId = setInterval(updateCountdown, 1000);
+    // Update immediately
+    updateRemainingTime();
+
+    // Then update every second
+    const intervalId = setInterval(() => {
+      const shouldContinue = updateRemainingTime();
+      if (!shouldContinue) {
+        clearInterval(intervalId);
+      }
+    }, 1000);
 
     return () => clearInterval(intervalId);
   }, [endTime]);

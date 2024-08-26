@@ -38,8 +38,11 @@ export default function GameHome() {
 
       const [gameState] = await Promise.all([fetchGameState()]);
 
-      await startGameSession(gameType, kol);
-      router.push(`/play/${gameType}`);
+      const txSig = await startGameSession(gameType, kol);
+      console.log(txSig);
+      if (txSig) {
+        router.push(`/play/${gameType}`);
+      }
     } catch (error) {
       console.error("Error  GameSession", error);
       toast.error(

@@ -1,5 +1,4 @@
 "use client";
-import { TimeInput } from "@/lib/utils";
 import { memo } from "react";
 import { useCountdown } from "@/hooks/useCountdown";
 import { useGameState } from "@/hooks/useGameState";
@@ -23,11 +22,15 @@ export default function TimeSection() {
 }
 
 interface TimeProps {
-  time: TimeInput;
+  time: {
+    hours: string;
+    minutes: string;
+    seconds: string;
+  };
 }
 
 const GlowingTime: React.FC<TimeProps> = memo(({ time }) => {
-  const { hours, minutes, seconds } = time as any;
+  const { hours, minutes, seconds } = time;
   const glowingStyle = `
     text-white 
     drop-shadow-[0_0_25px_rgba(47,255,43,1)] 
@@ -52,10 +55,11 @@ GlowingTime.displayName = "GlowingTime";
 
 const DynamicGlowingTime = () => {
   const { gameState } = useGameState();
-  const endTime = gameState?.currentCompetition?.endTime
-    ? gameState.currentCompetition.endTime.toNumber() * 1000
-    : null;
-  const timeRemaining = useCountdown(endTime);
+  const timeRemaining = useCountdown(gameState!);
+
+  if (!gameState) {
+    return null; // Or any loading indicator if you prefer
+  }
 
   return <GlowingTime time={timeRemaining} />;
 };

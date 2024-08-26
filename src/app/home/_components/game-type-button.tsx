@@ -10,7 +10,6 @@ interface GameButtonType {
 }
 
 export const GameButton = ({
-  type,
   title,
   onClick,
   icon,

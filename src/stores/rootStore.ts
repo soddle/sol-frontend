@@ -1,9 +1,11 @@
-import { useGameStore } from "./gameStore";
-import { usePlayerStore } from "./playerStore";
-import { useUIStore } from "./uiStore";
+import { createGameStore } from "./gameStore";
+import { createPlayerStore } from "./playerStore";
+import { createUIStore } from "./uiStore";
 
-export const useRootStore = () => ({
-  game: useGameStore(),
-  player: usePlayerStore(),
-  ui: useUIStore(),
+export const createRootStore = () => ({
+  game: createGameStore(),
+  player: createPlayerStore(),
+  ui: createUIStore(),
 });
+
+export type RootStore = ReturnType<typeof createRootStore>;

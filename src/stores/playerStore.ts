@@ -5,21 +5,25 @@ import { PublicKey } from "@solana/web3.js";
 interface PlayerState {
   walletPublicKey: PublicKey | null;
   balance: number;
+}
+
+interface PlayerActions {
   setWalletPublicKey: (publicKey: PublicKey | null) => void;
   setBalance: (balance: number) => void;
 }
 
-export const usePlayerStore = create<PlayerState>()(
-  immer((set) => ({
-    walletPublicKey: null,
-    balance: 0,
-    setWalletPublicKey: (publicKey) =>
-      set((state) => {
-        state.walletPublicKey = publicKey;
-      }),
-    setBalance: (balance) =>
-      set((state) => {
-        state.balance = balance;
-      }),
-  }))
-);
+export const createPlayerStore = () =>
+  create<PlayerState & PlayerActions>()(
+    immer((set) => ({
+      walletPublicKey: null,
+      balance: 0,
+      setWalletPublicKey: (publicKey) =>
+        set((state) => {
+          state.walletPublicKey = publicKey;
+        }),
+      setBalance: (balance) =>
+        set((state) => {
+          state.balance = balance;
+        }),
+    }))
+  );
