@@ -13,34 +13,37 @@ export const useGameSession = () => {
   const getProgram = useSoddleProgram();
   const { wallet } = useWallet();
 
-  const fetchGameSession = async (playerPublicKey: PublicKey) => {
-    try {
-      const program = getProgram();
-      if (!program) {
-        throw new Error("No program found");
+  const fetchGameSession = useCallback(
+    async (playerPublicKey: PublicKey) => {
+      try {
+        const program = getProgram();
+        if (!program) {
+          throw new Error("No program found");
+        }
+        const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+          [Buffer.from("game_session"), playerPublicKey.toBuffer()],
+          program.programId
+        );
+
+        //@ts-ignore
+        const fetchedSession = await program.account.gameSession.fetch(
+          gameSessionPDA
+        );
+
+        if (!fetchedSession) {
+          throw new Error("Game session not found");
+        }
+
+        setGameSession(fetchedSession as GameSession);
+        return fetchedSession as GameSession;
+      } catch (err) {
+        console.error("Error fetching game session:", err);
+        setError("Failed to fetch game session");
+        return null;
       }
-      const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("game_session"), playerPublicKey.toBuffer()],
-        program.programId
-      );
-
-      //@ts-ignore
-      const fetchedSession = await program.account.gameSession.fetch(
-        gameSessionPDA
-      );
-
-      if (!fetchedSession) {
-        throw new Error("Game session not found");
-      }
-
-      setGameSession(fetchedSession as GameSession);
-      return fetchedSession as GameSession;
-    } catch (err) {
-      console.error("Error fetching game session:", err);
-      setError("Failed to fetch game session");
-      return null;
-    }
-  };
+    },
+    [getProgram]
+  );
 
   const startGameSession = async (gameType: number, kol: KOL) => {
     try {

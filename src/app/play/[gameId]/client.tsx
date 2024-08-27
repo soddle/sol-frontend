@@ -119,7 +119,7 @@ export default function GameIdPageClient({
 
       {/* guessResults section */}
 
-      {gameSession.guesses.length > 0 && (
+      {
         <section className="text-white no-scrollbar">
           {gameId === GameType.Attributes ? (
             <AttributesGuessList guessResults={gameSession.guesses} />
@@ -135,7 +135,7 @@ export default function GameIdPageClient({
             )
           )}
         </section>
-      )}
+      }
       {/* Legends */}
       {isLegendOpen && (
         <Container>

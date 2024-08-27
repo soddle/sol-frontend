@@ -9,7 +9,7 @@ interface TimeRemaining {
   seconds: string;
 }
 
-export const useCountdown = (gameState: GameState): TimeRemaining => {
+export const useCountdown = (gameState: GameState | null): TimeRemaining => {
   const endTime = gameState?.currentCompetition?.endTime as anchor.BN;
   const startTime = gameState?.currentCompetition?.startTime as anchor.BN;
 

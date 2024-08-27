@@ -5,13 +5,13 @@ import { useRootStore } from "@/stores/storeProvider";
 
 const TimerDisplay: React.FC = () => {
   const { ui, game } = useRootStore();
-  const gameState = game((state) => state.gameState);
+  // const gameState = game((state) => state.gameState);
 
-  const timeRemaining: any = useCountdown(gameState!);
+  const timeRemaining: any = useCountdown(null);
 
   const glowingStyle = `
-  text-white 
-  drop-shadow-[0_0_30px_rgba(47,255,43,1)] 
+  text-white
+  drop-shadow-[0_0_30px_rgba(47,255,43,1)]
   text-shadow-[0_0_25px_rgba(47,255,43,1),0_0_45px_rgba(47,255,43,0.9),0_0_65px_rgba(47,255,43,0.7),0_0_85px_rgba(47,255,43,0.5)]
 `;
 
