@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { persist, createJSONStorage } from "zustand/middleware";
 import { PublicKey } from "@solana/web3.js";
 
 interface PlayerState {
@@ -14,23 +13,17 @@ interface PlayerActions {
 }
 
 export const createPlayerStore = () =>
-  create(
-    persist(
-      immer<PlayerState & PlayerActions>((set) => ({
-        walletPublicKey: null,
-        balance: 0,
-        setWalletPublicKey: (publicKey) =>
-          set((state) => {
-            state.walletPublicKey = publicKey;
-          }),
-        setBalance: (balance) =>
-          set((state) => {
-            state.balance = balance;
-          }),
-      })),
-      {
-        name: "player-storage",
-        storage: createJSONStorage(() => localStorage),
-      }
-    )
+  create<PlayerState & PlayerActions>()(
+    immer((set) => ({
+      walletPublicKey: null,
+      balance: 0,
+      setWalletPublicKey: (publicKey) =>
+        set((state) => {
+          state.walletPublicKey = publicKey;
+        }),
+      setBalance: (balance) =>
+        set((state) => {
+          state.balance = balance;
+        }),
+    }))
   );

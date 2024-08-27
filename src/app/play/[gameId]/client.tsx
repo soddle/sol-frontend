@@ -16,7 +16,7 @@ import { fetchRandomKOL } from "@/lib/fns/fetchers";
 import TweetQuestionBoxWrapper from "./_components/tweet-question-box-wrapper";
 import { useGameSession } from "@/hooks/useGameSession";
 import Link from "next/link";
-import { useUIStore } from "@/components/providers/uiStoreProvider";
+import { useRootStore } from "@/stores/storeProvider";
 
 export default function GameIdPageClient({
   gameId,
@@ -31,9 +31,10 @@ export default function GameIdPageClient({
   const [randomizedKol, setRandomizedKol] = useState<KolWithTweets | null>(
     null
   );
-  const isLegendOpen = useUIStore((state) => state.isLegendOpen);
-  const setLoading = useUIStore((state) => state.setLoading);
-  const setError = useUIStore((state) => state.setError);
+  const { ui } = useRootStore();
+  const isLegendOpen = ui((state) => state.isLegendOpen);
+  const setLoading = ui((state) => state.setLoading);
+  const setError = ui((state) => state.setError);
 
   useEffect(() => {
     if (!wallet) {

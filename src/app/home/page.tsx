@@ -11,14 +11,14 @@ import { toast } from "sonner";
 import { KOL } from "@/lib/types/idl-types";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRouter } from "next/navigation";
-import { useUIStore } from "@/components/providers/uiStoreProvider";
-import { useGameStore } from "@/components/providers/gameStoreProvider";
+import { useRootStore } from "@/stores/storeProvider";
 
 export default function GameHome() {
   const { wallet } = useWallet();
   const { startGameSession } = useGameSession();
-  const setLoading = useUIStore((state) => state.setLoading);
-  const setCurrentGameType = useGameStore((state) => state.setCurrentGameType);
+  const { ui, game } = useRootStore();
+  const setLoading = ui((state) => state.setLoading);
+  const setCurrentGameType = game((state) => state.setCurrentGameType);
   const router = useRouter();
 
   const handleStartGameSession = async (gameType: GameType, kol: KOL) => {
@@ -29,7 +29,7 @@ export default function GameHome() {
       }
 
       const txSig = await startGameSession(gameType, kol);
-      console.log(txSig);
+      console.log("txSig", txSig);
       if (txSig) {
         setCurrentGameType(gameType);
         router.push(`/play/${gameType}`);

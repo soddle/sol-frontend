@@ -2,7 +2,7 @@ import { KOL } from "@/lib/types/idl-types";
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoid-input";
 import Image from "next/image";
-import { useRootStore } from "@/stores/rootStore";
+import { useRootStore } from "@/stores/storeProvider";
 // import { useMakeGuess } from "@/hooks/use-soddle-program";
 import { toast } from "sonner";
 import { useGameSession } from "@/hooks/useGameSession";
@@ -18,6 +18,8 @@ const KOLSearch: React.FC<KOLSearchProps> = ({ kols, onSelect }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const { game, ui } = useRootStore();
+  const setLoading = ui((state) => state.setLoading);
+  const currentGameType = game((state) => state.currentGameType);
   const { makeGuess } = useGameSession();
 
   useEffect(() => {
@@ -58,15 +60,15 @@ const KOLSearch: React.FC<KOLSearchProps> = ({ kols, onSelect }) => {
     setIsDropdownOpen(false);
     onSelect(kol);
 
-    if (game.currentGameType) {
-      ui.setLoading(true);
+    if (currentGameType) {
+      setLoading(true);
       try {
-        await makeGuess(game.currentGameType, kol);
+        await makeGuess(currentGameType, kol);
         toast.success("Guess made successfully");
       } catch (error) {
         toast.error("Error making guess");
       } finally {
-        ui.setLoading(false);
+        setLoading(false);
       }
     } else {
       console.error("No game type selected");

@@ -3,13 +3,13 @@ import React from "react";
 import { useGameState } from "@/hooks/useGameState";
 import { useCountdown } from "@/hooks/useCountdown";
 import { TimeInput } from "@/lib/utils";
+import { useRootStore } from "@/stores/storeProvider";
 
 const TimerDisplay: React.FC = () => {
-  const { gameState } = useGameState();
-  const endTime = gameState?.currentCompetition?.endTime
-    ? gameState.currentCompetition.endTime.toNumber() * 1000
-    : null;
-  const timeRemaining: any = useCountdown(endTime);
+  const { ui, game } = useRootStore();
+  const gameState = game((state) => state.gameState);
+
+  const timeRemaining: any = useCountdown(gameState!);
 
   const glowingStyle = `
   text-white 

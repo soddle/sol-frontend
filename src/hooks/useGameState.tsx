@@ -3,7 +3,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { useCallback, useState, useEffect } from "react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 
-import { useRootStore } from "@/stores/rootStore";
+import { useRootStore } from "@/stores/storeProvider";
 import idl from "@/lib/constants/idl.json";
 import { GameState } from "@/lib/types/idl-types";
 
@@ -39,6 +39,7 @@ export const useSoddleProgram = () => {
 };
 
 export const useGameState = () => {
+  const { game } = useRootStore();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

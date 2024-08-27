@@ -1,15 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { kols } from "@/lib/constants/kols";
-import GameWrapper from "./game-wrapper";
+import GameWrapper from "./_components/game-wrapper";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
-import { useRootStore } from "@/stores/rootStore";
+import { useRootStore } from "@/stores/storeProvider";
 import Link from "next/link";
 
 const GamePageClient: React.FC = () => {
   const [gameScore, setGameScore] = useState<number | null>(null);
-  const { game, ui } = useRootStore();
   const router = useRouter();
   const wallet = useAnchorWallet();
   const searchParams = useSearchParams();

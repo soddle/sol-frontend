@@ -3,6 +3,7 @@ import { TimeInput } from "@/lib/utils";
 import { memo } from "react";
 import { useCountdown } from "@/hooks/useCountdown";
 import { useGameState } from "@/hooks/useGameState";
+import { useRootStore } from "@/stores/storeProvider";
 
 export default function TimeSection() {
   return (
@@ -51,12 +52,9 @@ const GlowingTime: React.FC<TimeProps> = ({ time }) => {
 GlowingTime.displayName = "GlowingTime";
 
 const DynamicGlowingTime = () => {
-  const { gameState } = useGameState();
-  console.log("gamesstate from time section:", gameState);
-  const endTime = gameState?.currentCompetition?.endTime
-    ? gameState.currentCompetition.endTime.toNumber() * 1000
-    : null;
-  const timeRemaining = useCountdown(endTime);
+  const { game } = useRootStore();
+  const gameState = game((state) => state.gameState);
+  const timeRemaining = useCountdown(gameState!);
 
   return <GlowingTime time={timeRemaining} />;
 };

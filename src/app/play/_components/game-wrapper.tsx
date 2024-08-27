@@ -13,8 +13,7 @@ import Legend from "./legends";
 import TrapeZoid from "./trapezoid";
 import { useGameSession } from "@/hooks/useGameSession";
 import { toast } from "sonner";
-import { useRootStore } from "@/stores/rootStore";
-
+import { useRootStore } from "@/stores/storeProvider";
 interface GameWrapperProps {
   kols: KOL[];
   onGameComplete: (score: number) => void;
@@ -28,9 +27,12 @@ const GameWrapper: React.FC<GameWrapperProps> = ({
 }) => {
   const { gameSession, makeGuess } = useGameSession();
   const { ui } = useRootStore();
+  const setLoading = ui((state) => state.setLoading);
+  const setIsLegendOpen = ui((state) => state.setIsLegendOpen);
+  const isLegendOpen = ui((state) => state.isLegendOpen);
 
   const handleSelect = async (kol: KOL) => {
-    ui.setLoading(true);
+    setLoading(true);
 
     try {
       if (!currentGameType) {
@@ -42,7 +44,7 @@ const GameWrapper: React.FC<GameWrapperProps> = ({
     } catch (error) {
       toast.error("Error making guess");
     } finally {
-      ui.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -113,10 +115,10 @@ const GameWrapper: React.FC<GameWrapperProps> = ({
           </section>
         )}
       {/* Legends */}
-      {ui.isLegendOpen && (
+      {isLegendOpen && (
         <Container>
           <section>
-            <Legend onClose={() => ui.setIsLegendOpen(false)} />
+            <Legend onClose={() => setIsLegendOpen(false)} />
           </section>
         </Container>
       )}
