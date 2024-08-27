@@ -20,7 +20,6 @@ export function MainLayout({ children }: { children: ReactNode }) {
     const fetchGState = async () => {
       const gameState = await fetchGameState();
       if (gameState) {
-        console.log("setting game state in main.tsx component");
         setGameState(gameState);
       }
     };

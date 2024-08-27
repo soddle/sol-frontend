@@ -7,7 +7,12 @@ const TimerDisplay: React.FC = () => {
   const gameState = game((state) => state.gameState);
 
   const endTime = useMemo(() => {
-    return Date.now() + 1000 * 60 * 60 * 24;
+    if (gameState) {
+      const inMill = Number(gameState.currentCompetition.endTime);
+
+      return inMill * 1000;
+    }
+    return 0;
   }, [gameState]);
 
   const [timeLeft, setTimeLeft] = useState({
