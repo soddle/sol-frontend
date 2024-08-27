@@ -6,7 +6,7 @@ import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEclipseCluster } from "@/hooks/useEclipseCluster";
 
 export default function UserInfoCard() {
-  const { publicKey, disconnect } = useWallet();
+  const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
   const [balance, setBalance] = useState<number | null>(null);
   const { endpoint, cluster } = useEclipseCluster();
 
@@ -27,7 +27,8 @@ export default function UserInfoCard() {
     fetchBalance();
   }, [publicKey, endpoint]);
 
-  if (!publicKey) return <div>No wallet connected</div>;
+  if (!connected && connecting) return <Skeleton />;
+  if (!wallet) return <div className="h-10 w-full">No wallet connected</div>;
 
   return (
     <div
@@ -44,7 +45,9 @@ export default function UserInfoCard() {
           alt="user"
           className="mr-2 w-10 h-10 cursor-pointer"
         />
-        <p className="text-2xl">{shortenAddress(publicKey.toBase58(), 4)}</p>
+        <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl ">
+          {publicKey ? shortenAddress(publicKey.toBase58(), 4) : "..."}
+        </p>
         <p className="ml-2 text-sm">({cluster.name})</p>
 
         <Image
@@ -58,26 +61,27 @@ export default function UserInfoCard() {
       </div>
       <div className="flex gap-3">
         <div className="flex items-center justify-center">
-          <Image
-            src={"/ethereum.svg"}
-            width={25}
-            height={25}
-            alt="Eclipse icon"
-          />
+          <Image src={"/ethereum.svg"} width={25} height={25} alt="ETH icon" />
           <span>ETH</span>
         </div>
         <div className="flex items-center justify-center">
           <span className="text-3xl font-bold">
             {balance !== null ? balance.toFixed(2) : "..."}
           </span>
-          <span className="text-4xl mx-1">~ $</span>
-          <span className="text-xl">
+          <span className="text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl mx-1">
+            ~ $
+          </span>
+          <span className="text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">
             {balance !== null ? (balance * 5000).toFixed(2) : "..."}
           </span>
         </div>
       </div>
     </div>
   );
+}
+
+function Skeleton() {
+  return <div className="h-10 w-full bg-green-500 animate-pulse"></div>;
 }
 
 export function shortenAddress(address: string, chars = 4): string {

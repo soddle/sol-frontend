@@ -38,6 +38,7 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessList: React.FC<AttributesGuessListProps> = ({
   guesses,
 }) => {
+  console.log("how the guess list looks", guesses);
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
