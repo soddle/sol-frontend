@@ -19,19 +19,20 @@ export const TweetsGuessList: React.FC<TweetsGuessListProps> = ({
 };
 
 function ListItem({ guessResult }: { guessResult: Game2GuessResult }) {
+  const { kol, result } = guessResult;
   return (
     <li
       className={`bg-${
-        guessResult.result ? "green" : "red"
+        result ? "green" : "red"
       }-500  py-4 px-2 text-white flex items-center gap-2 justify-center`}
     >
       <Image
-        src={guessResult.kol.pfp || "/user-icon.svg"}
-        alt={guessResult.kol.name}
+        src={kol.pfp || "/user-icon.svg"}
+        alt={kol.name}
         width={40}
         height={40}
       />
-      <p>{guessResult.kol.name}</p>
+      <p>{kol.name}</p>
     </li>
   );
 }
