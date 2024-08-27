@@ -1,7 +1,8 @@
-import Trapezoid from "@/app/play/_components/trapezoid";
+// import Trapezoid from "@/app/play/_components/trapezoid";
 import Image from "next/image";
 import * as React from "react";
 import Button2 from "./ui/button2";
+import Trapezoid from "@/app/play/[gameId]/_components/trapezoid";
 
 export default function PopUpWindow({ open }: { open: boolean }) {
   if (open) {
@@ -61,5 +62,4 @@ export default function PopUpWindow({ open }: { open: boolean }) {
       </div>
     );
   }
-  return <></>;
 }

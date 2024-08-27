@@ -2,9 +2,9 @@ import { useCallback, useState } from "react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { useSoddleProgram } from "./useGameState";
 import { GameSession, KOL } from "@/lib/types/idl-types";
-import { SODDLE_PROGRAM_ID } from "@/lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
+import { toast } from "sonner";
 
 export const useGameSession = () => {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
@@ -93,27 +93,27 @@ export const useGameSession = () => {
 
   const makeGuess = useCallback(
     async (gameType: number, guess: KOL) => {
-      const program = getProgram();
-      if (!program) {
-        setError("Program not initialized");
-        return;
-      }
-
       try {
+        const program = getProgram();
+        if (!program) {
+          console.log("No program found");
+          return;
+        }
+
         setLoading(true);
-        const [gameStatePDA] = PublicKey.findProgramAddressSync(
+        const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
           [Buffer.from("game_state")],
           program.programId
         );
 
-        const [gameSessionPDA] = PublicKey.findProgramAddressSync(
+        const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
           [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
-          new PublicKey(SODDLE_PROGRAM_ID)
+          program.programId
         );
 
-        const [playerStatePDA] = PublicKey.findProgramAddressSync(
+        const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
           [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
-          new PublicKey(SODDLE_PROGRAM_ID)
+          program.programId
         );
 
         await program.methods
@@ -121,14 +121,16 @@ export const useGameSession = () => {
           .accounts({
             gameState: gameStatePDA,
             gameSession: gameSessionPDA,
-            // player: wallet?.adapter.publicKey!,
+            player: wallet?.adapter.publicKey!,
             playerState: playerStatePDA,
           })
           .rpc();
 
-        await fetchGameSession(wallet?.adapter.publicKey!);
+        // await fetchGameSession(wallet?.adapter.publicKey!);
+        toast.success("Guess made successfully");
       } catch (err) {
         console.error("Error making guess:", err);
+        toast.error("Failed to make guess");
         setError("Failed to make guess");
       } finally {
         setLoading(false);
@@ -144,47 +146,47 @@ export const useGameSession = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      const [gameStatePDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game_state")],
-        new PublicKey(SODDLE_PROGRAM_ID)
-      );
+    // try {
+    //   setLoading(true);
+    //   const [gameStatePDA] = PublicKey.findProgramAddressSync(
+    //     [Buffer.from("game_state")],
+    //     new PublicKey(SODDLE_PROGRAM_ID)
+    //   );
 
-      const [gameSessionPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
-        new PublicKey(SODDLE_PROGRAM_ID)
-      );
+    //   const [gameSessionPDA] = PublicKey.findProgramAddressSync(
+    //     [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
+    //     new PublicKey(SODDLE_PROGRAM_ID)
+    //   );
 
-      const [playerStatePDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
-        new PublicKey(SODDLE_PROGRAM_ID)
-      );
+    //   const [playerStatePDA] = PublicKey.findProgramAddressSync(
+    //     [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
+    //     new PublicKey(SODDLE_PROGRAM_ID)
+    //   );
 
-      const [vaultPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("vault")],
-        new PublicKey(SODDLE_PROGRAM_ID)
-      );
+    //   const [vaultPDA] = PublicKey.findProgramAddressSync(
+    //     [Buffer.from("vault")],
+    //     new PublicKey(SODDLE_PROGRAM_ID)
+    //   );
 
-      // await program.methods
-      //   .endGameSession()
-      //   .accounts({
-      //     gameState: gameStatePDA,
-      //     gameSession: gameSessionPDA,
-      //     player: wallet?.adapter.publicKey!,
-      //     playerState: playerStatePDA,
-      //     vault: vaultPDA,
-      //     systemProgram: SystemProgram.programId,
-      //   })
-      //   .rpc();
+    //   // await program.methods
+    //   //   .endGameSession()
+    //   //   .accounts({
+    //   //     gameState: gameStatePDA,
+    //   //     gameSession: gameSessionPDA,
+    //   //     player: wallet?.adapter.publicKey!,
+    //   //     playerState: playerStatePDA,
+    //   //     vault: vaultPDA,
+    //   //     systemProgram: SystemProgram.programId,
+    //   //   })
+    //   //   .rpc();
 
-      await fetchGameSession(wallet?.adapter.publicKey!);
-    } catch (err) {
-      console.error("Error ending game session:", err);
-      setError("Failed to end game session");
-    } finally {
-      setLoading(false);
-    }
+    //   await fetchGameSession(wallet?.adapter.publicKey!);
+    // } catch (err) {
+    //   console.error("Error ending game session:", err);
+    //   setError("Failed to end game session");
+    // } finally {
+    //   setLoading(false);
+    // }
   }, [getProgram, fetchGameSession, wallet]);
 
   return {

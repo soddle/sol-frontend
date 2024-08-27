@@ -10,7 +10,7 @@ function LandingPage() {
   const router = useRouter();
   useEffect(() => {
     if (wallet) {
-      router.push("/home");
+      router.push("/play");
     }
   }, [wallet, router]);
   return (
