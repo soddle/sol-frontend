@@ -6,10 +6,11 @@ import Footer from "./footer";
 import Header from "./header";
 import Spinner from "../spinner";
 import { useGameState } from "@/hooks/useGameState";
-import { useRootStore } from "@/stores/storeProvider";
+import { useGameStore } from "../providers/gameStoreProvider";
+import { useUIStore } from "../providers/uiStoreProvider";
 
 export function MainLayout({ children }: { children: ReactNode }) {
-  const rootStore = useRootStore();
+  const setGameState = useGameStore((state) => state.setGameState);
   const { fetchGameState } = useGameState();
 
   React.useEffect(() => {
@@ -19,13 +20,13 @@ export function MainLayout({ children }: { children: ReactNode }) {
       if (gameState) {
         console.log("setting game state in main.tsx component");
         console.log(gameState);
-        rootStore.game((state) => state.setGameState(gameState));
+        setGameState(gameState);
       }
     }
     fetchGState();
-  }, [fetchGameState, rootStore.game]);
+  }, [fetchGameState, setGameState]);
 
-  const isLoading = rootStore.ui((state) => state.isLoading);
+  const isLoading = useUIStore((state) => state.isLoading);
 
   return (
     <>

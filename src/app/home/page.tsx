@@ -5,42 +5,33 @@ import TimeSection from "./_components/time-section";
 import { GameType } from "@/lib/constants";
 import { GameButton } from "./_components/game-type-button";
 import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
-import { useRootStore } from "@/stores/rootStore";
 import { kols } from "@/lib/constants/kols";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
 import { KOL } from "@/lib/types/idl-types";
 import { useGameSession } from "@/hooks/useGameSession";
-import { useGameState } from "@/hooks/useGameState";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useUIStore } from "@/components/providers/uiStoreProvider";
+import { useGameStore } from "@/components/providers/gameStoreProvider";
 
 export default function GameHome() {
   const { wallet } = useWallet();
-  const { gameState, fetchGameState } = useGameState();
-  const { fetchGameSession, startGameSession } = useGameSession();
+  const { startGameSession } = useGameSession();
+  const setLoading = useUIStore((state) => state.setLoading);
+  const setCurrentGameType = useGameStore((state) => state.setCurrentGameType);
   const router = useRouter();
-  const { ui } = useRootStore();
-
-  useEffect(() => {
-    if (!wallet) {
-      router.push("/");
-      return;
-    }
-  }, [gameState, router, wallet]);
 
   const handleStartGameSession = async (gameType: GameType, kol: KOL) => {
     try {
-      ui.setLoading(true);
+      setLoading(true);
       if (!wallet) {
         throw new Error("Please connect your wallet");
       }
 
-      const [gameState] = await Promise.all([fetchGameState()]);
-
       const txSig = await startGameSession(gameType, kol);
       console.log(txSig);
       if (txSig) {
+        setCurrentGameType(gameType);
         router.push(`/play/${gameType}`);
       }
     } catch (error) {
@@ -49,26 +40,17 @@ export default function GameHome() {
         "An error occurred while starting the game. Please try again."
       );
     } finally {
-      ui.setLoading(false);
+      setLoading(false);
     }
   };
 
   const linkStyle =
     "bg-[#111411] border border-[#03B500] border-opacity-50 p-4 text-white text-lg transition-all duration-300 ease-in-out hover:drop-shadow-[0_0_10px_rgba(47,255,43,1)] hover:shadow-[0_0_20px_rgba(47,255,43,0.5)]";
+
   return (
     <Container>
       <div className="flex flex-col gap-4">
         <UserInfoCard />
-        {/* <EclipseWallets /> */}
-        {/* <Button3 className={""}>
-          <span>
-            hello world
-            <HashtagIcon className="size-6" />
-          </span>
-        </Button3> */}
-        {/* <Button2 className="w-full" onClick={initializeGame}>
-          Initialize Game
-        </Button2> */}
         <TimeSection />
         {[
           {

@@ -9,10 +9,10 @@ function LandingPage() {
   const wallet = useWallet();
   const router = useRouter();
   useEffect(() => {
-    if (wallet) {
+    if (wallet.publicKey) {
       router.push("/home");
     }
-  }, [wallet, router]);
+  }, [router]);
   return (
     <Container className="flex-grow flex items-center justify-center ">
       <ConnectWalletButton />

@@ -1,7 +1,6 @@
-import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
+import { createStore } from "zustand/vanilla";
 
-interface UIState {
+export interface UIState {
   isLoading: boolean;
   error: string | null;
   isModalOpen: boolean;
@@ -11,7 +10,7 @@ interface UIState {
   isLegendOpen: boolean;
 }
 
-interface UIActions {
+export interface UIActions {
   setLoading: (isLoading: boolean) => void;
   setIsLegendOpen: (isLegendOpen: boolean) => void;
   setError: (error: string | null) => void;
@@ -21,45 +20,25 @@ interface UIActions {
   toggleSidebar: () => void;
 }
 
-export const createUIStore = () =>
-  create<UIState & UIActions>()(
-    immer((set) => ({
-      isLoading: false,
-      error: null,
-      isModalOpen: false,
-      modalContent: null,
-      theme: "light",
-      sidebarOpen: false,
-      isLegendOpen: true,
-      setLoading: (isLoading) =>
-        set((state) => {
-          state.isLoading = isLoading;
-        }),
-      setIsLegendOpen: (isLegendOpen) =>
-        set((state) => {
-          state.isLegendOpen = isLegendOpen;
-        }),
-      setError: (error) =>
-        set((state) => {
-          state.error = error;
-        }),
-      openModal: (content) =>
-        set((state) => {
-          state.isModalOpen = true;
-          state.modalContent = content;
-        }),
-      closeModal: () =>
-        set((state) => {
-          state.isModalOpen = false;
-          state.modalContent = null;
-        }),
-      toggleSidebar: () =>
-        set((state) => {
-          state.sidebarOpen = !state.sidebarOpen;
-        }),
-      toggleTheme: () =>
-        set((state) => {
-          state.theme = state.theme === "light" ? "dark" : "light";
-        }),
-    }))
-  );
+export type UIStore = UIState & UIActions;
+
+export const createUIStore = (initState: Partial<UIStore> = {}) => {
+  return createStore<UIStore>()((set) => ({
+    isLoading: false,
+    error: null,
+    isModalOpen: false,
+    modalContent: null,
+    theme: "light",
+    sidebarOpen: false,
+    isLegendOpen: true,
+    ...initState,
+    setLoading: (isLoading) => set({ isLoading }),
+    setIsLegendOpen: (isLegendOpen) => set({ isLegendOpen }),
+    setError: (error) => set({ error }),
+    openModal: (content) => set({ isModalOpen: true, modalContent: content }),
+    closeModal: () => set({ isModalOpen: false, modalContent: null }),
+    toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+    toggleTheme: () =>
+      set((state) => ({ theme: state.theme === "light" ? "dark" : "light" })),
+  }));
+};

@@ -40,12 +40,11 @@ export const AttributesGuessList: React.FC<AttributesGuessListProps> = ({
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
-        <div className="grid grid-cols-7 gap-2 ">
+        <div className="grid grid-cols-6 gap-2 ">
           {[
             "KOL",
             "Age",
             "Country",
-            "Pfp",
             "Account creation",
             "Followers",
             "Ecosystem",
@@ -72,6 +71,7 @@ function TableItem({ guess }: TableItemProps) {
     <>
       <Cell result={result[0]} className="bg-transparent p-0 m-0">
         <Image
+          unoptimized
           src={kol.pfp || "/user-icon.svg"}
           alt="user"
           width={40}
@@ -85,9 +85,7 @@ function TableItem({ guess }: TableItemProps) {
       <Cell result={result[2]}>
         <span className={cellTextStyle}>{kol.country}</span>
       </Cell>
-      <Cell result={result[3]}>
-        <span className={cellTextStyle}>{kol.pfp}</span>
-      </Cell>
+
       <Cell result={result[4]}>
         <span className={cellTextStyle}>{kol.accountCreation}</span>
       </Cell>

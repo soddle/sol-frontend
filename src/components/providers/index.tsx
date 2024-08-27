@@ -2,15 +2,18 @@
 import * as React from "react";
 import { SolanaProviders } from "./solana-providers";
 import { Toaster } from "sonner";
-import { RootStoreProvider } from "@/stores/storeProvider";
+import { UIStoreProvider } from "./uiStoreProvider";
+import { GameStoreProvider } from "./gameStoreProvider";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SolanaProviders>
-      <RootStoreProvider>
-        {children}
-        <Toaster />
-      </RootStoreProvider>
+      <UIStoreProvider>
+        <GameStoreProvider>
+          <Toaster />
+          {children}
+        </GameStoreProvider>
+      </UIStoreProvider>
     </SolanaProviders>
   );
 }

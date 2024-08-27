@@ -15,8 +15,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { fetchRandomKOL } from "@/lib/fns/fetchers";
 import TweetQuestionBoxWrapper from "./_components/tweet-question-box-wrapper";
 import { useGameSession } from "@/hooks/useGameSession";
-import { useRootStore } from "@/stores/rootStore";
 import Link from "next/link";
+import { useUIStore } from "@/components/providers/uiStoreProvider";
 
 export default function GameIdPageClient({
   gameId,
@@ -28,10 +28,12 @@ export default function GameIdPageClient({
   const router = useRouter();
   const { wallet } = useWallet();
   const { fetchGameSession, makeGuess, gameSession } = useGameSession();
-  const { ui } = useRootStore();
   const [randomizedKol, setRandomizedKol] = useState<KolWithTweets | null>(
     null
   );
+  const isLegendOpen = useUIStore((state) => state.isLegendOpen);
+  const setLoading = useUIStore((state) => state.setLoading);
+  const setError = useUIStore((state) => state.setError);
 
   useEffect(() => {
     if (!wallet) {
@@ -40,7 +42,7 @@ export default function GameIdPageClient({
     }
 
     fetchGameSession(wallet.adapter.publicKey!);
-  }, [wallet, router]);
+  }, [wallet, router, fetchGameSession]);
 
   useEffect(() => {
     async function getRandomKol() {
@@ -53,16 +55,16 @@ export default function GameIdPageClient({
 
   const handleSelect = async (kol: KOL) => {
     try {
-      ui.setLoading(true);
+      setLoading(true);
       if (gameId && kol) {
         await makeGuess(gameId, kol);
         return;
       }
     } catch (error) {
       toast.error("Error making guess");
-      ui.setError("Error making guess");
+      setError("Error making guess");
     } finally {
-      ui.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -91,7 +93,7 @@ export default function GameIdPageClient({
           <section className=" text-white flex flex-col justify-between items-center">
             <h1 className="text-2xl font-bold text-center">
               {gameId === GameType.Attributes
-                ? "Guess today’s personality!"
+                ? "Guess today's personality!"
                 : gameId === GameType.Tweets
                 ? "Who published that tweet?"
                 : "Which personalities do these emojis describe?"}
@@ -134,7 +136,7 @@ export default function GameIdPageClient({
         </section>
       )}
       {/* Legends */}
-      {ui.isLegendOpen && (
+      {isLegendOpen && (
         <Container>
           <>
             <Legend />

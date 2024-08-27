@@ -1,4 +1,4 @@
-import { useUIStore } from "@/stores/uiStore";
+import { useUIStore } from "@/components/providers/uiStoreProvider";
 import React from "react";
 
 enum LegendBoxType {
@@ -30,7 +30,8 @@ const LegendItem: React.FC<LegendItemProps> = ({ type, color, icon }) => (
 interface LegendProps {}
 
 const Legend: React.FC<LegendProps> = () => {
-  const { isLegendOpen, setIsLegendOpen } = useUIStore();
+  const isLegendOpen = useUIStore((state) => state.isLegendOpen);
+  const setIsLegendOpen = useUIStore((state) => state.setIsLegendOpen);
 
   const items: LegendItemProps[] = [
     { type: LegendBoxType.Correct, color: "#0DBF2E" },
