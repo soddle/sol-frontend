@@ -85,6 +85,8 @@ export default function GameIdPageClient({
       setLoading(true);
       if (gameId && kol) {
         await makeGuess(gameId, kol);
+        const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
+        setGameSession(gameSession);
         return;
       }
     } catch (error) {

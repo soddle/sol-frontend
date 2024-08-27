@@ -126,7 +126,6 @@ export const useGameSession = () => {
           })
           .rpc();
 
-        // await fetchGameSession(wallet?.adapter.publicKey!);
         toast.success("Guess made successfully");
       } catch (err) {
         console.error("Error making guess:", err);
