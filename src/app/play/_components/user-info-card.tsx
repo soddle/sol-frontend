@@ -4,11 +4,23 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState } from "react";
 import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEclipseCluster } from "@/hooks/useEclipseCluster";
+import { WalletIcon } from "@heroicons/react/24/outline";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 export default function UserInfoCard() {
   const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
   const [balance, setBalance] = useState<number | null>(null);
   const { endpoint, cluster } = useEclipseCluster();
+
+  const { setVisible } = useWalletModal();
+
+  const handleConnectWallet = () => {
+    if (connected) {
+      disconnect();
+    } else {
+      setVisible(true);
+    }
+  };
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -28,7 +40,7 @@ export default function UserInfoCard() {
   }, [publicKey, endpoint]);
 
   if (!connected && connecting) return <Skeleton />;
-  if (!wallet) return <div className="h-10 w-full">No wallet connected</div>;
+  if (!wallet) return <NoWallet handleConnectWallet={handleConnectWallet} />;
 
   return (
     <div
@@ -76,6 +88,35 @@ export default function UserInfoCard() {
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function NoWallet({
+  handleConnectWallet,
+}: {
+  handleConnectWallet: () => void;
+}) {
+  return (
+    <div
+      className="p-5 grid gap-3 border-[#03B500] border text-white bg-[#111411] items-center"
+      style={{
+        clipPath: "polygon(5% 0%, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%)",
+      }}
+    >
+      <div className="flex items-center">
+        <WalletIcon className="w-8 h-8 mr-2 text-[#03B500]" />
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">
+          No Wallet Connected
+        </p>
+      </div>
+      <button
+        className="bg-[#03B500] text-white py-2 px-4 rounded-md hover:bg-[#029400] transition-colors duration-200 text-sm sm:text-base flex items-center justify-center"
+        onClick={handleConnectWallet}
+      >
+        <WalletIcon className="w-5 h-5 mr-2" />
+        Connect Wallet
+      </button>
     </div>
   );
 }

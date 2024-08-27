@@ -15,10 +15,11 @@ import { useRootStore } from "@/stores/storeProvider";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
-  const { startGameSession } = useGameSession();
+  const { startGameSession, fetchGameSession } = useGameSession();
   const { ui, game } = useRootStore();
   const setLoading = ui((state) => state.setLoading);
   const setCurrentGameType = game((state) => state.setCurrentGameType);
+  const setGameSession = game((state) => state.setGameSession);
   const router = useRouter();
 
   const handleStartGameSession = async (gameType: GameType, kol: KOL) => {
@@ -27,15 +28,19 @@ export default function GamePlayPageClient() {
       if (!wallet) {
         throw new Error("Please connect your wallet");
       }
+      const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
+      if (gameSession && gameSession.gameType === gameType) {
+        setGameSession(gameSession);
+        setCurrentGameType(gameType);
+        router.push(`/play/${gameType}`);
+        return;
+      }
 
       await startGameSession(gameType, kol);
       setCurrentGameType(gameType);
       router.push(`/play/${gameType}`);
     } catch (error) {
-      console.error("Error  GameSession", error);
-      toast.error(
-        "An error occurred while starting the game. Please try again."
-      );
+      toast.error((error as Error).message);
     } finally {
       setLoading(false);
     }
