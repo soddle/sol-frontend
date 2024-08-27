@@ -1,7 +1,9 @@
-import { AttributeResult, Game1GuessResult } from "@/lib/types/idl-types";
+import { useGameSession } from "@/hooks/useGameSession";
+import { AttributeResult, Game1GuessResult, KOL } from "@/lib/types/idl-types";
 import Image from "next/image";
-import React from "react";
-
+import React, { useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useRootStore } from "@/stores/storeProvider";
 interface AttributesGuessListProps {
   guess1Results: Game1GuessResult[];
 }
@@ -13,18 +15,32 @@ const cellTextStyle = "text-xs sm:text-sm md:text-base truncate";
 interface CellProps {
   children: React.ReactNode;
   attributeResult: AttributeResult;
+  targetKol: KOL;
+  guessKol: KOL;
   className?: string;
 }
 
 const Cell: React.FC<CellProps> = ({
   children,
   attributeResult,
+  targetKol,
+  guessKol,
   className,
 }) => {
+  const targetKolId = targetKol.id;
+  const guessKolId = guessKol.id;
   return (
     <div
       className={`${cellStyle} ${
-        attributeResult === "correct" ? "bg-green-500" : "bg-red-500"
+        attributeResult === "correct"
+          ? "bg-green-500"
+          : attributeResult === "incorrect"
+          ? "bg-red-500"
+          : attributeResult === "higher"
+          ? "bg-red-500"
+          : attributeResult === "lower"
+          ? "bg-red-500"
+          : "bg-yellow-500"
       } ${className}`}
     >
       <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
@@ -71,7 +87,28 @@ interface TableItemProps {
 }
 
 function TableItem({ guess1Result }: TableItemProps) {
-  const { kol, result } = guess1Result;
+  const { wallet } = useWallet();
+  const { fetchGameSession } = useGameSession();
+  const { game } = useRootStore();
+  const setGameSession = game((state) => state.setGameSession);
+  const gameSession = game((state) => state.gameSession);
+
+  useEffect(() => {
+    async function fetchGSession() {
+      if (wallet?.adapter?.publicKey) {
+        const gameSession = await fetchGameSession(wallet.adapter.publicKey);
+        if (gameSession) {
+          setGameSession(gameSession);
+        }
+      }
+    }
+    fetchGSession();
+  }, []);
+
+  const { kol: guessKol, result } = guess1Result;
+  const targetKol = gameSession?.kol;
+  if (!targetKol) return null;
+
   const attributesResults = result.map(
     (obj) => Object.keys(obj)[0]
   ) as AttributeResult[];
@@ -79,33 +116,58 @@ function TableItem({ guess1Result }: TableItemProps) {
   return (
     <>
       <Cell
+        targetKol={targetKol}
+        guessKol={guessKol}
         attributeResult={attributesResults[0]}
         className="bg-transparent p-0 m-0"
       >
         <Image
           unoptimized
-          src={kol.pfp || "/user-icon.svg"}
+          src={guessKol.pfp || "/user-icon.svg"}
+          className="rounded-full"
           alt="user"
           width={40}
           height={20}
           objectFit="cover"
         />
       </Cell>
-      <Cell attributeResult={attributesResults[1]}>
-        <span className={cellTextStyle}>{kol.age}</span>
+      <Cell
+        attributeResult={attributesResults[1]}
+        guessKol={guessKol}
+        targetKol={targetKol}
+      >
+        <span className={cellTextStyle}>{targetKol.age}</span>
       </Cell>
-      <Cell attributeResult={attributesResults[2]}>
-        <span className={cellTextStyle}>{kol.country}</span>
+      <Cell
+        attributeResult={attributesResults[2]}
+        guessKol={guessKol}
+        targetKol={targetKol}
+      >
+        <span className={cellTextStyle}>{targetKol.country}</span>
       </Cell>
 
-      <Cell attributeResult={attributesResults[3]}>
-        <span className={cellTextStyle}>{kol.accountCreation}</span>
+      <Cell
+        attributeResult={attributesResults[3]}
+        guessKol={guessKol}
+        targetKol={targetKol}
+      >
+        <span className={cellTextStyle}>{targetKol.accountCreation}</span>
       </Cell>
-      <Cell attributeResult={attributesResults[4]}>
-        <span className={cellTextStyle}>{formatCount(kol.followers)}</span>
+      <Cell
+        attributeResult={attributesResults[4]}
+        guessKol={guessKol}
+        targetKol={targetKol}
+      >
+        <span className={cellTextStyle}>
+          {formatCount(targetKol.followers)}
+        </span>
       </Cell>
-      <Cell attributeResult={attributesResults[5]}>
-        <span className={cellTextStyle}>{kol.ecosystem}</span>
+      <Cell
+        attributeResult={attributesResults[5]}
+        guessKol={guessKol}
+        targetKol={targetKol}
+      >
+        <span className={cellTextStyle}>{targetKol.ecosystem}</span>
       </Cell>
     </>
   );
