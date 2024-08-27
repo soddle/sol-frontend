@@ -26,7 +26,7 @@ export const createUIStore = () =>
     immer((set) => ({
       isLoading: false,
       error: null,
-      isModalOpen: true,
+      isModalOpen: false,
       modalContent: null,
       theme: "light",
       sidebarOpen: false,

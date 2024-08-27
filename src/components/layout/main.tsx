@@ -7,6 +7,7 @@ import Header from "./header";
 import Spinner from "../spinner";
 import { useGameState } from "@/hooks/useGameState";
 import { useRootStore } from "@/stores/storeProvider";
+import PopUpWindow from "../pop-up-window";
 
 export function MainLayout({ children }: { children: ReactNode }) {
   const { ui, game } = useRootStore();
@@ -36,12 +37,9 @@ export function MainLayout({ children }: { children: ReactNode }) {
         </div>
       )}
       {isModalOpen && (
-        <PopUpWindowBg>{`hello world
-      
-      
-      
-      
-      sample!!!!!!!!!!!!!!!`}</PopUpWindowBg>
+        <PopUpWindowBg>
+          <PopUpWindow />
+        </PopUpWindowBg>
       )}
       <div className="min-h-screen flex flex-col text-white">
         <Header />
@@ -56,9 +54,8 @@ export function PopUpWindowBg({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50">
       <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-      <div className="relative bg-[#111411] border border-[#2A342A] p-6 rounded-lg max-w-md w-full">
-        {children}
-      </div>
+      {/* <div className="relative bg-[#111411] border border-[#2A342A] p-6 rounded-lg max-w-md w-full"> */}
+      <div className="relative p-6 max-w-md w-full">{children}</div>
     </div>
   );
 }

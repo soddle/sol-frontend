@@ -31,19 +31,31 @@ export default function GameIdPageClient({
   const [randomizedKol, setRandomizedKol] = useState<KolWithTweets | null>(
     null
   );
-  const { ui } = useRootStore();
+  const { ui, game } = useRootStore();
   const isLegendOpen = ui((state) => state.isLegendOpen);
   const setLoading = ui((state) => state.setLoading);
   const setError = ui((state) => state.setError);
+  const setGameSession = game((state) => state.setGameSession);
 
   useEffect(() => {
     if (!wallet) {
       router.push("/");
       return;
     }
+  }, [wallet, router]);
 
-    fetchGameSession(wallet.adapter.publicKey!);
-  }, [wallet, router, fetchGameSession]);
+  useEffect(() => {
+    async function getGameSession() {
+      const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
+      setGameSession(gameSession);
+    }
+    try {
+      getGameSession();
+    } catch (error) {
+      toast.error("Error fetching game session");
+      setError("Error fetching game session");
+    }
+  }, [gameSession]);
 
   useEffect(() => {
     async function getRandomKol() {
