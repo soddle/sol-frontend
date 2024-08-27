@@ -104,6 +104,7 @@ export type KOL = {
   followers: number;
   ecosystem: string;
 };
+export type KolWithTweets = KOL & { tweets: string[] };
 
 export type Player = {
   game1Completed: boolean;

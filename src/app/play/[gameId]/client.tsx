@@ -5,6 +5,7 @@ import {
   Game2GuessResult,
   KOL,
   Game3GuessResult,
+  KolWithTweets,
 } from "@/lib/types/idl-types";
 import SearchBar from "./_components/search-bar";
 import { GameType } from "@/lib/constants";
@@ -22,8 +23,7 @@ import TweetQuestionBoxWrapper from "./_components/tweet-question-box-wrapper";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
 
-type KolWithTweets = KOL & { tweets: string[] };
-type KolWithEmojis = KOL & { emojis: string[] };
+// type KolWithEmojis = KOL & { emojis: string[] };
 export default function GameIdPageClient({
   gameId,
   kols,
