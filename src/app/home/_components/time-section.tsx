@@ -1,6 +1,6 @@
 "use client";
-import { memo } from "react";
-import { useCountdown } from "@/hooks/useCountdown";
+import { memo, useState, useEffect, useMemo } from "react";
+import { useRootStore } from "@/stores/storeProvider";
 import { useGameState } from "@/hooks/useGameState";
 
 export default function TimeSection() {
@@ -22,14 +22,10 @@ export default function TimeSection() {
 }
 
 interface TimeProps {
-  time: {
-    hours: string;
-    minutes: string;
-    seconds: string;
-  };
+  time: { hours: string; minutes: string; seconds: string };
 }
 
-const GlowingTime: React.FC<TimeProps> = memo(({ time }) => {
+const GlowingTime: React.FC<TimeProps> = ({ time }) => {
   const { hours, minutes, seconds } = time;
   const glowingStyle = `
     text-white 
@@ -49,17 +45,54 @@ const GlowingTime: React.FC<TimeProps> = memo(({ time }) => {
       </span>
     </div>
   );
-});
+};
 
 GlowingTime.displayName = "GlowingTime";
 
 const DynamicGlowingTime = () => {
-  const { gameState } = useGameState();
-  const timeRemaining = useCountdown(gameState!);
+  const { game } = useRootStore();
+  const gameState = game((state) => state.gameState);
+  const { fetchGameState } = useGameState();
 
-  if (!gameState) {
-    return null; // Or any loading indicator if you prefer
-  }
+  const endTime = useMemo(() => {
+    return Date.now() + 1000 * 60 * 60 * 24;
+  }, [gameState]);
 
-  return <GlowingTime time={timeRemaining} />;
+  const [timeLeft, setTimeLeft] = useState({
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+  });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = endTime - Date.now();
+
+      if (difference <= 0) {
+        return { hours: "00", minutes: "00", seconds: "00" };
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      return {
+        hours: hours.toString().padStart(2, "0"),
+        minutes: minutes.toString().padStart(2, "0"),
+        seconds: seconds.toString().padStart(2, "0"),
+      };
+    };
+
+    const updateTimer = () => {
+      setTimeLeft(calculateTimeLeft());
+    };
+
+    updateTimer(); // Initial call
+
+    const timer = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(timer);
+  }, [endTime]);
+
+  return <GlowingTime time={timeLeft} />;
 };
