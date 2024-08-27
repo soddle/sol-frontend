@@ -1,6 +1,6 @@
 "use client";
 import * as anchor from "@coral-xyz/anchor";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 
 import { useRootStore } from "@/stores/storeProvider";
@@ -39,8 +39,6 @@ export const useSoddleProgram = () => {
 };
 
 export const useGameState = () => {
-  const { game } = useRootStore();
-  const [gameState, setGameState] = useState<GameState | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const getProgram = useSoddleProgram();
@@ -49,7 +47,6 @@ export const useGameState = () => {
     try {
       setLoading(true);
       const program = getProgram();
-      console.log("program in fetchGameState:", program);
 
       if (program) {
         const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
@@ -61,7 +58,7 @@ export const useGameState = () => {
         const gameStateAccount = await program.account.gameState.fetch(
           gameStatePDA
         );
-        console.log("fetched gameStateAccount", gameStateAccount);
+
         if (gameStateAccount) {
           return gameStateAccount as GameState;
         } else {
@@ -78,7 +75,6 @@ export const useGameState = () => {
 
   const initializeGame = useCallback(async () => {
     const program = getProgram();
-    // console.log("program in initializeGame:", program);
 
     if (!program) {
       setError("Program not initialized");
@@ -126,7 +122,6 @@ export const useGameState = () => {
   }, [fetchGameState]);
 
   return {
-    gameState,
     loading,
     error,
     fetchGameState,
@@ -134,3 +129,73 @@ export const useGameState = () => {
     endCompetition,
   };
 };
+
+// {
+//   "player": "DWcQ72YcxVN783QVeLHeLoegELtjEdudEvdiTuBuM1Tm",
+//   "gameType": 1,
+//   "startTime": "66cda7ae",
+//   "game1Completed": false,
+//   "game2Completed": false,
+//   "game3Completed": false,
+//   "game1Score": 0,
+//   "game2Score": 0,
+//   "game3Score": 0,
+//   "game1GuessesCount": 1,
+//   "game2GuessesCount": 0,
+//   "game3GuessesCount": 0,
+//   "totalScore": 0,
+//   "targetIndex": 8,
+//   "game1Guesses": [
+//       {
+//           "kol": {
+//               "id": "66c7dbc1d484e54c72d24072",
+//               "name": "Jim Cramer",
+//               "age": 65,
+//               "country": "USA",
+//               "accountCreation": 2008,
+//               "pfp": "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/dvdlkrxcwav3xmvmkmdu",
+//               "followers": 2000000,
+//               "ecosystem": "Reporter"
+//           },
+//           "result": [
+//               {
+//                   "incorrect": {}
+//               },
+//               {
+//                   "lower": {}
+//               },
+//               {
+//                   "incorrect": {}
+//               },
+//               {
+//                   "incorrect": {}
+//               },
+//               {
+//                   "higher": {}
+//               },
+//               {
+//                   "higher": {}
+//               },
+//               {
+//                   "incorrect": {}
+//               }
+//           ]
+//       }
+//   ],
+//   "game2Guesses": [],
+//   "game3Guesses": [],
+//   "completed": false,,
+//   "score": 0,
+//   "deposit": "0f4240",
+//   "kol": {
+//       "id": "vitalikbuterin",
+//       "name": "Vitalik Buterin",
+//       "age": 25,
+//       "country": "Russia",
+//       "accountCreation": 2011,
+//       "pfp": "/images/vitalik.png",
+//       "followers": 5000000,
+//       "ecosystem": "Chain Founder"
+//   },
+//   "competitionId": "COMP51893"
+// }

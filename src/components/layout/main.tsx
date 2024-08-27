@@ -17,17 +17,15 @@ export function MainLayout({ children }: { children: ReactNode }) {
   const { fetchGameState } = useGameState();
 
   React.useEffect(() => {
-    async function fetchGState() {
+    const fetchGState = async () => {
       const gameState = await fetchGameState();
-      console.log("gameState in main.tsx component", gameState);
       if (gameState) {
         console.log("setting game state in main.tsx component");
-        console.log(gameState);
         setGameState(gameState);
       }
-    }
+    };
     fetchGState();
-  }, [fetchGameState]);
+  }, [fetchGameState, setGameState]);
 
   return (
     <>

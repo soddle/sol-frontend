@@ -1,30 +1,36 @@
-import { GuessResult, KOL, AttributeResult } from "@/lib/types/idl-types";
+import { AttributeResult, Game1GuessResult } from "@/lib/types/idl-types";
 import Image from "next/image";
 import React from "react";
 
 interface AttributesGuessListProps {
-  guessResults: GuessResult[];
+  guess1Results: Game1GuessResult[];
 }
 
-const cellStyle = "p-2  overflow-hidden";
+const cellStyle = "p-2 overflow-hidden";
 const cellContentStyle = "w-full h-full flex items-center justify-center";
 const cellTextStyle = "text-xs sm:text-sm md:text-base truncate";
 
 interface CellProps {
   children: React.ReactNode;
-  result: AttributeResult;
+  attributeResult: AttributeResult;
   className?: string;
 }
 
-const Cell: React.FC<CellProps> = ({ children, result, className }) => (
-  <div
-    className={`${cellStyle} ${
-      Math.random() > 0.5 ? "bg-green-500" : "bg-red-500"
-    } ${className}`}
-  >
-    <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
-  </div>
-);
+const Cell: React.FC<CellProps> = ({
+  children,
+  attributeResult,
+  className,
+}) => {
+  return (
+    <div
+      className={`${cellStyle} ${
+        Math.random() > 0.5 ? "bg-green-500" : "bg-red-500"
+      } ${className}`}
+    >
+      <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
+    </div>
+  );
+};
 
 const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className={`${cellStyle} `}>
@@ -34,8 +40,8 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
-export const AttributesGuessList: React.FC<AttributesGuessListProps> = ({
-  guessResults,
+export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
+  guess1Results,
 }) => {
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
@@ -51,8 +57,8 @@ export const AttributesGuessList: React.FC<AttributesGuessListProps> = ({
           ].map((header) => (
             <HeaderCell key={header}>{header}</HeaderCell>
           ))}
-          {guessResults.map((guess) => (
-            <TableItem key={guess.kol.id} guess={guess} />
+          {guess1Results.map((guess1Result) => (
+            <TableItem key={guess1Result.kol.id} guess1Result={guess1Result} />
           ))}
         </div>
       </div>
@@ -61,15 +67,21 @@ export const AttributesGuessList: React.FC<AttributesGuessListProps> = ({
 };
 
 interface TableItemProps {
-  guess: GuessResult;
+  guess1Result: Game1GuessResult;
 }
 
-function TableItem({ guess }: TableItemProps) {
-  const { kol, result } = guess;
+function TableItem({ guess1Result }: TableItemProps) {
+  const { kol, result } = guess1Result;
+  const attributesResults = result.map(
+    (obj) => Object.keys(obj)[0]
+  ) as AttributeResult[];
 
   return (
     <>
-      <Cell result={result[0]} className="bg-transparent p-0 m-0">
+      <Cell
+        attributeResult={attributesResults[0]}
+        className="bg-transparent p-0 m-0"
+      >
         <Image
           unoptimized
           src={kol.pfp || "/user-icon.svg"}
@@ -79,20 +91,20 @@ function TableItem({ guess }: TableItemProps) {
           objectFit="cover"
         />
       </Cell>
-      <Cell result={result[1]}>
+      <Cell attributeResult={attributesResults[1]}>
         <span className={cellTextStyle}>{kol.age}</span>
       </Cell>
-      <Cell result={result[2]}>
+      <Cell attributeResult={attributesResults[2]}>
         <span className={cellTextStyle}>{kol.country}</span>
       </Cell>
 
-      <Cell result={result[4]}>
+      <Cell attributeResult={attributesResults[3]}>
         <span className={cellTextStyle}>{kol.accountCreation}</span>
       </Cell>
-      <Cell result={result[5]}>
+      <Cell attributeResult={attributesResults[4]}>
         <span className={cellTextStyle}>{formatCount(kol.followers)}</span>
       </Cell>
-      <Cell result={result[6]}>
+      <Cell attributeResult={attributesResults[5]}>
         <span className={cellTextStyle}>{kol.ecosystem}</span>
       </Cell>
     </>

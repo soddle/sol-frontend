@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/soddle_game.json`.
  */
 export type SoddleGame = {
-  "address": "CZ4bJsRfjT7vsQpi6dGenbyP1JksLVs82zM68ReiNv43",
+  "address": "Ap1cCCM1qUTY75vrqssbQ572RHfUTrWrwmjEqNhxwkqv",
   "metadata": {
     "name": "soddleGame",
     "version": "0.1.0",
@@ -473,6 +473,55 @@ export type SoddleGame = {
       }
     },
     {
+      "name": "game1GuessResult",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kol",
+            "type": {
+              "defined": {
+                "name": "kol"
+              }
+            }
+          },
+          {
+            "name": "result",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "attributeResult"
+                  }
+                },
+                7
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "game2GuessResult",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kol",
+            "type": {
+              "defined": {
+                "name": "kol"
+              }
+            }
+          },
+          {
+            "name": "result",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
       "name": "gameSession",
       "type": {
         "kind": "struct",
@@ -514,15 +563,15 @@ export type SoddleGame = {
             "type": "u32"
           },
           {
-            "name": "game1Guesses",
+            "name": "game1GuessesCount",
             "type": "u32"
           },
           {
-            "name": "game2Guesses",
+            "name": "game2GuessesCount",
             "type": "u32"
           },
           {
-            "name": "game3Guesses",
+            "name": "game3GuessesCount",
             "type": "u32"
           },
           {
@@ -534,11 +583,31 @@ export type SoddleGame = {
             "type": "u8"
           },
           {
-            "name": "guesses",
+            "name": "game1Guesses",
             "type": {
               "vec": {
                 "defined": {
-                  "name": "guessResult"
+                  "name": "game1GuessResult"
+                }
+              }
+            }
+          },
+          {
+            "name": "game2Guesses",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "game2GuessResult"
+                }
+              }
+            }
+          },
+          {
+            "name": "game3Guesses",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "game1GuessResult"
                 }
               }
             }
@@ -586,35 +655,6 @@ export type SoddleGame = {
           {
             "name": "lastUpdateTime",
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "guessResult",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "kol",
-            "type": {
-              "defined": {
-                "name": "kol"
-              }
-            }
-          },
-          {
-            "name": "result",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "attributeResult"
-                  }
-                },
-                7
-              ]
-            }
           }
         ]
       }

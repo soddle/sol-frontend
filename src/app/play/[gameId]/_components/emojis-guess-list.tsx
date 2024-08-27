@@ -1,18 +1,37 @@
 import React from "react";
-import { GuessResult } from "@/lib/types/idl-types";
+import { Game3GuessResult } from "@/lib/types/idl-types";
+import Image from "next/image";
+
 interface EmojisGuessListProps {
-  guessResults: GuessResult[];
+  guess3Results: Game3GuessResult[];
 }
 
 export const EmojisGuessList: React.FC<EmojisGuessListProps> = ({
-  guessResults,
+  guess3Results,
 }) => {
   return (
-    <div>
-      <h2>Guessed Kols (Emojis)</h2>
-      {guessResults.map((guess) => (
-        <div key={guess.kol.name}>{guess.kol.name}</div>
+    <ul className="flex flex-col gap-2">
+      {guess3Results.map((guessResult) => (
+        <ListItem key={guessResult.kol.id} guessResult={guessResult} />
       ))}
-    </div>
+    </ul>
   );
 };
+
+function ListItem({ guessResult }: { guessResult: Game3GuessResult }) {
+  return (
+    <li
+      className={`bg-${
+        guessResult.result ? "green" : "red"
+      }-500  py-4 px-2 text-white flex items-center gap-2 justify-center`}
+    >
+      <Image
+        src={guessResult.kol.pfp || "/user-icon.svg"}
+        alt={guessResult.kol.name}
+        width={40}
+        height={40}
+      />
+      <p>{guessResult.kol.name}</p>
+    </li>
+  );
+}

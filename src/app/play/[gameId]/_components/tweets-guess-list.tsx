@@ -1,33 +1,28 @@
-import { GuessResult } from "@/lib/types/idl-types";
+import { Game2GuessResult } from "@/lib/types/idl-types";
 import Image from "next/image";
 import React from "react";
 
 interface TweetsGuessListProps {
-  guessResults: GuessResult[];
+  guess2Results: Game2GuessResult[];
 }
 
 export const TweetsGuessList: React.FC<TweetsGuessListProps> = ({
-  guessResults,
+  guess2Results,
 }) => {
   return (
     <ul className="flex flex-col gap-2">
-      {guessResults.map((guessResult) => (
+      {guess2Results.map((guessResult) => (
         <ListItem key={guessResult.kol.id} guessResult={guessResult} />
       ))}
     </ul>
   );
 };
 
-function ListItem({ guessResult }: { guessResult: GuessResult }) {
-  const isCorrect = guessResult.result.every((r) => {
-    console.log(r);
-    return Math.random() > 0.5;
-  });
-
+function ListItem({ guessResult }: { guessResult: Game2GuessResult }) {
   return (
     <li
       className={`bg-${
-        isCorrect ? "green" : "red"
+        guessResult.result ? "green" : "red"
       }-500  py-4 px-2 text-white flex items-center gap-2 justify-center`}
     >
       <Image

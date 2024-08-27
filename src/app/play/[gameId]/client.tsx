@@ -1,11 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { GuessResult, KOL, KolWithTweets } from "@/lib/types/idl-types";
+import {
+  Game1GuessResult,
+  Game2GuessResult,
+  KOL,
+  Game3GuessResult,
+} from "@/lib/types/idl-types";
 import SearchBar from "./_components/search-bar";
 import { GameType } from "@/lib/constants";
 import TimerDisplay from "./_components/time-display";
 import Container from "@/components/layout/container";
-import { AttributesGuessList } from "./_components/attributes-guess-list";
+import { AttributesGuessListTable } from "./_components/attributes-guess-list";
 import { TweetsGuessList } from "./_components/tweets-guess-list";
 import { EmojisGuessList } from "./_components/emojis-guess-list";
 import Legend from "./_components/legends";
@@ -15,9 +20,10 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { fetchRandomKOL } from "@/lib/fns/fetchers";
 import TweetQuestionBoxWrapper from "./_components/tweet-question-box-wrapper";
 import { useGameSession } from "@/hooks/useGameSession";
-import Link from "next/link";
 import { useRootStore } from "@/stores/storeProvider";
 
+type KolWithTweets = KOL & { tweets: string[] };
+type KolWithEmojis = KOL & { emojis: string[] };
 export default function GameIdPageClient({
   gameId,
   kols,
@@ -27,7 +33,7 @@ export default function GameIdPageClient({
 }) {
   const router = useRouter();
   const { wallet } = useWallet();
-  const { fetchGameSession, makeGuess, gameSession } = useGameSession();
+  const { fetchGameSession, makeGuess } = useGameSession();
   const [randomizedKol, setRandomizedKol] = useState<KolWithTweets | null>(
     null
   );
@@ -36,6 +42,7 @@ export default function GameIdPageClient({
   const setLoading = ui((state) => state.setLoading);
   const setError = ui((state) => state.setError);
   const setGameSession = game((state) => state.setGameSession);
+  const gameSession = game((state) => state.gameSession);
 
   useEffect(() => {
     if (!wallet) {
@@ -47,17 +54,24 @@ export default function GameIdPageClient({
   useEffect(() => {
     async function getGameSession() {
       const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
-      setGameSession(gameSession);
+      console.log("gameSession [gameId] client ", gameSession);
+      if (gameSession) {
+        setGameSession(gameSession);
+      }
     }
     try {
+      setLoading(true);
       getGameSession();
     } catch (error) {
       toast.error("Error fetching game session");
       setError("Error fetching game session");
+    } finally {
+      setLoading(false);
     }
-  }, [gameSession]);
+  }, [wallet]);
 
   useEffect(() => {
+    if (!gameSession) return;
     async function getRandomKol() {
       const randKol = await fetchRandomKOL();
       setRandomizedKol(randKol);
@@ -81,16 +95,16 @@ export default function GameIdPageClient({
     }
   };
 
-  if (!gameSession) {
-    return (
-      <div className="text-white">
-        You are not in a game session. Start a new game{" "}
-        <Link href="/play" className="text-blue-500">
-          here
-        </Link>
-      </div>
-    );
-  }
+  // if (!gameSession) {
+  //   return (
+  //     <div className="text-white">
+  //       You are not in a game session. Start a new game{" "}
+  //       <Link href="/play" className="text-blue-500">
+  //         here
+  //       </Link>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="py-4 flex flex-col gap-4 ">
@@ -134,15 +148,27 @@ export default function GameIdPageClient({
       {
         <section className="text-white no-scrollbar">
           {gameId === GameType.Attributes ? (
-            <AttributesGuessList guessResults={gameSession.guesses} />
+            <AttributesGuessListTable
+              guess1Results={
+                gameSession?.game1Guesses as unknown as Game1GuessResult[]
+              }
+            />
           ) : gameId === GameType.Tweets ? (
             <Container>
-              <TweetsGuessList guessResults={gameSession.guesses} />
+              <TweetsGuessList
+                guess2Results={
+                  gameSession?.game2Guesses as unknown as Game2GuessResult[]
+                }
+              />
             </Container>
           ) : (
             gameId === GameType.Emojis && (
               <Container>
-                <EmojisGuessList guessResults={gameSession.guesses} />
+                <EmojisGuessList
+                  guess3Results={
+                    gameSession?.game3Guesses as unknown as Game3GuessResult[]
+                  }
+                />
               </Container>
             )
           )}

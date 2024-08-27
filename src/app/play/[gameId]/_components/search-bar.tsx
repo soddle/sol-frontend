@@ -102,9 +102,13 @@ function ListItem({
       className="hover:bg-[#2d3537] py-4 cursor-pointer flex items-center px-4"
     >
       <div className="w-12 h-12 relative mr-3 flex-shrink-0 border border-[#2FFF2B80] rounded-full overflow-hidden">
-        <image
-          href={kol.pfp || "/user-icon.svg"}
-          className="rounded-full   object-cover"
+        <Image
+          src={kol.pfp || "/user-icon.svg"}
+          unoptimized
+          alt="user"
+          width={40}
+          height={40}
+          className="rounded-full object-cover"
         />
       </div>
       <div className="flex items-center justify-center gap-2">
