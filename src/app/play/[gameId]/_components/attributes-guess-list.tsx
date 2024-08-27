@@ -24,7 +24,7 @@ const Cell: React.FC<CellProps> = ({
   return (
     <div
       className={`${cellStyle} ${
-        Math.random() > 0.5 ? "bg-green-500" : "bg-red-500"
+        attributeResult === "correct" ? "bg-green-500" : "bg-red-500"
       } ${className}`}
     >
       <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
