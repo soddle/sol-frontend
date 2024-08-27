@@ -1,8 +1,5 @@
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
-export const SODDLE_PROGRAM_ID = new PublicKey(
-  "9b4J9BTbBnKfrfZ7YC1WpArk1z9DgQuTEhWJtoBshz7w"
-);
 export const enum GameType {
   Attributes = 1,
   Tweets = 2,

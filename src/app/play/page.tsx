@@ -1,11 +1,3 @@
-import Spinner from "@/components/spinner";
-import dynamic from "next/dynamic";
-
-const GamePageClient = dynamic(() => import("./client"), {
-  ssr: false,
-  loading: () => <Spinner className="h-screen w-screen fixed top-0 left-0" />,
-});
-
-export default function GamePage() {
-  return <GamePageClient />;
+export default function PlayPage() {
+  return <div>PlayPage</div>;
 }

@@ -1,5 +1,5 @@
 {
-  "address": "9b4J9BTbBnKfrfZ7YC1WpArk1z9DgQuTEhWJtoBshz7w",
+  "address": "Ap1cCCM1qUTY75vrqssbQ572RHfUTrWrwmjEqNhxwkqv",
   "metadata": {
     "name": "soddle_game",
     "version": "0.1.0",
@@ -467,6 +467,55 @@
       }
     },
     {
+      "name": "Game1GuessResult",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kol",
+            "type": {
+              "defined": {
+                "name": "KOL"
+              }
+            }
+          },
+          {
+            "name": "result",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "AttributeResult"
+                  }
+                },
+                7
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Game2GuessResult",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kol",
+            "type": {
+              "defined": {
+                "name": "KOL"
+              }
+            }
+          },
+          {
+            "name": "result",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
       "name": "GameSession",
       "type": {
         "kind": "struct",
@@ -508,15 +557,15 @@
             "type": "u32"
           },
           {
-            "name": "game_1_guesses",
+            "name": "game_1_guesses_count",
             "type": "u32"
           },
           {
-            "name": "game_2_guesses",
+            "name": "game_2_guesses_count",
             "type": "u32"
           },
           {
-            "name": "game_3_guesses",
+            "name": "game_3_guesses_count",
             "type": "u32"
           },
           {
@@ -528,11 +577,31 @@
             "type": "u8"
           },
           {
-            "name": "guesses",
+            "name": "game_1_guesses",
             "type": {
               "vec": {
                 "defined": {
-                  "name": "GuessResult"
+                  "name": "Game1GuessResult"
+                }
+              }
+            }
+          },
+          {
+            "name": "game_2_guesses",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Game2GuessResult"
+                }
+              }
+            }
+          },
+          {
+            "name": "game_3_guesses",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Game1GuessResult"
                 }
               }
             }
@@ -580,35 +649,6 @@
           {
             "name": "last_update_time",
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "GuessResult",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "kol",
-            "type": {
-              "defined": {
-                "name": "KOL"
-              }
-            }
-          },
-          {
-            "name": "result",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "AttributeResult"
-                  }
-                },
-                7
-              ]
-            }
           }
         ]
       }
