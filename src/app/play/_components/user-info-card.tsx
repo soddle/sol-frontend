@@ -81,7 +81,30 @@ export default function UserInfoCard() {
 }
 
 function Skeleton() {
-  return <div className="h-10 w-full bg-green-500 animate-pulse"></div>;
+  return (
+    <div
+      className="p-5 grid gap-5 border-[#03B500] border bg-[#111411] relative overflow-hidden animate-pulse"
+      style={{
+        clipPath: "polygon(5% 0%, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%)",
+      }}
+    >
+      <div className="flex items-center">
+        <div className="w-10 h-10 bg-green-700 rounded-full mr-2"></div>
+        <div className="h-6 w-32 bg-green-700 rounded"></div>
+        <div className="ml-auto w-10 h-10 bg-green-700 rounded"></div>
+      </div>
+      <div className="flex gap-3">
+        <div className="flex items-center justify-center">
+          <div className="w-6 h-6 bg-green-700 rounded-full mr-2"></div>
+          <div className="h-4 w-8 bg-green-700 rounded"></div>
+        </div>
+        <div className="flex items-center justify-center">
+          <div className="h-8 w-20 bg-green-700 rounded mr-2"></div>
+          <div className="h-6 w-24 bg-green-700 rounded"></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function shortenAddress(address: string, chars = 4): string {

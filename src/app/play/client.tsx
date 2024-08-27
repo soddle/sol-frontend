@@ -13,7 +13,7 @@ import { useGameSession } from "@/hooks/useGameSession";
 import { useRouter } from "next/navigation";
 import { useRootStore } from "@/stores/storeProvider";
 
-export default function GameHome() {
+export default function GamePlayPageClient() {
   const { wallet } = useWallet();
   const { startGameSession } = useGameSession();
   const { ui, game } = useRootStore();

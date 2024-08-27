@@ -1,3 +1,5 @@
-export default function PlayPage() {
-  return <div>PlayPage</div>;
+import GamePlayPageClient from "./client";
+
+export default function GamePlayPage() {
+  return <GamePlayPageClient />;
 }
