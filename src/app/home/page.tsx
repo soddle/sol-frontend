@@ -28,12 +28,9 @@ export default function GameHome() {
         throw new Error("Please connect your wallet");
       }
 
-      const txSig = await startGameSession(gameType, kol);
-      console.log("txSig", txSig);
-      if (txSig) {
-        setCurrentGameType(gameType);
-        router.push(`/play/${gameType}`);
-      }
+      await startGameSession(gameType, kol);
+      setCurrentGameType(gameType);
+      router.push(`/play/${gameType}`);
     } catch (error) {
       console.error("Error  GameSession", error);
       toast.error(

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGameState } from "./useGameState";
 import { GameState } from "@/lib/types/idl-types";
+import * as anchor from "@coral-xyz/anchor";
 
 interface TimeRemaining {
   hours: string;
@@ -9,10 +10,18 @@ interface TimeRemaining {
 }
 
 export const useCountdown = (gameState: GameState): TimeRemaining => {
-  const endTime = gameState?.currentCompetition?.endTime;
-  const startTime = gameState?.currentCompetition?.startTime;
+  const endTime = gameState?.currentCompetition?.endTime as anchor.BN;
+  const startTime = gameState?.currentCompetition?.startTime as anchor.BN;
 
-  console.log(endTime, startTime);
+  console.log(
+    "competition end time: ",
+    new Date(endTime?.toString()).toLocaleString()
+  );
+  console.log(
+    "competition start time: ",
+    new Date(startTime?.toString()).toLocaleString()
+  );
+  console.log("current time: ", new Date().toLocaleString());
 
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>({
     hours: "00",

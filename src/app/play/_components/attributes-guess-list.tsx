@@ -6,7 +6,7 @@ interface AttributesGuessListProps {
   guesses: GuessResult[];
 }
 
-const cellStyle = "p-2  overflow-hidden";
+const cellStyle = "p-2 overflow-hidden";
 const cellContentStyle = "w-full h-full flex items-center justify-center";
 const cellTextStyle = "text-xs sm:text-sm md:text-base truncate";
 
@@ -16,16 +16,18 @@ interface CellProps {
   className?: string;
 }
 
-const Cell: React.FC<CellProps> = ({ children, result, className }) => (
-  <div
-    className={`${cellStyle} ${
-      // result.Correct ? "bg-green-500" : "bg-red-500"
-      "bg-gray-500"
-    } ${className}`}
-  >
-    <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
-  </div>
-);
+const Cell: React.FC<CellProps> = ({ children, result, className }) => {
+  return (
+    <div
+      className={`${cellStyle} ${
+        // result.Correct ? "bg-green-500" : "bg-red-500"
+        "bg-gray-500"
+      } ${className}`}
+    >
+      <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
+    </div>
+  );
+};
 
 const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className={`${cellStyle} `}>
@@ -38,7 +40,11 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessList: React.FC<AttributesGuessListProps> = ({
   guesses,
 }) => {
-  console.log("how the guess list looks", guesses);
+  const kol = guesses.find((guess) => {
+    console.log("guess", guess);
+    return guess.kol.id === guesses[0].kol.id;
+  });
+  console.log("how the guess list looks", kol);
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
