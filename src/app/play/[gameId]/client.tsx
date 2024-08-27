@@ -73,7 +73,7 @@ export default function GameIdPageClient({
     return (
       <div className="text-white">
         You are not in a game session. Start a new game{" "}
-        <Link href="/home" className="text-blue-500">
+        <Link href="/play" className="text-blue-500">
           here
         </Link>
       </div>
