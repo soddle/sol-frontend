@@ -23,12 +23,8 @@ interface CellProps {
 const Cell: React.FC<CellProps> = ({
   children,
   attributeResult,
-  targetKol,
-  guessKol,
   className,
 }) => {
-  const targetKolId = targetKol.id;
-  const guessKolId = guessKol.id;
   return (
     <div
       className={`${cellStyle} ${

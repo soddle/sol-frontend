@@ -29,11 +29,33 @@ export default function GamePlayPageClient() {
         throw new Error("Please connect your wallet");
       }
       const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
+
       if (gameSession && gameSession.gameType === gameType) {
         setGameSession(gameSession);
-        setCurrentGameType(gameType);
-        router.push(`/play/${gameType}`);
-        return;
+        if (
+          gameSession.game1Completed &&
+          gameSession.gameType === GameType.Attributes
+        ) {
+          toast.info("You have already completed Attributes game");
+          setCurrentGameType(gameType);
+          router.push(`/play/${gameType}`);
+          return;
+        } else if (
+          gameSession.game2Completed &&
+          gameSession.gameType === GameType.Tweets
+        ) {
+          toast.info("You have already completed Tweets game");
+          setCurrentGameType(gameType);
+          router.push(`/play/${gameType}`);
+          return;
+        } else if (
+          gameSession.game3Completed &&
+          gameSession.gameType === GameType.Emojis
+        ) {
+          setCurrentGameType(gameType);
+          router.push(`/play/${gameType}`);
+          return;
+        }
       }
 
       await startGameSession(gameType, kol);
@@ -102,10 +124,8 @@ export default function GamePlayPageClient() {
 
 function GameButton2({
   description,
-  type,
   title,
   icon,
-  className,
   onClick,
 }: {
   description: string;
