@@ -39,13 +39,11 @@ export const useSoddleProgram = () => {
 };
 
 export const useGameState = () => {
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const getProgram = useSoddleProgram();
 
   const fetchGameState = async () => {
     try {
-      setLoading(true);
       const program = getProgram();
 
       if (program) {
@@ -68,8 +66,6 @@ export const useGameState = () => {
     } catch (err) {
       console.error("Error fetching game state:", err);
       setError("Failed to fetch game state");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -82,7 +78,6 @@ export const useGameState = () => {
     }
 
     try {
-      setLoading(true);
       const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_state")],
         program.programId
@@ -92,41 +87,35 @@ export const useGameState = () => {
     } catch (err) {
       console.error("Error initializing game:", err);
       setError("Failed to initialize game");
-    } finally {
-      setLoading(false);
     }
   }, [fetchGameState]);
 
-  const endCompetition = useCallback(async () => {
-    const program = getProgram();
+  // const endCompetition = useCallback(async () => {
+  //   const program = getProgram();
 
-    if (!program) {
-      setError("Program not initialized");
-      return;
-    }
+  //   if (!program) {
+  //     setError("Program not initialized");
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
-      const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("game_state")],
-        program.programId
-      );
+  //   try {
+  //     const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
+  //       [Buffer.from("game_state")],
+  //       program.programId
+  //     );
 
-      await fetchGameState();
-    } catch (err) {
-      console.error("Error ending competition:", err);
-      setError("Failed to end competition");
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchGameState]);
+  //     await fetchGameState();
+  //   } catch (err) {
+  //     console.error("Error ending competition:", err);
+  //     setError("Failed to end competition");
+  //   }
+  // }, [fetchGameState]);
 
   return {
-    loading,
     error,
     fetchGameState,
     initializeGame,
-    endCompetition,
+    // endCompetition,
   };
 };
 

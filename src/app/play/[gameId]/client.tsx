@@ -7,23 +7,22 @@ import {
   Game3GuessResult,
   KolWithTweets,
 } from "@/lib/types/idl-types";
-import SearchBar from "./_components/search-bar";
+import SearchBar from "./_components/searchBar";
 import { GameType } from "@/lib/constants";
-import TimerDisplay from "./_components/time-display";
+import TimerDisplay from "./_components/timeDisplay";
 import Container from "@/components/layout/container";
-import { AttributesGuessListTable } from "./_components/attributes-guess-list";
+import { AttributesGuessListTable } from "./_components/attributesGuessList";
 import { TweetsGuessList } from "./_components/tweets-guess-list";
-import { EmojisGuessList } from "./_components/emojis-guess-list";
+import { EmojisGuessList } from "./_components/emojisGuessList";
 import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { fetchRandomKOL } from "@/lib/fns/fetchers";
-import TweetQuestionBoxWrapper from "./_components/tweet-question-box-wrapper";
+import TweetQuestionBoxWrapper from "./_components/tweetsQuestionBoxWrapper";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
 
-// type KolWithEmojis = KOL & { emojis: string[] };
 export default function GameIdPageClient({
   gameId,
   kols,
