@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import idl from "@/lib/constants/idl.json";
 
-export const useSoddleProgram = () => {
+export const useProgram = () => {
   const wallet = useAnchorWallet();
   const { connection } = useConnection();
 

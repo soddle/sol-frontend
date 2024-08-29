@@ -2,11 +2,11 @@
 import * as anchor from "@coral-xyz/anchor";
 import { useCallback, useState } from "react";
 import { GameState } from "@/lib/types/idlTypes";
-import { useSoddleProgram } from "./useProgram";
+import { useProgram } from "./useProgram";
 
 export const useGameState = () => {
   const [error, setError] = useState<string | null>(null);
-  const getProgram = useSoddleProgram();
+  const getProgram = useProgram();
 
   const fetchGameState = useCallback(async (): Promise<GameState | null> => {
     try {

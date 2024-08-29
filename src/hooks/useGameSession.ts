@@ -4,13 +4,13 @@ import { GameSession, KOL } from "@/lib/types/idlTypes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
 import { toast } from "sonner";
-import { useSoddleProgram } from "./useProgram";
+import { useProgram } from "./useProgram";
 
 export const useGameSession = () => {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const getProgram = useSoddleProgram();
+  const getProgram = useProgram();
   const { wallet } = useWallet();
 
   const fetchGameSession = useCallback(
