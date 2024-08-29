@@ -1,9 +1,10 @@
 import { useGameSession } from "@/hooks/useGameSession";
-import { AttributeResult, Game1GuessResult, KOL } from "@/lib/types/idl-types";
+import { AttributeResult, Game1GuessResult, KOL } from "@/lib/types/idlTypes";
 import Image from "next/image";
 import React, { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
+import { formatCount } from "@/lib/utils";
 interface AttributesGuessListProps {
   guess1Results: Game1GuessResult[];
 }
@@ -167,18 +168,4 @@ function TableItem({ guess1Result }: TableItemProps) {
       </Cell>
     </>
   );
-}
-
-function formatCount(count: number): string {
-  if (count < 1000) {
-    return count.toString();
-  }
-
-  const formatter = new Intl.NumberFormat("en", {
-    notation: "compact",
-    compactDisplay: "short",
-    maximumFractionDigits: 1,
-  });
-
-  return formatter.format(count);
 }

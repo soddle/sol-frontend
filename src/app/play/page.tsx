@@ -4,6 +4,7 @@ import Image from "next/image";
 
 export default async function GamePlayPage() {
   const kols = await fetchKOLs();
+  console.log("kols", kols);
   if (!kols) {
     return <NoKOLsFound />;
   }

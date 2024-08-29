@@ -1,4 +1,4 @@
-import { KOL } from "@/lib/types/idl-types";
+import { KOL } from "@/lib/types/idlTypes";
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";

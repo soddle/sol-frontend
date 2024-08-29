@@ -1,5 +1,5 @@
 import { useGameSession } from "@/hooks/useGameSession";
-import { Game2GuessResult } from "@/lib/types/idl-types";
+import { Game2GuessResult } from "@/lib/types/idlTypes";
 import { useRootStore } from "@/stores/storeProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";

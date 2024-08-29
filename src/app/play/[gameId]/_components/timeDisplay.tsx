@@ -67,7 +67,7 @@ const TimerDisplay: React.FC = () => {
     return (
       <div className="w-[226px] h-[36px] bg-[#111411] border border-[#2A342A] flex items-center justify-center self-center py-3">
         <div className="text-2xl font-bold flex items-center gap-1 animate-pulse">
-          <span className="bg-green-700 rounded-md w-8 h-8"></span>
+          <span className="bg-[]-700 rounded-md w-8 h-8"></span>
           <span className="text-green-700 opacity-50">:</span>
           <span className="bg-green-700 rounded-md w-8 h-8"></span>
           <span className="text-green-700 opacity-50">:</span>

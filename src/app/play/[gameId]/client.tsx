@@ -6,7 +6,7 @@ import {
   KOL,
   Game3GuessResult,
   KolWithTweets,
-} from "@/lib/types/idl-types";
+} from "@/lib/types/idlTypes";
 import SearchBar from "./_components/searchBar";
 import { GameType } from "@/lib/constants";
 import TimerDisplay from "./_components/timeDisplay";
@@ -149,27 +149,33 @@ export default function GameIdPageClient({
       {
         <section className="text-white no-scrollbar">
           {gameId === GameType.Attributes ? (
-            <AttributesGuessListTable
-              guess1Results={
-                gameSession?.game1Guesses as unknown as Game1GuessResult[]
-              }
-            />
-          ) : gameId === GameType.Tweets ? (
-            <Container>
-              <TweetsGuessList
-                guess2Results={
-                  gameSession?.game2Guesses as unknown as Game2GuessResult[]
+            gameSession?.game1Guesses && (
+              <AttributesGuessListTable
+                guess1Results={
+                  gameSession?.game1Guesses as unknown as Game1GuessResult[]
                 }
               />
+            )
+          ) : gameId === GameType.Tweets ? (
+            <Container>
+              {gameSession?.game2Guesses && (
+                <TweetsGuessList
+                  guess2Results={
+                    gameSession?.game2Guesses as unknown as Game2GuessResult[]
+                  }
+                />
+              )}
             </Container>
           ) : (
             gameId === GameType.Emojis && (
               <Container>
-                <EmojisGuessList
-                  guess3Results={
-                    gameSession?.game3Guesses as unknown as Game3GuessResult[]
-                  }
-                />
+                {gameSession?.game3Guesses && (
+                  <EmojisGuessList
+                    guess3Results={
+                      gameSession?.game3Guesses as unknown as Game3GuessResult[]
+                    }
+                  />
+                )}
               </Container>
             )
           )}
@@ -178,9 +184,7 @@ export default function GameIdPageClient({
       {/* Legends */}
       {isLegendOpen && (
         <Container>
-          <>
-            <Legend />
-          </>
+          <Legend />
         </Container>
       )}
     </div>

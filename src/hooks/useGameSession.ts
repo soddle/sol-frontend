@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { useSoddleProgram } from "./useGameState";
-import { GameSession, KOL } from "@/lib/types/idl-types";
+import { GameSession, KOL } from "@/lib/types/idlTypes";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
 import { toast } from "sonner";
+import { useSoddleProgram } from "./useProgram";
 
 export const useGameSession = () => {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);

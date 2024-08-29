@@ -7,7 +7,7 @@ import { GameButton } from "./_components/gameTypeButton";
 import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
-import { KOL } from "@/lib/types/idl-types";
+import { KOL } from "@/lib/types/idlTypes";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRouter } from "next/navigation";
 import { useRootStore } from "@/stores/storeProvider";
