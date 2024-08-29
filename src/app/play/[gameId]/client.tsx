@@ -12,7 +12,7 @@ import { GameType } from "@/lib/constants";
 import TimerDisplay from "./_components/timeDisplay";
 import Container from "@/components/layout/container";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
-import { TweetsGuessList } from "./_components/tweets-guess-list";
+import { TweetsGuessList } from "./_components/tweetsGuessList";
 import { EmojisGuessList } from "./_components/emojisGuessList";
 import Legend from "./_components/legends";
 import { toast } from "sonner";
