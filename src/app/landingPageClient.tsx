@@ -9,7 +9,8 @@ function LandingPage() {
   const wallet = useWallet();
   const router = useRouter();
   useEffect(() => {
-    if (wallet) {
+    console.log("user wallet pub key: ", wallet.publicKey);
+    if (wallet.publicKey) {
       router.push("/play");
     }
   }, [wallet, router]);

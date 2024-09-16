@@ -11,7 +11,7 @@ import { KOL } from "@/lib/types/idlTypes";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRouter } from "next/navigation";
 import { useRootStore } from "@/stores/storeProvider";
-import { useMemo } from "react";
+import { fetchRandomKOL } from "@/lib/api";
 
 export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
   const { wallet } = useWallet();
@@ -22,14 +22,12 @@ export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
   const setGameSession = game((state) => state.setGameSession);
   const router = useRouter();
 
-  const targetIdx = useMemo(() => {
-    return Math.floor(Math.random() * kols.length);
-  }, [kols]);
-
-  const handleStartGameSession = async (gameType: GameType, kol: KOL) => {
+  const handleStartGameSession = async (gameType: GameType) => {
     try {
+      const kol = await fetchRandomKOL();
       setLoading(true);
       if (!wallet) {
+        console.log(wallet);
         throw new Error("Please connect your wallet");
       }
       const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
@@ -106,7 +104,7 @@ export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
               type={type.type}
               title={type.title}
               icon={type.icon}
-              onClick={() => handleStartGameSession(type.type, kols[targetIdx])}
+              onClick={() => handleStartGameSession(type.type)}
               key={type.type}
             />
           ) : (
@@ -116,7 +114,7 @@ export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
               title={type.title}
               className="w-full"
               icon={type.icon}
-              onClick={() => handleStartGameSession(type.type, kols[targetIdx])}
+              onClick={() => handleStartGameSession(type.type)}
               key={type.type}
             />
           );

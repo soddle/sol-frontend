@@ -21,7 +21,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
 
   const { fetchGameState } = useGameState();
 
-  const { isModalOpen, openModal, modalContent } = ui((state) => ({
+  const { isModalOpen, modalContent } = ui((state) => ({
     isModalOpen: state.isModalOpen,
     modalContent: state.modalContent,
     openModal: state.openModal,
@@ -31,6 +31,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
   React.useEffect(() => {
     const fetchGState = async () => {
       const gameState = await fetchGameState();
+      console.log("game state:", gameState);
       if (gameState) {
         setGameState(gameState);
       }
@@ -47,16 +48,16 @@ export function MainLayout({ children }: { children: ReactNode }) {
   //   }
   // }, [gameState, openModal]);
 
-  React.useEffect(() => {
-    if (
-      // gameSession?.game1Completed &&
-      false
-      // gameSession?.game2Completed &&
-      // gameSession?.game3Completed
-    ) {
-      openModal(<UserProfileModal gameSession={gameSession!} />);
-    }
-  }, [gameSession]);
+  // React.useEffect(() => {
+  //   if (
+  //     // gameSession?.game1Completed &&
+  //     false
+  //     // gameSession?.game2Completed &&
+  //     // gameSession?.game3Completed
+  //   ) {
+  //     openModal(<UserProfileModal gameSession={gameSession!} />);
+  //   }
+  // }, [gameSession]);
 
   return (
     <>

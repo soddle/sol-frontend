@@ -8,92 +8,6 @@
   },
   "instructions": [
     {
-      "name": "end_competition",
-      "discriminator": [
-        53,
-        190,
-        110,
-        195,
-        68,
-        190,
-        52,
-        153
-      ],
-      "accounts": [
-        {
-          "name": "game_state",
-          "writable": true
-        },
-        {
-          "name": "authority",
-          "signer": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  117,
-                  116,
-                  104,
-                  111,
-                  114,
-                  105,
-                  116,
-                  121
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "end_game_session",
-      "discriminator": [
-        33,
-        231,
-        93,
-        11,
-        181,
-        178,
-        59,
-        160
-      ],
-      "accounts": [
-        {
-          "name": "game_state",
-          "writable": true
-        },
-        {
-          "name": "game_session",
-          "writable": true
-        },
-        {
-          "name": "player",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "game_session"
-          ]
-        },
-        {
-          "name": "player_state",
-          "writable": true
-        },
-        {
-          "name": "vault",
-          "writable": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "initialize_game",
       "discriminator": [
         44,
@@ -140,53 +54,6 @@
         }
       ],
       "args": []
-    },
-    {
-      "name": "make_guess",
-      "discriminator": [
-        59,
-        189,
-        219,
-        87,
-        240,
-        211,
-        125,
-        101
-      ],
-      "accounts": [
-        {
-          "name": "game_state"
-        },
-        {
-          "name": "game_session",
-          "writable": true
-        },
-        {
-          "name": "player",
-          "signer": true,
-          "relations": [
-            "game_session"
-          ]
-        },
-        {
-          "name": "player_state",
-          "writable": true
-        }
-      ],
-      "args": [
-        {
-          "name": "game_type",
-          "type": "u8"
-        },
-        {
-          "name": "guess",
-          "type": {
-            "defined": {
-              "name": "KOL"
-            }
-          }
-        }
-      ]
     },
     {
       "name": "start_game_session",
@@ -240,35 +107,6 @@
           "signer": true
         },
         {
-          "name": "player_state",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  108,
-                  97,
-                  121,
-                  101,
-                  114,
-                  95,
-                  115,
-                  116,
-                  97,
-                  116,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "player"
-              }
-            ]
-          }
-        },
-        {
           "name": "vault",
           "writable": true,
           "pda": {
@@ -305,6 +143,51 @@
           }
         }
       ]
+    },
+    {
+      "name": "submit_score",
+      "discriminator": [
+        212,
+        128,
+        45,
+        22,
+        112,
+        82,
+        85,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "game_session",
+          "writable": true
+        },
+        {
+          "name": "player"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "game_type",
+          "type": "u8"
+        },
+        {
+          "name": "score",
+          "type": "u32"
+        },
+        {
+          "name": "guesses",
+          "type": "u32"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -332,19 +215,6 @@
         99,
         134,
         120
-      ]
-    },
-    {
-      "name": "Player",
-      "discriminator": [
-        205,
-        222,
-        112,
-        7,
-        165,
-        155,
-        206,
-        218
       ]
     }
   ],
@@ -423,29 +293,14 @@
       "code": 6011,
       "name": "GameNotCompleted",
       "msg": "Game is not completed yet."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidPlayer",
+      "msg": "This player is invalid"
     }
   ],
   "types": [
-    {
-      "name": "AttributeResult",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "Correct"
-          },
-          {
-            "name": "Incorrect"
-          },
-          {
-            "name": "Higher"
-          },
-          {
-            "name": "Lower"
-          }
-        ]
-      }
-    },
     {
       "name": "Competition",
       "type": {
@@ -462,51 +317,6 @@
           {
             "name": "end_time",
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Game1GuessResult",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "kol",
-            "type": {
-              "defined": {
-                "name": "KOL"
-              }
-            }
-          },
-          {
-            "name": "result",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "AttributeResult"
-                  }
-                },
-                7
-              ]
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "Game2GuessResult",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "kol",
-            "type": "string"
-          },
-          {
-            "name": "result",
-            "type": "bool"
           }
         ]
       }
@@ -559,29 +369,6 @@
           {
             "name": "target_index",
             "type": "u8"
-          },
-          {
-            "name": "game_1_guesses",
-            "type": {
-              "vec": {
-                "defined": {
-                  "name": "Game1GuessResult"
-                }
-              }
-            }
-          },
-          {
-            "name": "game_2_guesses",
-            "type": {
-              "array": [
-                {
-                  "defined": {
-                    "name": "Game2GuessResult"
-                  }
-                },
-                10
-              ]
-            }
           },
           {
             "name": "completed",
@@ -666,38 +453,6 @@
           {
             "name": "ecosystem",
             "type": "string"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Player",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "game_1_completed",
-            "type": "bool"
-          },
-          {
-            "name": "game_2_completed",
-            "type": "bool"
-          },
-          {
-            "name": "game_3_completed",
-            "type": "bool"
-          },
-          {
-            "name": "game_1_score",
-            "type": "u32"
-          },
-          {
-            "name": "game_2_score",
-            "type": "u32"
-          },
-          {
-            "name": "game_3_score",
-            "type": "u32"
           }
         ]
       }

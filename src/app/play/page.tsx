@@ -1,10 +1,9 @@
-import { fetchKOLs } from "@/lib/fns/fetchers";
-import GamePlayPageClient from "./client";
+import { fetchKOLs } from "@/lib/api";
+import GamePlayPageClient from "./playPageClient";
 import Image from "next/image";
 
 export default async function GamePlayPage() {
   const kols = await fetchKOLs();
-  console.log("kols", kols);
   if (!kols) {
     return <NoKOLsFound />;
   }

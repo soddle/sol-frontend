@@ -1,4 +1,4 @@
-import LandingPageClient from "./client";
+import LandingPageClient from "./landingPageClient";
 
 async function LandingPage() {
   return <LandingPageClient />;

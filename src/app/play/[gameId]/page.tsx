@@ -1,5 +1,5 @@
-import { fetchKOLs } from "@/lib/fns/fetchers";
-import GamePageClient from "./client";
+import { fetchKOLs } from "@/lib/api";
+import GamePageClient from "./gameIdClient";
 
 export default async function GamePage({
   params,

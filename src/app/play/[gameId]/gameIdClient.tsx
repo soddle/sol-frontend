@@ -18,7 +18,7 @@ import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { fetchRandomKOL } from "@/lib/fns/fetchers";
+import { fetchRandomKOL } from "@/lib/api";
 import TweetQuestionBoxWrapper from "./_components/tweetsQuestionBoxWrapper";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
