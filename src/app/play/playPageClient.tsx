@@ -1,17 +1,23 @@
-"use client";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useGameSession } from "@/hooks/useGameSession";
+import { useRootStore } from "@/stores/storeProvider";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { fetchRandomKOL } from "@/lib/api";
+import { GameType } from "@/lib/constants";
+import { KOL } from "@/lib/types/idlTypes";
+import {
+  WalletConnectionError,
+  GameSessionNotFoundError,
+  GameAlreadyCompletedError,
+  ApiRequestError,
+  InternalServerError,
+} from "@/lib/errors";
 import Container from "@/components/layout/container";
 import UserInfoCard from "./_components/userInfoCard";
 import TimeSection from "./_components/timeSection";
-import { GameType } from "@/lib/constants";
-import { GameButton } from "./_components/gameTypeButton";
 import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
-import { KOL } from "@/lib/types/idlTypes";
-import { useGameSession } from "@/hooks/useGameSession";
-import { useRouter } from "next/navigation";
-import { useRootStore } from "@/stores/storeProvider";
-import { fetchRandomKOL } from "@/lib/api";
+import { GameButton } from "./_components/gameTypeButton";
 
 export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
   const { wallet } = useWallet();
@@ -27,8 +33,7 @@ export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
       const kol = await fetchRandomKOL();
       setLoading(true);
       if (!wallet) {
-        console.log(wallet);
-        throw new Error("Please connect your wallet");
+        throw new WalletConnectionError();
       }
       const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
 
@@ -38,25 +43,23 @@ export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
           gameSession.game1Completed &&
           gameSession.gameType === GameType.Attributes
         ) {
-          toast.info("You have already completed Attributes game");
-          setCurrentGameType(gameType);
-          router.push(`/play/${gameType}`);
-          return;
+          throw new GameAlreadyCompletedError(
+            "You have already completed Attributes game"
+          );
         } else if (
           gameSession.game2Completed &&
           gameSession.gameType === GameType.Tweets
         ) {
-          toast.info("You have already completed Tweets game");
-          setCurrentGameType(gameType);
-          router.push(`/play/${gameType}`);
-          return;
+          throw new GameAlreadyCompletedError(
+            "You have already completed Tweets game"
+          );
         } else if (
           gameSession.game3Completed &&
           gameSession.gameType === GameType.Emojis
         ) {
-          setCurrentGameType(gameType);
-          router.push(`/play/${gameType}`);
-          return;
+          throw new GameAlreadyCompletedError(
+            "You have already completed Emojis game"
+          );
         }
       }
 
@@ -64,7 +67,21 @@ export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
       setCurrentGameType(gameType);
       router.push(`/play/${gameType}`);
     } catch (error) {
-      toast.error((error as Error).message);
+      if (error instanceof WalletConnectionError) {
+        toast.error("Please connect your wallet");
+      } else if (error instanceof GameSessionNotFoundError) {
+        toast.error("Game session not found");
+      } else if (error instanceof GameAlreadyCompletedError) {
+        toast.info(error.message);
+        setCurrentGameType(gameType);
+        router.push(`/play/${gameType}`);
+      } else if (error instanceof ApiRequestError) {
+        toast.error(error.message);
+      } else if (error instanceof InternalServerError) {
+        toast.error("An unexpected error occurred");
+      } else {
+        toast.error("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
