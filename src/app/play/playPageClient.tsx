@@ -1,23 +1,25 @@
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useGameSession } from "@/hooks/useGameSession";
-import { useRootStore } from "@/stores/storeProvider";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { fetchRandomKOL } from "@/lib/api";
-import { GameType } from "@/lib/constants";
-import { KOL } from "@/lib/types/idlTypes";
-import {
-  WalletConnectionError,
-  GameSessionNotFoundError,
-  GameAlreadyCompletedError,
-  ApiRequestError,
-  InternalServerError,
-} from "@/lib/errors";
+"use client";
 import Container from "@/components/layout/container";
 import UserInfoCard from "./_components/userInfoCard";
 import TimeSection from "./_components/timeSection";
-import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
+import { GameType } from "@/lib/constants";
 import { GameButton } from "./_components/gameTypeButton";
+import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "sonner";
+import { KOL } from "@/lib/types/idlTypes";
+import { useGameSession } from "@/hooks/useGameSession";
+import { useRouter } from "next/navigation";
+import { useRootStore } from "@/stores/storeProvider";
+import { useMemo } from "react";
+import { fetchRandomKOL } from "@/lib/api";
+import {
+  ApiRequestError,
+  GameAlreadyCompletedError,
+  GameSessionNotFoundError,
+  InternalServerError,
+  WalletConnectionError,
+} from "@/lib/errors";
 
 export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
   const { wallet } = useWallet();
