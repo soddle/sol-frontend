@@ -1,12 +1,12 @@
 import { useGameSession } from "@/hooks/useGameSession";
-import { Game2GuessResult } from "@/lib/types/idlTypes";
+
 import { useRootStore } from "@/stores/storeProvider";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Image from "next/image";
 import React, { useEffect } from "react";
 
 interface TweetsGuessListProps {
-  guess2Results: Game2GuessResult[];
+  guess2Results: any[];
 }
 
 export const TweetsGuessList: React.FC<TweetsGuessListProps> = ({
@@ -22,7 +22,7 @@ export const TweetsGuessList: React.FC<TweetsGuessListProps> = ({
   );
 };
 
-function ListItem({ guessResult }: { guessResult: Game2GuessResult }) {
+function ListItem({ guessResult }: { guessResult: any }) {
   const { kol, result: isCorrect } = guessResult;
   const { wallet } = useWallet();
   const { fetchGameSession } = useGameSession();

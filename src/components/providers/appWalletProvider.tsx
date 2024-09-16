@@ -5,10 +5,10 @@ import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import { SalmonWalletAdapter } from "@solana/wallet-adapter-wallets";
+import { useEclipseCluster } from "@/hooks/useEclipseCluster";
 
 // Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -20,13 +20,12 @@ export default function AppWalletProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const network = WalletAdapterNetwork.Devnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const cluster = useEclipseCluster();
+  const network = cluster.cluster.network;
+  const endpoint = cluster.cluster.endpoint;
+
   const wallets = useMemo(
-    () => [
-      // manually add any legacy wallet adapters here
-      new SalmonWalletAdapter(),
-    ],
+    () => [new SalmonWalletAdapter({ network })],
     [network]
   );
 

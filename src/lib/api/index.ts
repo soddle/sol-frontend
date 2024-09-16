@@ -1,8 +1,10 @@
 "use server";
 
 const API_BASE_URL = appConfig.apiBaseUrl;
+import { KOL } from "@/types";
 import { appConfig } from "../config";
-import { KolWithTweets } from "../types/idlTypes";
+
+type KolWithTweets = KOL;
 
 interface ApiResponse<T> {
   status: string;

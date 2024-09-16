@@ -1,9 +1,10 @@
 import { appConfig } from "@/lib/config";
+import { PublicKey } from "@solana/web3.js";
 import { NextResponse } from "next/server";
 
 export interface GuessRequest {
   gameType: number;
-  publicKey: string;
+  publicKey: PublicKey;
   guess: {
     id: string;
     name: string;

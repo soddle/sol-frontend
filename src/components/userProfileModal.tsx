@@ -2,7 +2,7 @@ import Image from "next/image";
 import * as React from "react";
 import Button2 from "./ui/button2";
 import Trapezoid from "@/app/play/[gameId]/_components/trapezoid";
-import { GameSession } from "@/lib/types/idlTypes";
+import { GameSession } from "@/types";
 
 export default function UserProfileModal({
   gameSession,
@@ -39,7 +39,7 @@ export default function UserProfileModal({
           alt="user"
           className="rounded-full  border-2"
         />
-        <h3 className="text-2xl font-bold">{gameSession.player}</h3>
+        <h3 className="text-2xl font-bold">{gameSession.player.toString()}</h3>
         <p className="text-xl text-center">
           “White knight of the crypto ecosystem, feared by scammers around the
           world.”

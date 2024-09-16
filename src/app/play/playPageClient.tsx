@@ -7,12 +7,11 @@ import { GameButton } from "./_components/gameTypeButton";
 import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
-import { KOL } from "@/lib/types/idlTypes";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRouter } from "next/navigation";
 import { useRootStore } from "@/stores/storeProvider";
-import { useMemo } from "react";
 import { fetchRandomKOL } from "@/lib/api";
+
 import {
   ApiRequestError,
   GameAlreadyCompletedError,
@@ -21,53 +20,45 @@ import {
   WalletConnectionError,
 } from "@/lib/errors";
 
-export default function GamePlayPageClient({ kols }: { kols: KOL[] }) {
+export default function GamePlayPageClient() {
   const { wallet } = useWallet();
-  const { startGameSession, fetchGameSession } = useGameSession();
+  // const { startGameSession, fetchGameSession } = useGameSession();
   const { ui, game } = useRootStore();
   const setLoading = ui((state) => state.setLoading);
   const setCurrentGameType = game((state) => state.setCurrentGameType);
   const setGameSession = game((state) => state.setGameSession);
   const router = useRouter();
 
+  // game session
+  const { startGameSession } = useGameSession();
+
   const handleStartGameSession = async (gameType: GameType) => {
     try {
-      const kol = await fetchRandomKOL();
       setLoading(true);
-      if (!wallet) {
+      const randomKol = await fetchRandomKOL();
+      console.log("Random KOL", randomKol);
+      if (!wallet?.adapter.connected) {
         throw new WalletConnectionError();
       }
-      const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
 
-      if (gameSession && gameSession.gameType === gameType) {
-        setGameSession(gameSession);
-        if (
-          gameSession.game1Completed &&
-          gameSession.gameType === GameType.Attributes
-        ) {
-          throw new GameAlreadyCompletedError(
-            "You have already completed Attributes game"
-          );
-        } else if (
-          gameSession.game2Completed &&
-          gameSession.gameType === GameType.Tweets
-        ) {
-          throw new GameAlreadyCompletedError(
-            "You have already completed Tweets game"
-          );
-        } else if (
-          gameSession.game3Completed &&
-          gameSession.gameType === GameType.Emojis
-        ) {
-          throw new GameAlreadyCompletedError(
-            "You have already completed Emojis game"
-          );
-        }
+      // starting the game
+      await startGameSession(GameType.Attributes, randomKol);
+
+      // await setCurrentGameType(gameType);
+      // Update the navigation based on the game type
+      switch (gameType) {
+        case GameType.Attributes:
+          router.push("/play/attributes-game");
+          break;
+        case GameType.Tweets:
+          router.push("/play/tweets-game");
+          break;
+        case GameType.Emojis:
+          router.push("/play/emojis-game");
+          break;
+        default:
+          throw new Error("Invalid game type");
       }
-
-      await startGameSession(gameType, kol);
-      setCurrentGameType(gameType);
-      router.push(`/play/${gameType}`);
     } catch (error) {
       if (error instanceof WalletConnectionError) {
         toast.error("Please connect your wallet");

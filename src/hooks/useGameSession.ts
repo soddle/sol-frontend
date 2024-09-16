@@ -1,15 +1,16 @@
 import { useCallback, useState } from "react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { GameSession, KOL } from "@/lib/types/idlTypes";
+import {
+  PublicKey,
+  SendTransactionError,
+  SystemProgram,
+} from "@solana/web3.js";
+import { GameSession } from "@/types/";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
 import { toast } from "sonner";
 import { useProgram } from "./useProgram";
 import {
-  createError,
-  ErrorCode,
   GameError,
-  WalletConnectionError,
   GameSessionNotFoundError,
   ApiRequestError,
   InternalServerError,
@@ -18,21 +19,22 @@ import {
   GameAlreadyCompletedError,
   InvalidGuessError,
 } from "@/lib/errors";
+import { KOL } from "@/types";
+import { submitGuess } from "@/lib/api/game";
 
 export const useGameSession = () => {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const getProgram = useProgram();
+
   const { wallet } = useWallet();
 
   const fetchGameSession = useCallback(
     async (playerPublicKey: PublicKey) => {
+      const program = getProgram();
+
       try {
-        const program = getProgram();
-        if (!program) {
-          throw new WalletConnectionError();
-        }
         const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
           [Buffer.from("game_session"), playerPublicKey.toBuffer()],
           program.programId
@@ -68,9 +70,6 @@ export const useGameSession = () => {
     async (gameType: number, kol: KOL) => {
       try {
         const program = getProgram();
-        if (!program) {
-          throw new WalletConnectionError();
-        }
 
         setLoading(true);
         const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
@@ -93,7 +92,7 @@ export const useGameSession = () => {
           program.programId
         );
 
-        await program.methods
+        const tx = await program.methods
           .startGameSession(gameType, kol)
           .accounts({
             gameState: gameStatePDA,
@@ -104,6 +103,7 @@ export const useGameSession = () => {
             systemProgram: SystemProgram.programId,
           })
           .rpc();
+        console.log("tx: ", tx);
 
         await fetchGameSession(wallet?.adapter.publicKey!);
         toast.success("Game session started successfully");
@@ -112,6 +112,9 @@ export const useGameSession = () => {
         if (err instanceof GameError) {
           toast.error(err.message);
           setError(err.message);
+        } else if (err instanceof SendTransactionError) {
+          const gameSes = await fetchGameSession(wallet?.adapter.publicKey!);
+          console.log("Game Session: ", gameSes);
         } else if (err instanceof Error) {
           const apiError = new ApiRequestError("Failed to start game session");
           toast.error(apiError.message);
@@ -131,7 +134,14 @@ export const useGameSession = () => {
   const makeGuess = useCallback(
     async (gameType: number, guess: KOL) => {
       try {
-        const program = getProgram();
+        const response = await submitGuess({
+          gameType: gameType,
+          publicKey: wallet?.adapter.publicKey!,
+          guess: guess,
+        });
+
+        console.log(response);
+        /*   const program = getProgram();
         if (!program) {
           throw new WalletConnectionError();
         }
@@ -161,6 +171,8 @@ export const useGameSession = () => {
             playerState: playerStatePDA,
           })
           .rpc();
+
+        */
 
         toast.success("Guess made successfully");
         await fetchGameSession(wallet?.adapter.publicKey!);

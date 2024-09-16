@@ -69,11 +69,18 @@ export class InternalServerError extends GameError {
     super(ErrorCode.INTERNAL_SERVER_ERROR, message);
   }
 }
+export class AccountNotFound extends GameError {
+  constructor(message?: string) {
+    super(ErrorCode.ECLIPSE_ACCOUNT_NOT_FOUND, message);
+  }
+}
 
 export function createError(code: ErrorCode, message?: string): GameError {
   switch (code) {
     case ErrorCode.WALLET_CONNECTION_FAILED:
       return new WalletConnectionError(message);
+    case ErrorCode.ECLIPSE_ACCOUNT_NOT_FOUND:
+      return new AccountNotFound(message);
     case ErrorCode.GAME_SESSION_NOT_FOUND:
       return new GameSessionNotFoundError(message);
     case ErrorCode.INVALID_GUESS:

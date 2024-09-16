@@ -1,5 +1,6 @@
 "use client";
 
+import { GameSession, GameState } from "@/types";
 import React, {
   createContext,
   useContext,
@@ -7,7 +8,6 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { GameState, GameSession } from "@/lib/types/idlTypes";
 
 // UI Context
 type UIContextType = {

@@ -2,8 +2,9 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
 import * as anchor from "@coral-xyz/anchor";
-import { GameSession, GameState } from "@/lib/types/idlTypes";
+
 import { GameType } from "@/lib/constants";
+import { GameSession, GameState } from "@/types";
 
 interface GameStoreState {
   program: anchor.Program<anchor.Idl> | null;

@@ -1,6 +1,7 @@
 export enum ErrorCode {
   WALLET_CONNECTION_FAILED = "WALLET_CONNECTION_FAILED",
   GAME_SESSION_NOT_FOUND = "GAME_SESSION_NOT_FOUND",
+  ECLIPSE_ACCOUNT_NOT_FOUND = "SOLANA_ACCOUNT_NOT_FOUND",
   INVALID_GUESS = "INVALID_GUESS",
   API_REQUEST_FAILED = "API_REQUEST_FAILED",
   NETWORK_ERROR = "NETWORK_ERROR",
@@ -12,6 +13,7 @@ export enum ErrorCode {
 }
 
 export const ErrorMessages: Record<ErrorCode, string> = {
+  [ErrorCode.ECLIPSE_ACCOUNT_NOT_FOUND]: "Failed to fetch Eclipse Account",
   [ErrorCode.WALLET_CONNECTION_FAILED]: "Failed to connect wallet",
   [ErrorCode.GAME_SESSION_NOT_FOUND]: "Game session not found",
   [ErrorCode.INVALID_GUESS]: "Invalid guess",

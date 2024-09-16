@@ -1,10 +1,11 @@
 import { useGameSession } from "@/hooks/useGameSession";
+
 import Image from "next/image";
 import React, { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
 import { formatCount } from "@/lib/utils";
-import { AttributeResult, KOL } from "@/types";
+import { KOL } from "@/types";
 interface AttributesGuessListProps {
   guess1Results: any[];
 }
@@ -15,7 +16,7 @@ const cellTextStyle = "text-xs sm:text-sm md:text-base truncate";
 
 interface CellProps {
   children: React.ReactNode;
-  attributeResult: AttributeResult;
+  attributeResult: any;
   targetKol: KOL;
   guessKol: KOL;
   className?: string;
@@ -70,7 +71,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           ].map((header) => (
             <HeaderCell key={header}>{header}</HeaderCell>
           ))}
-          {guess1Results.map((guess1Result) => (
+          {guess1Results?.map((guess1Result) => (
             <TableItem key={guess1Result.kol.id} guess1Result={guess1Result} />
           ))}
         </div>
@@ -108,7 +109,7 @@ function TableItem({ guess1Result }: TableItemProps) {
 
   const attributesResults = result.map(
     (obj: any) => Object.keys(obj)[0]
-  ) as AttributeResult[];
+  ) as any[];
 
   return (
     <>

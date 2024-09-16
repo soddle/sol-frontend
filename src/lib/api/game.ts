@@ -1,40 +1,6 @@
 import { GuessRequest, GuessResponse } from "@/app/api/game/guess/route";
-import { GameStartRequest } from "@/app/api/game/start/route";
 import { UserResponse } from "@/app/api/user/route";
-
-interface GameStartResponse {
-  success: boolean;
-  data: {
-    player: string;
-    gameType: number;
-    startTime: number;
-    game1Completed: boolean;
-    game2Completed: boolean;
-    game1Score: number;
-    game2Score: number;
-    game1Guesses: any[];
-    game2Guesses: any[];
-    game1GuessesCount: number;
-    game2GuessesCount: number;
-    totalScore: number;
-    completed: boolean;
-    score: number;
-    kol: {
-      id: string;
-      name: string;
-      age: number;
-      country: string;
-      pfp: string;
-      accountCreation: number;
-      followers: number;
-      ecosystem: string;
-    };
-    competitionId: string;
-    _id: string;
-    __v: number;
-  };
-  message: string;
-}
+import { GameStartRequest, GameStartResponse } from "@/types";
 
 export async function startGame(
   gameStartRequest: GameStartRequest
