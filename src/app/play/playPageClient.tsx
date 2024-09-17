@@ -20,6 +20,8 @@ import {
 
 import { AnchorError } from "@coral-xyz/anchor";
 import { startGameApi } from "@/lib/api/game";
+import { fetchRandomKOL } from "@/lib/api";
+import { KOL } from "@/types";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
@@ -39,29 +41,44 @@ export default function GamePlayPageClient() {
         throw new Error("Wallet not connected");
       }
       setLoading(true);
-      // const apiKol = await fetchRandomKOL();
-      // const randomKol: KOL = {
-      //   pfp: apiKol.pfp,
-      //   accountCreation: apiKol.accountCreation,
-      //   age: apiKol.age,
-      //   country: apiKol.country,
-      //   ecosystem: apiKol.ecosystem,
-      //   followers: apiKol.followers,
-      //   id: apiKol.id,
-      //   name: apiKol.name,
-      // };
-      // console.log("Random KOL", randomKol);
+      const apiKol = await fetchRandomKOL();
+      console.log("api kol: ", apiKol);
+      const randomKol: KOL = {
+        pfp: apiKol.pfp,
+        accountCreation: apiKol.accountCreation,
+        age: apiKol.age,
+        country: apiKol.country,
+        ecosystem: apiKol.ecosystem,
+        followers: apiKol.followers,
+        id: apiKol.id,
+        name: apiKol.name,
+      };
+      console.log("Random KOL", randomKol);
 
       // starting the game
       const kol = {
         id: "KOL123",
-        name: "Test KOL",
+        name: "Emin Gün Sirer",
+        age: 45,
+        country: "Turkey",
+        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ngmforjkndyfzkgwtbtm",
+        accountCreation: 2011,
+        followers: 250000,
+        ecosystem: "Chain Founder",
+      };
+      const d = {
+        id: "66e73ef703e3b6308e74f1a9",
+        name: "Layah Heilpern",
         age: 25,
-        country: "Test Country",
-        pfp: "https://example.com/pfp.jpg",
-        accountCreation: 2020,
-        followers: 10000,
-        ecosystem: "Test Ecosystem",
+        ageDisplay: "21-30",
+        country: "UK",
+        pfpType: "human",
+        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/s9b5jtbojo8kxxpk2dd0",
+        accountCreation: 2012,
+        followers: 750000,
+        followersDisplay: "500k-1M",
+        ecosystem: "Reporter, Bitcoin",
+        tweets: [],
       };
 
       const gameSession = await startGameSession(gameType, kol);
@@ -81,7 +98,7 @@ export default function GamePlayPageClient() {
           completed: false,
           score: 0,
           kol: {
-            id: "66c7dbc1d484e54c72d24066",
+            id: "KOL123",
             name: "Emin Gün Sirer",
             age: 45,
             country: "Turkey",

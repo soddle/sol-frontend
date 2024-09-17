@@ -1,11 +1,12 @@
 import { useGameSession } from "@/hooks/useGameSession";
 
 import Image from "next/image";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
 import { formatCount } from "@/lib/utils";
-import { GameSessionFromApi, KOL } from "@/types";
+import { GameSessionFromApi, GameSessionFromApiResponse, KOL } from "@/types";
+import { fetchGameSessionFromApi, fetchRandomKOL } from "@/lib/api";
 interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi;
 }
@@ -57,7 +58,6 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   gameSessionFromApi,
 }) => {
-  console.log("api game session inside attr guess list: ", gameSessionFromApi);
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
@@ -74,7 +74,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           ))}
           {gameSessionFromApi.game1Guesses?.map((game1guess) => {
             return (
-              <TableItem key={game1guess.guess.id} game1guess={game1guess} />
+              <TableRow key={game1guess.guess.id} game1guess={game1guess} />
             );
           })}
         </div>
@@ -87,30 +87,37 @@ interface TableItemProps {
   game1guess: any;
 }
 
-function TableItem({ game1guess }: TableItemProps) {
+function TableRow({ game1guess }: TableItemProps) {
   const { wallet } = useWallet();
-  const { fetchGameSession } = useGameSession();
-  const { game } = useRootStore();
-  const setGameSession = game((state) => state.setGameSession);
-  const gameSession = game((state) => state.gameSession);
+  const [targetKol, setTargetKol] = useState<KOL | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchGSession() {
+    async function fetchGameSession() {
       if (wallet?.adapter?.publicKey) {
-        const gameSession = await fetchGameSession(wallet.adapter.publicKey);
-        if (gameSession) {
-          setGameSession(gameSession);
+        try {
+          setLoading(true);
+          const gameSession = await fetchGameSessionFromApi({
+            publicKey: wallet.adapter.publicKey.toString(),
+          });
+          setTargetKol(gameSession.kol);
+        } catch (error) {
+          console.error("Error fetching game session:", error);
+        } finally {
+          setLoading(false);
         }
       }
     }
-    fetchGSession();
-  }, []);
+
+    fetchGameSession();
+  }, [wallet?.adapter?.publicKey]);
 
   const { guess: guessKol, result: attributesResults } = game1guess;
-  const targetKol = gameSession?.kol;
-  if (!targetKol) return null;
-  console.log("guessKol", guessKol);
 
+  if (loading) return <div>Loading...</div>;
+  if (!targetKol) return null;
+
+  console.log("guessKol", guessKol);
   console.log("result", attributesResults);
 
   // const attributesResults = result.map(
@@ -140,14 +147,14 @@ function TableItem({ game1guess }: TableItemProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{targetKol.age}</span>
+        <span className={cellTextStyle}>{guessKol.age}</span>
       </Cell>
       <Cell
         attributeResult={attributesResults.country}
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{targetKol.country}</span>
+        <span className={cellTextStyle}>{guessKol.country}</span>
       </Cell>
 
       <Cell
@@ -155,23 +162,21 @@ function TableItem({ game1guess }: TableItemProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{targetKol.accountCreation}</span>
+        <span className={cellTextStyle}>{guessKol.accountCreation}</span>
       </Cell>
       <Cell
         attributeResult={attributesResults.followers}
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>
-          {formatCount(targetKol.followers)}
-        </span>
+        <span className={cellTextStyle}>{formatCount(guessKol.followers)}</span>
       </Cell>
       <Cell
         attributeResult={attributesResults.ecosystem}
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{targetKol.ecosystem}</span>
+        <span className={cellTextStyle}>{guessKol.ecosystem}</span>
       </Cell>
     </>
   );

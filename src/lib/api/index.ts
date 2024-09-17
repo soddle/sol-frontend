@@ -40,7 +40,9 @@ export async function fetchKOLs(): Promise<KolWithTweets[]> {
 
 export async function fetchRandomKOL(): Promise<APIKOL> {
   try {
-    return await fetchData<APIKOL>(`api/v1/kols/random`);
+    const randKol = await fetchData<APIKOL>(`api/v1/kols/random`);
+    console.log("random KOL", randKol);
+    return randKol;
   } catch (error) {
     console.error("Error fetching random APIKOL:", error);
     throw error;

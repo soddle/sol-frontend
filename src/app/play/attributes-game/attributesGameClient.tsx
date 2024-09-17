@@ -72,6 +72,7 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
         const newApiSess = await fetchGameSessionFromApi({
           publicKey: wallet?.adapter.publicKey?.toString()!,
         });
+
         setApiGameSess(newApiSess);
         return;
       }
