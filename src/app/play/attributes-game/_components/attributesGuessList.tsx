@@ -30,13 +30,13 @@ const Cell: React.FC<CellProps> = ({
   return (
     <div
       className={`${cellStyle} ${
-        attributeResult === "correct"
+        attributeResult === "Correct"
           ? "bg-green-500"
-          : attributeResult === "incorrect"
+          : attributeResult === "Incorrect"
           ? "bg-red-500"
-          : attributeResult === "higher"
+          : attributeResult === "Higher"
           ? "bg-red-500"
-          : attributeResult === "lower"
+          : attributeResult === "Lower"
           ? "bg-red-500"
           : "bg-yellow-500"
       } ${className}`}
