@@ -6,18 +6,19 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 function LandingPage() {
-  const wallet = useWallet();
-  const router = useRouter();
-  useEffect(() => {
-    if (wallet) {
-      router.push("/play");
-    }
-  }, [wallet, router]);
-  return (
-    <Container className="flex-grow flex items-center justify-center ">
-      <ConnectWalletButton />
-    </Container>
-  );
+	const wallet = useWallet();
+	const router = useRouter();
+	useEffect(() => {
+		if (wallet) {
+			console.log(wallet);
+			// router.push("/play");
+		}
+	}, [wallet, router]);
+	return (
+		<Container className='flex-grow flex items-center justify-center'>
+			<ConnectWalletButton />
+		</Container>
+	);
 }
 
 export default LandingPage;
