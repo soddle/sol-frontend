@@ -69,6 +69,10 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
       setLoading(true);
       if (kol) {
         await makeGuess(GameType.Attributes, kol);
+        const newApiSess = await fetchGameSessionFromApi({
+          publicKey: wallet?.adapter.publicKey?.toString()!,
+        });
+        setApiGameSess(newApiSess);
         return;
       }
     } catch (error) {
