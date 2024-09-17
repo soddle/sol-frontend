@@ -9,12 +9,12 @@ import { ReactQueryProvider } from "./reactQueryProvider";
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <RootStoreProvider>
-      <AppWalletProvider>
-        <ReactQueryProvider>
+      <ReactQueryProvider>
+        <AppWalletProvider>
           <Toaster />
           {children}
-        </ReactQueryProvider>
-      </AppWalletProvider>
+        </AppWalletProvider>
+      </ReactQueryProvider>
     </RootStoreProvider>
   );
 }

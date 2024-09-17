@@ -1,7 +1,7 @@
 "use server";
 
 const API_BASE_URL = appConfig.apiBaseUrl;
-import { KOL } from "@/types";
+import { APIKOL, KOL } from "@/types";
 import { appConfig } from "../config";
 
 type KolWithTweets = KOL;
@@ -34,11 +34,11 @@ export async function fetchKOLs(): Promise<KolWithTweets[]> {
   }
 }
 
-export async function fetchRandomKOL(): Promise<KolWithTweets> {
+export async function fetchRandomKOL(): Promise<APIKOL> {
   try {
-    return await fetchData<KolWithTweets>(`api/v1/kols/random`);
+    return await fetchData<APIKOL>(`api/v1/kols/random`);
   } catch (error) {
-    console.error("Error fetching random KolWithTweets:", error);
+    console.error("Error fetching random APIKOL:", error);
     throw error;
   }
 }

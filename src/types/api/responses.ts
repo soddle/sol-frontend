@@ -31,3 +31,18 @@ export interface GameStartResponse {
   };
   message: string;
 }
+
+export interface APIKOL {
+  id: string;
+  name: string;
+  age: number;
+  ageDisplay: string;
+  country: string;
+  pfpType: string;
+  pfp: string;
+  accountCreation: number;
+  followers: number;
+  followersDisplay: string;
+  ecosystem: string;
+  tweets: string[];
+}

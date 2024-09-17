@@ -10,15 +10,15 @@ import { toast } from "sonner";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRouter } from "next/navigation";
 import { useRootStore } from "@/stores/storeProvider";
-import { fetchRandomKOL } from "@/lib/api";
 
 import {
   ApiRequestError,
   GameAlreadyCompletedError,
   GameSessionNotFoundError,
   InternalServerError,
-  WalletConnectionError,
 } from "@/lib/errors";
+import { startGame } from "@/lib/api/game";
+import { AnchorError } from "@coral-xyz/anchor";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
@@ -26,7 +26,7 @@ export default function GamePlayPageClient() {
   const { ui, game } = useRootStore();
   const setLoading = ui((state) => state.setLoading);
   const setCurrentGameType = game((state) => state.setCurrentGameType);
-  const setGameSession = game((state) => state.setGameSession);
+  // const setGameSession = game((state) => state.setGameSession);
   const router = useRouter();
 
   // game session
@@ -34,15 +34,38 @@ export default function GamePlayPageClient() {
 
   const handleStartGameSession = async (gameType: GameType) => {
     try {
-      setLoading(true);
-      const randomKol = await fetchRandomKOL();
-      console.log("Random KOL", randomKol);
-      if (!wallet?.adapter.connected) {
-        throw new WalletConnectionError();
+      if (!wallet?.adapter.publicKey) {
+        throw new Error("Wallet not connected");
       }
+      setLoading(true);
+      // const apiKol = await fetchRandomKOL();
+      // const randomKol: KOL = {
+      //   pfp: apiKol.pfp,
+      //   accountCreation: apiKol.accountCreation,
+      //   age: apiKol.age,
+      //   country: apiKol.country,
+      //   ecosystem: apiKol.ecosystem,
+      //   followers: apiKol.followers,
+      //   id: apiKol.id,
+      //   name: apiKol.name,
+      // };
+      // console.log("Random KOL", randomKol);
 
       // starting the game
-      await startGameSession(GameType.Attributes, randomKol);
+      const kol = {
+        id: "KOL123",
+        name: "Test KOL",
+        age: 25,
+        country: "Test Country",
+        pfp: "https://example.com/pfp.jpg",
+        accountCreation: 2020,
+        followers: 10000,
+        ecosystem: "Test Ecosystem",
+      };
+
+      const gameSession = await startGameSession(gameType, kol);
+      console.log(gameSession);
+      // await startGame();
 
       // await setCurrentGameType(gameType);
       // Update the navigation based on the game type
@@ -60,8 +83,10 @@ export default function GamePlayPageClient() {
           throw new Error("Invalid game type");
       }
     } catch (error) {
-      if (error instanceof WalletConnectionError) {
-        toast.error("Please connect your wallet");
+      console.log("error inside playPageClient.tsx", error);
+
+      if (error instanceof AnchorError) {
+        console.log(error);
       } else if (error instanceof GameSessionNotFoundError) {
         toast.error("Game session not found");
       } else if (error instanceof GameAlreadyCompletedError) {
@@ -71,7 +96,7 @@ export default function GamePlayPageClient() {
       } else if (error instanceof ApiRequestError) {
         toast.error(error.message);
       } else if (error instanceof InternalServerError) {
-        toast.error("An unexpected error occurred");
+        toast.error(error.message);
       } else {
         toast.error("An unknown error occurred");
       }
