@@ -1,10 +1,5 @@
-import { useCallback, useState } from "react";
-import {
-  PublicKey,
-  SendTransactionError,
-  SystemProgram,
-  Keypair,
-} from "@solana/web3.js";
+import { useCallback } from "react";
+import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
 import { GameSession } from "@/types/";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
@@ -50,26 +45,24 @@ export const useGameSession = () => {
         [Buffer.from("game_state")],
         program.programId
       );
-      console.log("game state pda: ", gameStatePDA);
 
       const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
         program.programId
       );
 
-      console.log("game session pda", gameSessionPDA);
       const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
         program.programId
       );
-      console.log("game player pda: ", playerStatePDA);
 
       const [vaultPDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("vault")],
         program.programId
       );
 
-      console.log("game vault pda:", vaultPDA);
+      const gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
+      if (gameSess) return gameSess;
 
       const tx = await program.methods
         .startGameSession(gameType, kol)
@@ -82,7 +75,7 @@ export const useGameSession = () => {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      console.log(tx);
+      console.log("transaction: ", tx);
 
       const gS = fetchGameSession(wallet?.adapter.publicKey!);
       console.log("game session", gS);
@@ -100,7 +93,7 @@ export const useGameSession = () => {
         guess: guess,
       });
 
-      console.log(response);
+      console.log("response from submit guess", response);
       /*   const program = getProgram();
         if (!program) {
           throw new WalletConnectionError();

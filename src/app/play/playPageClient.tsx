@@ -17,8 +17,9 @@ import {
   GameSessionNotFoundError,
   InternalServerError,
 } from "@/lib/errors";
-import { startGame } from "@/lib/api/game";
+
 import { AnchorError } from "@coral-xyz/anchor";
+import { startGameApi } from "@/lib/api/game";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
@@ -64,11 +65,66 @@ export default function GamePlayPageClient() {
       };
 
       const gameSession = await startGameSession(gameType, kol);
-      console.log(gameSession);
-      // await startGame();
+      console.log(gameSession.kol);
+      const res = await startGameApi({
+        gameType: gameType,
+        publicKey: wallet.adapter.publicKey.toString(),
+        game: {
+          kol: gameSession.kol,
+          competitionId: gameSession.competitionId,
+          completed: gameSession.completed,
+          game1Completed: gameSession.game1Completed,
+          game2Completed: gameSession.game2Completed,
+          game1Guesses: [],
+          game1Score: gameSession.game1Score,
+          game2Guesses: [],
+          game2Score: gameSession.game2Score,
+          gameType: gameType,
+          guesses: [],
+          score: gameSession.score,
+          startTime: gameSession.startTime,
+          totalScore: gameSession.totalScore,
+        },
+      });
 
-      // await setCurrentGameType(gameType);
-      // Update the navigation based on the game type
+      // {
+      //   publicKey: wallet.adapter.publicKey.toString(),
+      //   gameType: 2,
+      //   game: {
+      //     gameType: 2,
+      //     startTime: 1694790896,
+      //     game1Completed: false,
+      //     game2Completed: false,
+      //     game1Score: 1000,
+      //     game2Score: 1000,
+      //     game1Guesses: [],
+      //     game2Guesses: [],
+      //     totalScore: 0,
+      //     completed: false,
+      //     score: 0,
+      //     kol: {
+      //       id: "66c7dbc1d484e54c72d24066",
+      //       name: "Emin Gün Sirer",
+      //       age: 45,
+      //       country: "Turkey",
+      //       pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ngmforjkndyfzkgwtbtm",
+      //       accountCreation: 2011,
+      //       followers: 250000,
+      //       ecosystem: "Chain Founder",
+      //     },
+      //     competitionId: "comp123",
+      //     guesses: [],
+      //   },
+      // }
+
+      console.log("response form starting the game", res);
+      if (gameSession.game1Completed)
+        throw new GameAlreadyCompletedError(
+          `Game ${gameSession.gameType} already completed`
+        );
+
+      setCurrentGameType(gameType);
+
       switch (gameType) {
         case GameType.Attributes:
           router.push("/play/attributes-game");
@@ -86,13 +142,11 @@ export default function GamePlayPageClient() {
       console.log("error inside playPageClient.tsx", error);
 
       if (error instanceof AnchorError) {
-        console.log(error);
+        console.log("anchor error occurred", error);
       } else if (error instanceof GameSessionNotFoundError) {
-        toast.error("Game session not found");
+        toast.error(error.message);
       } else if (error instanceof GameAlreadyCompletedError) {
         toast.info(error.message);
-        setCurrentGameType(gameType);
-        router.push(`/play/${gameType}`);
       } else if (error instanceof ApiRequestError) {
         toast.error(error.message);
       } else if (error instanceof InternalServerError) {

@@ -13,7 +13,6 @@ interface ApiResponse<T> {
 
 async function fetchData<T>(url: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}/${url}`);
-  console.log(response);
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);

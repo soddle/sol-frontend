@@ -10,30 +10,30 @@ import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { fetchRandomKOL } from "@/lib/api";
+
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
-import { KOL } from "@/types";
+import { GameSession, KOL } from "@/types";
 import QuestionBox from "./_components/questionBox";
 
 export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
   const router = useRouter();
   const { wallet } = useWallet();
   const { fetchGameSession, makeGuess } = useGameSession();
-  const [randomizedKol, setRandomizedKol] = useState<KOL | null>(null);
+  const [gameSess, setGameSess] = useState<GameSession | null>(null);
+
   const { ui, game } = useRootStore();
   const isLegendOpen = ui((state) => state.isLegendOpen);
   const setLoading = ui((state) => state.setLoading);
   const setError = ui((state) => state.setError);
-  const setGameSession = game((state) => state.setGameSession);
-  const gameSession = game((state) => state.gameSession);
+  //   const setGameSession = game((state) => state.setGameSession);
+  //   const gameSession = game((state) => state.gameSession);
 
   useEffect(() => {
     if (!wallet) {
       router.push("/");
-      return;
     }
-  }, [wallet, router]);
+  }, [wallet, router, gameSess]);
 
   useEffect(() => {
     async function getGameSession() {
@@ -41,7 +41,7 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
       console.log("Game session: ", gameSession);
 
       if (gameSession) {
-        setGameSession(gameSession);
+        setGameSess(gameSession);
       }
     }
 
@@ -54,25 +54,13 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
     } finally {
       setLoading(false);
     }
-  }, [wallet]);
-
-  useEffect(() => {
-    if (!gameSession) return;
-    async function getRandomKol() {
-      const randKol = await fetchRandomKOL();
-      setRandomizedKol(randKol);
-    }
-
-    getRandomKol();
-  }, [gameSession]);
+  }, []);
 
   const handleSelect = async (kol: KOL) => {
     try {
       setLoading(true);
       if (kol) {
         await makeGuess(GameType.Attributes, kol);
-        const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
-        setGameSession(gameSession);
         return;
       }
     } catch (error) {

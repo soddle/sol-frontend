@@ -1,9 +1,9 @@
 import { GuessRequest, GuessResponse } from "@/app/api/game/guess/route";
 import { UserResponse } from "@/app/api/user/route";
-import { GameStartRequest, GameStartResponse } from "@/types";
+import { ApiPostBody, GameStartResponse } from "@/types";
 
-export async function startGame(
-  gameStartRequest: GameStartRequest
+export async function startGameApi(
+  gameStartRequest: ApiPostBody
 ): Promise<GameStartResponse> {
   const response = await fetch("/api/game/start", {
     method: "POST",
