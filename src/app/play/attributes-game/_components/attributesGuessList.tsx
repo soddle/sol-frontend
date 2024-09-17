@@ -11,10 +11,6 @@ interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi;
 }
 
-const cellStyle = "p-2 overflow-hidden";
-const cellContentStyle = "w-full h-full flex items-center justify-center";
-const cellTextStyle = "text-xs sm:text-sm md:text-base truncate";
-
 interface CellProps {
   children: React.ReactNode;
   attributeResult: any;
@@ -30,7 +26,7 @@ const Cell: React.FC<CellProps> = ({
 }) => {
   return (
     <div
-      className={`${cellStyle} ${
+      className={` overflow-hidden ${
         attributeResult === "Correct"
           ? "bg-green-500"
           : attributeResult === "Incorrect"
@@ -42,15 +38,27 @@ const Cell: React.FC<CellProps> = ({
           : "bg-yellow-500"
       } ${className}`}
     >
-      <div className={`${cellContentStyle} aspect-[2/1]`}>{children}</div>
+      <div
+        className={`w-full h-full flex items-center justify-center aspect-[2/1]`}
+      >
+        {children}
+      </div>
     </div>
   );
 };
 
 const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className={`${cellStyle} `}>
-    <div className={`${cellContentStyle} aspect-[2/1]`}>
-      <span className={cellTextStyle}>{children}</span>
+  <div className={` overflow-hidden `}>
+    <div
+      className={`w-full h-full flex items-center justify-center aspect-[2/1]`}
+    >
+      <span
+        className={
+          "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+        }
+      >
+        {children}
+      </span>
     </div>
   </div>
 );
@@ -147,14 +155,26 @@ function TableRow({ game1guess }: TableItemProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{guessKol.age}</span>
+        <span
+          className={
+            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+          }
+        >
+          {guessKol.age}
+        </span>
       </Cell>
       <Cell
         attributeResult={attributesResults.country}
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{guessKol.country}</span>
+        <span
+          className={
+            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+          }
+        >
+          {guessKol.country}
+        </span>
       </Cell>
 
       <Cell
@@ -162,21 +182,39 @@ function TableRow({ game1guess }: TableItemProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{guessKol.accountCreation}</span>
+        <span
+          className={
+            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+          }
+        >
+          {guessKol.accountCreation}
+        </span>
       </Cell>
       <Cell
         attributeResult={attributesResults.followers}
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{formatCount(guessKol.followers)}</span>
+        <span
+          className={
+            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+          }
+        >
+          {formatCount(guessKol.followers)}
+        </span>
       </Cell>
       <Cell
         attributeResult={attributesResults.ecosystem}
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span className={cellTextStyle}>{guessKol.ecosystem}</span>
+        <span
+          className={
+            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+          }
+        >
+          {guessKol.ecosystem}
+        </span>
       </Cell>
     </>
   );
