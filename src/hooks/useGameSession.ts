@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { GameSession } from "@/types/";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
@@ -26,10 +26,6 @@ export const useGameSession = () => {
       //@ts-expect-error Not typed
       const fetchedSession = await program.account.gameSession.fetch(
         gameSessionPDA
-      );
-      console.log(
-        "returned value from fetching game session: ",
-        fetchedSession
       );
 
       return fetchedSession as GameSession;
@@ -64,7 +60,7 @@ export const useGameSession = () => {
       const gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
       if (gameSess) return gameSess;
 
-      const tx = await program.methods
+      await program.methods
         .startGameSession(gameType, kol)
         .accounts({
           gameState: gameStatePDA,
@@ -75,10 +71,8 @@ export const useGameSession = () => {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      console.log("transaction: ", tx);
 
       const gS = fetchGameSession(wallet?.adapter.publicKey!);
-      console.log("game session", gS);
 
       return gS;
     },
@@ -93,7 +87,6 @@ export const useGameSession = () => {
         guess: guess,
       });
 
-      console.log("response from submit guess", response);
       /*   const program = getProgram();
         if (!program) {
           throw new WalletConnectionError();
@@ -139,20 +132,6 @@ export const useGameSession = () => {
     makeGuess,
   };
 };
-
-export function getKeypairFromSecretKey(): Keypair {
-  const secretKey = new Uint8Array([
-    209, 21, 219, 119, 127, 25, 156, 84, 17, 101, 204, 253, 197, 190, 92, 69,
-    102, 251, 213, 250, 241, 240, 228, 145, 231, 142, 86, 8, 193, 173, 7, 240,
-    115, 41, 26, 145, 167, 22, 121, 57, 110, 119, 234, 247, 252, 144, 196, 236,
-    32, 187, 12, 30, 168, 111, 163, 0, 93, 10, 55, 245, 93, 54, 62, 254,
-  ]);
-
-  const keypair = Keypair.fromSecretKey(secretKey);
-  console.log("keypair to copy", keypair.publicKey.toString());
-
-  return keypair;
-}
 
 /* 
 curl https://staging-rpc.dev2.eclipsenetwork.xyz -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1, "method":"requestAirdrop", "params":["8kYEnR6Uq4R84hBRWk6ptufHnHgX7x9h9Ar2J4snuBAV", 1000000000]}'

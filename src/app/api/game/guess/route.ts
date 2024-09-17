@@ -78,7 +78,7 @@ export async function POST(request: Request) {
 
     const data: GuessResponse = await response.json();
 
-    return NextResponse.json(data);
+    return NextResponse.json(data.data);
   } catch (error) {
     console.error("Error submitting guess:", error);
     return NextResponse.json(

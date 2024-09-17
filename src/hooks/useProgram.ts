@@ -25,8 +25,6 @@ export const useProgram = () => {
       provider
     ) as anchor.Program<anchor.Idl>;
 
-    console.log("program in useProgram: ", program.programId.toString());
-
     return program;
   }, [connection, wallet]);
 };

@@ -65,25 +65,33 @@ export default function GamePlayPageClient() {
       };
 
       const gameSession = await startGameSession(gameType, kol);
-      console.log(gameSession.kol);
       const res = await startGameApi({
-        gameType: gameType,
         publicKey: wallet.adapter.publicKey.toString(),
+        gameType: 2,
         game: {
-          kol: gameSession.kol,
-          competitionId: gameSession.competitionId,
-          completed: gameSession.completed,
-          game1Completed: gameSession.game1Completed,
-          game2Completed: gameSession.game2Completed,
+          gameType: 2,
+          startTime: 1694790896,
+          game1Completed: false,
+          game2Completed: false,
+          game1Score: 1000,
+          game2Score: 1000,
           game1Guesses: [],
-          game1Score: gameSession.game1Score,
           game2Guesses: [],
-          game2Score: gameSession.game2Score,
-          gameType: gameType,
+          totalScore: 0,
+          completed: false,
+          score: 0,
+          kol: {
+            id: "66c7dbc1d484e54c72d24066",
+            name: "Emin Gün Sirer",
+            age: 45,
+            country: "Turkey",
+            pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ngmforjkndyfzkgwtbtm",
+            accountCreation: 2011,
+            followers: 250000,
+            ecosystem: "Chain Founder",
+          },
+          competitionId: "comp321",
           guesses: [],
-          score: gameSession.score,
-          startTime: gameSession.startTime,
-          totalScore: gameSession.totalScore,
         },
       });
 

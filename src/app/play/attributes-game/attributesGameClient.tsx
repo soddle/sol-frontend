@@ -13,14 +13,18 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
-import { GameSession, KOL } from "@/types";
+import { GameSession, GameSessionFromApi, KOL } from "@/types";
 import QuestionBox from "./_components/questionBox";
+import { fetchGameSessionFromApi } from "@/lib/api";
 
 export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
   const router = useRouter();
   const { wallet } = useWallet();
   const { fetchGameSession, makeGuess } = useGameSession();
   const [gameSess, setGameSess] = useState<GameSession | null>(null);
+  const [apiGameSess, setApiGameSess] = useState<GameSessionFromApi | null>(
+    null
+  );
 
   const { ui, game } = useRootStore();
   const isLegendOpen = ui((state) => state.isLegendOpen);
@@ -38,10 +42,14 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
   useEffect(() => {
     async function getGameSession() {
       const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
-      console.log("Game session: ", gameSession);
+      const apiGameSess = await fetchGameSessionFromApi({
+        publicKey: wallet?.adapter.publicKey?.toString()!,
+      });
 
+      console.log("api game session inside getGameSessaion", apiGameSess);
       if (gameSession) {
         setGameSess(gameSession);
+        setApiGameSess(apiGameSess);
       }
     }
 
@@ -98,11 +106,9 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
       {/* guessResults section */}
       {
         <section className="text-white no-scrollbar">
-          {/* <AttributesGuessListTable
-            guess1Results={
-              gameSession?.game1Guesses as unknown as []
-            }
-          /> */}
+          {apiGameSess && (
+            <AttributesGuessListTable gameSessionFromApi={apiGameSess} />
+          )}
         </section>
       }
       {/* Legends */}
