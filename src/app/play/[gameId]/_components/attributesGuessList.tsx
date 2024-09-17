@@ -1,12 +1,12 @@
 import { useGameSession } from "@/hooks/useGameSession";
-import { AttributeResult, Game1GuessResult, KOL } from "@/lib/types/idlTypes";
 import Image from "next/image";
 import React, { useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
 import { formatCount } from "@/lib/utils";
+import { AttributeResult, KOL } from "@/types";
 interface AttributesGuessListProps {
-  guess1Results: Game1GuessResult[];
+  guess1Results: any[];
 }
 
 const cellStyle = "p-2 overflow-hidden";
@@ -80,7 +80,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
 };
 
 interface TableItemProps {
-  guess1Result: Game1GuessResult;
+  guess1Result: any;
 }
 
 function TableItem({ guess1Result }: TableItemProps) {
@@ -107,7 +107,7 @@ function TableItem({ guess1Result }: TableItemProps) {
   if (!targetKol) return null;
 
   const attributesResults = result.map(
-    (obj) => Object.keys(obj)[0]
+    (obj: any) => Object.keys(obj)[0]
   ) as AttributeResult[];
 
   return (

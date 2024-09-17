@@ -1,9 +1,9 @@
 import React from "react";
-import { Game3GuessResult } from "@/lib/types/idlTypes";
+
 import Image from "next/image";
 
 interface EmojisGuessListProps {
-  guess3Results: Game3GuessResult[];
+  guess3Results: any[];
 }
 
 export const EmojisGuessList: React.FC<EmojisGuessListProps> = ({
@@ -18,7 +18,7 @@ export const EmojisGuessList: React.FC<EmojisGuessListProps> = ({
   );
 };
 
-function ListItem({ guessResult }: { guessResult: Game3GuessResult }) {
+function ListItem({ guessResult }: { guessResult: any }) {
   return (
     <li
       className={`bg-${

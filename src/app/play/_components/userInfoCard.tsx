@@ -114,8 +114,7 @@ function NoWallet({
         className="bg-[#03B500] text-white py-2 px-4 rounded-md hover:bg-[#029400] transition-colors duration-200 text-sm sm:text-base flex items-center justify-center"
         onClick={handleConnectWallet}
       >
-        <WalletIcon className="w-5 h-5 mr-2" />
-        Connect Wallet
+        click to connect wallet
       </button>
     </div>
   );

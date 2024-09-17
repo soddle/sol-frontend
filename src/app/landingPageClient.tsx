@@ -9,14 +9,18 @@ function LandingPage() {
 	const wallet = useWallet();
 	const router = useRouter();
 	useEffect(() => {
-		if (wallet) {
-			console.log(wallet);
-			// router.push("/play");
+		console.log(
+			"user wallet pub key: ",
+			wallet.connected || wallet.publicKey
+		);
+		if (wallet.publicKey) {
+			router.push("/play");
 		}
 	}, [wallet, router]);
 	return (
-		<Container className='flex-grow flex items-center justify-center'>
+		<Container className='flex-grow flex items-center justify-center '>
 			<ConnectWalletButton />
+			{/* <WalletMultiButton /> */}
 		</Container>
 	);
 }

@@ -1,78 +1,70 @@
-import { useCallback, useState } from "react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { GameSession, KOL } from "@/lib/types/idlTypes";
+import { useCallback } from "react";
+import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
+import { GameSession } from "@/types/";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
 import { toast } from "sonner";
 import { useProgram } from "./useProgram";
 
+import { KOL } from "@/types";
+import { submitGuess } from "@/lib/api/game";
+
 export const useGameSession = () => {
-  const [gameSession, setGameSession] = useState<GameSession | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const getProgram = useProgram();
+
   const { wallet } = useWallet();
 
   const fetchGameSession = useCallback(
     async (playerPublicKey: PublicKey) => {
-      try {
-        const program = getProgram();
-        if (!program) {
-          throw new Error("No program found");
-        }
-        const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("game_session"), playerPublicKey.toBuffer()],
-          program.programId
-        );
+      const program = getProgram();
 
-        //@ts-ignore
-        const fetchedSession = await program.account.gameSession.fetch(
-          gameSessionPDA
-        );
+      const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("game_session"), playerPublicKey.toBuffer()],
+        program.programId
+      );
 
-        if (!fetchedSession) {
-          throw new Error("Game session not found");
-        }
+      //@ts-expect-error Not typed
+      const fetchedSession = await program.account.gameSession.fetch(
+        gameSessionPDA
+      );
+      console.log(
+        "returned value from fetching game session: ",
+        fetchedSession
+      );
 
-        setGameSession(fetchedSession as GameSession);
-        return fetchedSession as GameSession;
-      } catch (err) {
-        console.error("Error fetching game session:", err);
-        setError("Failed to fetch game session");
-        return null;
-      }
+      return fetchedSession as GameSession;
     },
     [getProgram]
   );
 
-  const startGameSession = async (gameType: number, kol: KOL) => {
-    try {
+  const startGameSession = useCallback(
+    async (gameType: number, kol: KOL) => {
       const program = getProgram();
 
-      if (!program) {
-        throw new Error("No program found");
-      }
-      const [gameStatePDA] = PublicKey.findProgramAddressSync(
+      const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_state")],
         program.programId
       );
 
-      const [gameSessionPDA] = PublicKey.findProgramAddressSync(
+      const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
         program.programId
       );
 
-      const [playerStatePDA] = PublicKey.findProgramAddressSync(
+      const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
         program.programId
       );
 
-      const [vaultPDA] = PublicKey.findProgramAddressSync(
+      const [vaultPDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("vault")],
         program.programId
       );
 
-      const txSig = await program.methods
+      const gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
+      if (gameSess) return gameSess;
+
+      const tx = await program.methods
         .startGameSession(gameType, kol)
         .accounts({
           gameState: gameStatePDA,
@@ -83,21 +75,28 @@ export const useGameSession = () => {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      return txSig;
-    } catch (err) {
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+      console.log("transaction: ", tx);
+
+      const gS = fetchGameSession(wallet?.adapter.publicKey!);
+      console.log("game session", gS);
+
+      return gS;
+    },
+    [getProgram, fetchGameSession, wallet]
+  );
 
   const makeGuess = useCallback(
     async (gameType: number, guess: KOL) => {
-      try {
-        const program = getProgram();
+      const response = await submitGuess({
+        gameType: gameType,
+        publicKey: wallet?.adapter.publicKey!,
+        guess: guess,
+      });
+
+      console.log("response from submit guess", response);
+      /*   const program = getProgram();
         if (!program) {
-          console.log("No program found");
-          return;
+          throw new WalletConnectionError();
         }
 
         setLoading(true);
@@ -126,74 +125,35 @@ export const useGameSession = () => {
           })
           .rpc();
 
-        toast.success("Guess made successfully");
-      } catch (err) {
-        console.error("Error making guess:", err);
-        toast.error("Failed to make guess");
-        setError("Failed to make guess");
-      } finally {
-        setLoading(false);
-      }
+        */
+
+      toast.success("Guess made successfully");
+      await fetchGameSession(wallet?.adapter.publicKey!);
     },
     [getProgram, fetchGameSession, wallet]
   );
 
-  const endGameSession = useCallback(async () => {
-    const program = getProgram();
-    if (!program) {
-      setError("Program not initialized");
-      return;
-    }
-
-    // try {
-    //   setLoading(true);
-    //   const [gameStatePDA] = PublicKey.findProgramAddressSync(
-    //     [Buffer.from("game_state")],
-    //     new PublicKey(SODDLE_PROGRAM_ID)
-    //   );
-
-    //   const [gameSessionPDA] = PublicKey.findProgramAddressSync(
-    //     [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
-    //     new PublicKey(SODDLE_PROGRAM_ID)
-    //   );
-
-    //   const [playerStatePDA] = PublicKey.findProgramAddressSync(
-    //     [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
-    //     new PublicKey(SODDLE_PROGRAM_ID)
-    //   );
-
-    //   const [vaultPDA] = PublicKey.findProgramAddressSync(
-    //     [Buffer.from("vault")],
-    //     new PublicKey(SODDLE_PROGRAM_ID)
-    //   );
-
-    //   // await program.methods
-    //   //   .endGameSession()
-    //   //   .accounts({
-    //   //     gameState: gameStatePDA,
-    //   //     gameSession: gameSessionPDA,
-    //   //     player: wallet?.adapter.publicKey!,
-    //   //     playerState: playerStatePDA,
-    //   //     vault: vaultPDA,
-    //   //     systemProgram: SystemProgram.programId,
-    //   //   })
-    //   //   .rpc();
-
-    //   await fetchGameSession(wallet?.adapter.publicKey!);
-    // } catch (err) {
-    //   console.error("Error ending game session:", err);
-    //   setError("Failed to end game session");
-    // } finally {
-    //   setLoading(false);
-    // }
-  }, [getProgram, fetchGameSession, wallet]);
-
   return {
-    gameSession,
-    error,
     fetchGameSession,
     startGameSession,
     makeGuess,
-    endGameSession,
   };
 };
+
+export function getKeypairFromSecretKey(): Keypair {
+  const secretKey = new Uint8Array([
+    209, 21, 219, 119, 127, 25, 156, 84, 17, 101, 204, 253, 197, 190, 92, 69,
+    102, 251, 213, 250, 241, 240, 228, 145, 231, 142, 86, 8, 193, 173, 7, 240,
+    115, 41, 26, 145, 167, 22, 121, 57, 110, 119, 234, 247, 252, 144, 196, 236,
+    32, 187, 12, 30, 168, 111, 163, 0, 93, 10, 55, 245, 93, 54, 62, 254,
+  ]);
+
+  const keypair = Keypair.fromSecretKey(secretKey);
+  console.log("keypair to copy", keypair.publicKey.toString());
+
+  return keypair;
+}
+
+/* 
+curl https://staging-rpc.dev2.eclipsenetwork.xyz -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1, "method":"requestAirdrop", "params":["8kYEnR6Uq4R84hBRWk6ptufHnHgX7x9h9Ar2J4snuBAV", 1000000000]}'
+*/
