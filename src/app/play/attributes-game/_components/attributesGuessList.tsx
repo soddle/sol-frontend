@@ -136,14 +136,14 @@ function TableItem({ game1guess }: TableItemProps) {
         />
       </Cell>
       <Cell
-        attributeResult={attributesResults[1]}
+        attributeResult={attributesResults.age}
         guessKol={guessKol}
         targetKol={targetKol}
       >
         <span className={cellTextStyle}>{targetKol.age}</span>
       </Cell>
       <Cell
-        attributeResult={attributesResults[2]}
+        attributeResult={attributesResults.country}
         guessKol={guessKol}
         targetKol={targetKol}
       >
@@ -151,14 +151,14 @@ function TableItem({ game1guess }: TableItemProps) {
       </Cell>
 
       <Cell
-        attributeResult={attributesResults[3]}
+        attributeResult={attributesResults.accountCreation}
         guessKol={guessKol}
         targetKol={targetKol}
       >
         <span className={cellTextStyle}>{targetKol.accountCreation}</span>
       </Cell>
       <Cell
-        attributeResult={attributesResults[4]}
+        attributeResult={attributesResults.followers}
         guessKol={guessKol}
         targetKol={targetKol}
       >
@@ -167,7 +167,7 @@ function TableItem({ game1guess }: TableItemProps) {
         </span>
       </Cell>
       <Cell
-        attributeResult={attributesResults[5]}
+        attributeResult={attributesResults.ecosystem}
         guessKol={guessKol}
         targetKol={targetKol}
       >
@@ -517,3 +517,11 @@ const t = {
   competitionId: "comp321",
   __v: 42,
 };
+
+/* 
+
+december anxiety sun chase play ginger panel theory domain soccer keep lock
+
+
+
+*/

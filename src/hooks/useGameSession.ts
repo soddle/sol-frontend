@@ -57,9 +57,16 @@ export const useGameSession = () => {
         program.programId
       );
 
-      const gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
-      if (gameSess) return gameSess;
+      let gameSess;
 
+      try {
+        gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
+      } catch (err) {
+        gameSess = null;
+        console.log(err);
+      }
+
+      if (gameSess) return gameSess;
       await program.methods
         .startGameSession(gameType, kol)
         .accounts({

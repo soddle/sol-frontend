@@ -147,7 +147,7 @@ export default function GamePlayPageClient() {
           throw new Error("Invalid game type");
       }
     } catch (error) {
-      console.log("error inside playPageClient.tsx", error);
+      // console.log("error inside playPageClient.tsx", error);
 
       if (error instanceof AnchorError) {
         console.log("anchor error occurred", error);
