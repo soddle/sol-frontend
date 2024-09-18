@@ -2,6 +2,7 @@ export * from "./attributes";
 export * from "./emojis";
 export * from "./tweets";
 export * from "./props";
+import { BN } from "@coral-xyz/anchor";
 
 import { PublicKey } from "@solana/web3.js";
 
@@ -27,7 +28,7 @@ export interface Competition {
 export interface GameSession {
   player: PublicKey;
   gameType: GameType;
-  startTime: number;
+  startTime: BN;
   game1Completed: boolean;
   game2Completed: boolean;
   game1Score: number;
@@ -38,7 +39,7 @@ export interface GameSession {
   targetIndex: number;
   completed: boolean;
   score: number;
-  deposit: number;
+  deposit: BN;
   kol: KOL;
   competitionId: string;
 }

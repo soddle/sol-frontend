@@ -21,7 +21,7 @@ import {
 import { AnchorError } from "@coral-xyz/anchor";
 import { startGameApi } from "@/lib/api/game";
 import { fetchRandomKOL } from "@/lib/api";
-import { KOL } from "@/types";
+import { KOL, StartGameRequestBody } from "@/types";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
@@ -42,75 +42,55 @@ export default function GamePlayPageClient() {
       }
       setLoading(true);
       const apiKol = await fetchRandomKOL();
+      const {
+        pfp,
+        accountCreation,
+        age,
+        country,
+        ecosystem,
+        followers,
+        id,
+        name,
+      } = apiKol;
+
       console.log("api kol: ", apiKol);
       const randomKol: KOL = {
-        pfp: apiKol.pfp,
-        accountCreation: apiKol.accountCreation,
-        age: apiKol.age,
-        country: apiKol.country,
-        ecosystem: apiKol.ecosystem,
-        followers: apiKol.followers,
-        id: apiKol.id,
-        name: apiKol.name,
+        pfp,
+        accountCreation,
+        age,
+        country,
+        ecosystem,
+        followers,
+        id,
+        name,
       };
+
       console.log("Random KOL", randomKol);
 
-      // starting the game
-      const kol = {
-        id: "KOL123",
-        name: "Emin Gün Sirer",
-        age: 45,
-        country: "Turkey",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ngmforjkndyfzkgwtbtm",
-        accountCreation: 2011,
-        followers: 250000,
-        ecosystem: "Chain Founder",
-      };
-      const d = {
-        id: "66e73ef703e3b6308e74f1a9",
-        name: "Layah Heilpern",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "UK",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/s9b5jtbojo8kxxpk2dd0",
-        accountCreation: 2012,
-        followers: 750000,
-        followersDisplay: "500k-1M",
-        ecosystem: "Reporter, Bitcoin",
-        tweets: [],
-      };
-
-      const gameSession = await startGameSession(gameType, kol);
-      const res = await startGameApi({
-        publicKey: wallet.adapter.publicKey.toString(),
-        gameType: 2,
+      const gameSession = await startGameSession(gameType, randomKol);
+      console.log("gamesession in handleStartGameSession", gameSession);
+      console.log("gametype: ", gameType);
+      const startGameReq: StartGameRequestBody = {
+        publicKey: wallet!.adapter.publicKey!.toString() || "",
+        gameType,
         game: {
-          gameType: 2,
-          startTime: 1694790896,
-          game1Completed: false,
-          game2Completed: false,
-          game1Score: 1000,
-          game2Score: 1000,
+          gameType: gameType,
+          startTime: gameSession.startTime.toString(),
+          game1Completed: gameSession.game1Completed,
+          game2Completed: gameSession.game2Completed,
+          game1Score: gameSession.game1Score,
+          game2Score: gameSession.game2Score,
           game1Guesses: [],
           game2Guesses: [],
-          totalScore: 0,
-          completed: false,
-          score: 0,
-          kol: {
-            id: "KOL123",
-            name: "Emin Gün Sirer",
-            age: 45,
-            country: "Turkey",
-            pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ngmforjkndyfzkgwtbtm",
-            accountCreation: 2011,
-            followers: 250000,
-            ecosystem: "Chain Founder",
-          },
-          competitionId: "comp321",
+          totalScore: gameSession.totalScore,
+          completed: gameSession.completed,
+          score: gameSession.score,
+          kol: randomKol,
+          competitionId: gameSession.competitionId,
           guesses: [],
         },
-      });
+      };
+      const res = await startGameApi(startGameReq);
 
       // {
       //   publicKey: wallet.adapter.publicKey.toString(),
@@ -164,7 +144,7 @@ export default function GamePlayPageClient() {
           throw new Error("Invalid game type");
       }
     } catch (error) {
-      // console.log("error inside playPageClient.tsx", error);
+      console.log("error inside playPageClient.tsx", error);
 
       if (error instanceof AnchorError) {
         console.log("anchor error occurred", error);

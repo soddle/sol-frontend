@@ -3,19 +3,18 @@ import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useGameSession } from "@/hooks/useGameSession";
-import { KOL } from "@/types";
+import { KOL, KolWithTweets } from "@/types";
 
 interface KOLSearchProps {
-  kols: KOL[];
-  onSelect: (kol: KOL) => void;
+  kols: KolWithTweets[];
+  handleGuess: (kol: KolWithTweets) => void;
 }
 
-const KOLSearch: React.FC<KOLSearchProps> = ({ kols, onSelect }) => {
+const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<KOL[]>([]);
+  const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const { makeGuess } = useGameSession();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,21 +49,10 @@ const KOLSearch: React.FC<KOLSearchProps> = ({ kols, onSelect }) => {
     setSearchTerm(e.target.value);
   };
 
-  const handleSelectKOL = async (kol: KOL) => {
+  const handleSelectKOL = async (kol: KolWithTweets) => {
     setSearchTerm("");
     setIsDropdownOpen(false);
-    onSelect(kol);
-
-    if (1) {
-      try {
-        await makeGuess(1, kol);
-        toast.success("Guess made successfully");
-      } catch (error) {
-        toast.error("Error making guess");
-      }
-    } else {
-      console.error("No game type selected");
-    }
+    handleGuess(kol);
   };
 
   return (
@@ -87,14 +75,14 @@ const KOLSearch: React.FC<KOLSearchProps> = ({ kols, onSelect }) => {
   );
 };
 
-export default KOLSearch;
+export default KolSearch;
 
 function ListItem({
   kol,
   handleSelect,
 }: {
-  kol: KOL;
-  handleSelect: (kol: KOL) => void;
+  kol: KolWithTweets;
+  handleSelect: (kol: KolWithTweets) => void;
 }) {
   return (
     <li

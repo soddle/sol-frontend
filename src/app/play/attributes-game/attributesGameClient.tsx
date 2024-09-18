@@ -13,25 +13,22 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
-import { GameSession, GameSessionFromApi, KOL } from "@/types";
+import { GameSession, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import QuestionBox from "./_components/questionBox";
 import { fetchGameSessionFromApi } from "@/lib/api";
 
-export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
+export default function GameIdPageClient({ kols }: { kols: KolWithTweets[] }) {
   const router = useRouter();
   const { wallet } = useWallet();
   const { fetchGameSession, makeGuess } = useGameSession();
   const [gameSess, setGameSess] = useState<GameSession | null>(null);
-  const [apiGameSess, setApiGameSess] = useState<GameSessionFromApi | null>(
-    null
-  );
+  const [gameSessionFromApi, setGameSessionFromApi] =
+    useState<GameSessionFromApi | null>(null);
 
-  const { ui, game } = useRootStore();
+  const { ui } = useRootStore();
   const isLegendOpen = ui((state) => state.isLegendOpen);
   const setLoading = ui((state) => state.setLoading);
   const setError = ui((state) => state.setError);
-  //   const setGameSession = game((state) => state.setGameSession);
-  //   const gameSession = game((state) => state.gameSession);
 
   useEffect(() => {
     if (!wallet) {
@@ -40,22 +37,24 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
   }, [wallet, router, gameSess]);
 
   useEffect(() => {
-    async function getGameSession() {
-      const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
-      const apiGameSess = await fetchGameSessionFromApi({
-        publicKey: wallet?.adapter.publicKey?.toString()!,
-      });
+    async function getGameSessions() {
+      const [gameSessionFromApi, gameSession] = await Promise.all([
+        fetchGameSessionFromApi({
+          publicKey: wallet?.adapter.publicKey?.toString()!,
+        }),
+        fetchGameSession(wallet?.adapter.publicKey!),
+      ]);
+      console.log("api guess in attributesgameclient.tsx", gameSessionFromApi);
 
-      console.log("api game session inside getGameSessaion", apiGameSess);
       if (gameSession) {
         setGameSess(gameSession);
-        setApiGameSess(apiGameSess);
       }
+      if (gameSessionFromApi) setGameSessionFromApi(gameSessionFromApi);
     }
 
     try {
       setLoading(true);
-      getGameSession();
+      getGameSessions();
     } catch (error) {
       toast.error("Error fetching game session");
       setError("Error fetching game session");
@@ -64,21 +63,25 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
     }
   }, []);
 
-  const handleSelect = async (kol: KOL) => {
+  const handleGuess = async (kolWithTweets: KolWithTweets) => {
+    const kol: KOL = {
+      accountCreation: kolWithTweets.accountCreation,
+      age: kolWithTweets.age,
+      country: kolWithTweets.country,
+      ecosystem: kolWithTweets.ecosystem,
+      followers: kolWithTweets.followers,
+      id: kolWithTweets.id,
+      name: kolWithTweets.name,
+      pfp: kolWithTweets.pfp,
+    };
+    console.log("kol inside handleGuess", kol);
     try {
       setLoading(true);
-      if (kol) {
-        await makeGuess(GameType.Attributes, kol);
-        const newApiSess = await fetchGameSessionFromApi({
-          publicKey: wallet?.adapter.publicKey?.toString()!,
-        });
-
-        setApiGameSess(newApiSess);
-        return;
-      }
+      const res = await makeGuess(GameType.Attributes, kol);
+      setGameSessionFromApi(res.data);
     } catch (error) {
+      console.log("error", error);
       toast.error("Error making guess");
-      setError("Error making guess");
     } finally {
       setLoading(false);
     }
@@ -105,14 +108,14 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
 
       {/* search bar */}
       <Container>
-        <SearchBar kols={kols} onSelect={handleSelect} />
+        <SearchBar kols={kols} handleGuess={handleGuess} />
       </Container>
 
       {/* guessResults section */}
       {
         <section className="text-white no-scrollbar">
-          {apiGameSess && (
-            <AttributesGuessListTable gameSessionFromApi={apiGameSess} />
+          {gameSessionFromApi && (
+            <AttributesGuessListTable gameSessionFromApi={gameSessionFromApi} />
           )}
         </section>
       }

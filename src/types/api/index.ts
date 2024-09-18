@@ -1,3 +1,5 @@
+import { AttributeResult } from "../game";
+
 export * from "./requests";
 export * from "./responses";
 
@@ -16,8 +18,8 @@ export interface GameSessionFromApi {
   game2Completed: boolean;
   game1Score: number;
   game2Score: number;
-  game1Guesses: any[]; // You might want to define a more specific type for game1Guesses
-  game2Guesses: Game2Guess[];
+  game1Guesses: Game1Guess[]; // You might want to define a more specific type for game1Guesses
+  game2Guesses: any[];
   game1GuessesCount: number;
   game2GuessesCount: number;
   totalScore: number;
@@ -28,12 +30,19 @@ export interface GameSessionFromApi {
   __v: number;
 }
 
-export interface Game2Guess {
+export interface Game1Guess {
   guess: KOL;
-  result: {
-    kol: KOL;
-    result: boolean;
-  };
+  result: GuessResult;
+}
+
+export interface GuessResult {
+  account_creation: AttributeResult;
+  age: AttributeResult;
+  country: AttributeResult;
+  ecosystem: AttributeResult;
+  followers: AttributeResult;
+  name: AttributeResult;
+  pfpType: AttributeResult;
 }
 
 export interface KOL {

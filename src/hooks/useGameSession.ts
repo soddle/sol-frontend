@@ -8,20 +8,29 @@ import { useProgram } from "./useProgram";
 
 import { KOL } from "@/types";
 import { submitGuess } from "@/lib/api/game";
+import { useGameState } from "./useGameState";
+import { fetchGameSessionFromApi } from "@/lib/api";
 
 export const useGameSession = () => {
   const getProgram = useProgram();
+  const { fetchGameState } = useGameState();
 
   const { wallet } = useWallet();
 
   const fetchGameSession = useCallback(
     async (playerPublicKey: PublicKey) => {
       const program = getProgram();
+      const gameState = await fetchGameState();
 
       const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("game_session"), playerPublicKey.toBuffer()],
+        [
+          Buffer.from("game_session"),
+          playerPublicKey.toBuffer(),
+          Buffer.from(gameState?.currentCompetition.id!),
+        ],
         program.programId
       );
+      console.log("gameSessionPDA", gameSessionPDA.toString());
 
       //@ts-expect-error Not typed
       const fetchedSession = await program.account.gameSession.fetch(
@@ -34,8 +43,14 @@ export const useGameSession = () => {
   );
 
   const startGameSession = useCallback(
-    async (gameType: number, kol: KOL) => {
+    async (
+      gameType: number,
+      kol: KOL,
+      playerPubKey = wallet?.adapter.publicKey
+    ) => {
       const program = getProgram();
+      const gameState = await fetchGameState();
+      console.log("game state: ", gameState);
 
       const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_state")],
@@ -43,12 +58,17 @@ export const useGameSession = () => {
       );
 
       const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
+        [
+          Buffer.from("game_session"),
+          playerPubKey?.toBuffer()!,
+          Buffer.from(gameState?.currentCompetition.id!),
+        ],
         program.programId
       );
+      console.log("gameSessionPDA", gameSessionPDA.toString());
 
       const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
+        [Buffer.from("player_state"), playerPubKey?.toBuffer()!],
         program.programId
       );
 
@@ -57,29 +77,25 @@ export const useGameSession = () => {
         program.programId
       );
 
-      let gameSess;
-
       try {
-        gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
+        return await fetchGameSession(playerPubKey!);
       } catch (err) {
-        gameSess = null;
         console.log(err);
       }
 
-      if (gameSess) return gameSess;
       await program.methods
         .startGameSession(gameType, kol)
         .accounts({
           gameState: gameStatePDA,
           gameSession: gameSessionPDA,
-          player: wallet?.adapter.publicKey!,
+          player: playerPubKey!,
           playerState: playerStatePDA,
           vault: vaultPDA,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
 
-      const gS = fetchGameSession(wallet?.adapter.publicKey!);
+      const gS = fetchGameSession(playerPubKey!);
 
       return gS;
     },
@@ -88,49 +104,20 @@ export const useGameSession = () => {
 
   const makeGuess = useCallback(
     async (gameType: number, guess: KOL) => {
-      const response = await submitGuess({
+      console.log(gameType, guess);
+      const res = await submitGuess({
         gameType: gameType,
         publicKey: wallet?.adapter.publicKey!,
         guess: guess,
       });
 
-      /*   const program = getProgram();
-        if (!program) {
-          throw new WalletConnectionError();
-        }
-
-        setLoading(true);
-        const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("game_state")],
-          program.programId
-        );
-
-        const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
-          program.programId
-        );
-
-        const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
-          program.programId
-        );
-
-        await program.methods
-          .makeGuess(gameType, guess)
-          .accounts({
-            gameState: gameStatePDA,
-            gameSession: gameSessionPDA,
-            player: wallet?.adapter.publicKey!,
-            playerState: playerStatePDA,
-          })
-          .rpc();
-
-        */
-
       toast.success("Guess made successfully");
-      await fetchGameSession(wallet?.adapter.publicKey!);
+      // await fetchGameSessionFromApi({
+      //   publicKey: wallet?.adapter.publicKey?.toString()!,
+      // });
+      return res;
     },
-    [getProgram, fetchGameSession, wallet]
+    [getProgram, fetchGameSession]
   );
 
   return {

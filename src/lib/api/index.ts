@@ -6,10 +6,9 @@ import {
   GameSessionFromApi,
   GameSessionFromApiResponse,
   KOL,
+  KolWithTweets,
 } from "@/types";
 import { appConfig } from "../config";
-
-type KolWithTweets = KOL;
 
 interface ApiResponse<T> {
   status: string;

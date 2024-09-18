@@ -1,12 +1,8 @@
-import { useGameSession } from "@/hooks/useGameSession";
-
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useRootStore } from "@/stores/storeProvider";
+import React, { useState } from "react";
 import { formatCount } from "@/lib/utils";
-import { GameSessionFromApi, GameSessionFromApiResponse, KOL } from "@/types";
-import { fetchGameSessionFromApi, fetchRandomKOL } from "@/lib/api";
+import { Game1Guess, GameSessionFromApi, KOL } from "@/types";
+import { fetchGameSessionFromApi } from "@/lib/api";
 interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi;
 }
@@ -66,6 +62,17 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   gameSessionFromApi,
 }) => {
+  const game1Guesses = gameSessionFromApi.game1Guesses;
+  console.log(
+    "game session from api called inside attributes table",
+    gameSessionFromApi
+  );
+  if (gameSessionFromApi.game1Guesses.length <= 0)
+    return (
+      <div className="text-center text-green-500">
+        You have no guesses here yet. try making some guess.
+      </div>
+    );
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
@@ -80,7 +87,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           ].map((header) => (
             <HeaderCell key={header}>{header}</HeaderCell>
           ))}
-          {gameSessionFromApi.game1Guesses?.map((game1guess) => {
+          {game1Guesses?.map((game1guess) => {
             return (
               <TableRow key={game1guess.guess.id} game1guess={game1guess} />
             );
@@ -91,39 +98,25 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   );
 };
 
-interface TableItemProps {
-  game1guess: any;
+interface TableRowProps {
+  game1guess: Game1Guess;
 }
 
-function TableRow({ game1guess }: TableItemProps) {
-  const { wallet } = useWallet();
+function TableRow({ game1guess }: TableRowProps) {
   const [targetKol, setTargetKol] = useState<KOL | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchGameSession() {
-      if (wallet?.adapter?.publicKey) {
-        try {
-          setLoading(true);
-          const gameSession = await fetchGameSessionFromApi({
-            publicKey: wallet.adapter.publicKey.toString(),
-          });
-          setTargetKol(gameSession.kol);
-        } catch (error) {
-          console.error("Error fetching game session:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchGameSession();
-  }, [wallet?.adapter?.publicKey]);
 
   const { guess: guessKol, result: attributesResults } = game1guess;
+  const {
+    account_creation: accountCreation,
+    age,
+    country,
+    ecosystem,
+    followers,
+    name,
+    pfpType,
+  } = attributesResults;
 
-  if (loading) return <div>Loading...</div>;
-  if (!targetKol) return null;
+  if (!targetKol) return <div>No Guess Here.</div>;
 
   console.log("guessKol", guessKol);
   console.log("result", attributesResults);
@@ -137,7 +130,7 @@ function TableRow({ game1guess }: TableItemProps) {
       <Cell
         targetKol={targetKol}
         guessKol={guessKol}
-        attributeResult={attributesResults.pfpType}
+        attributeResult={pfpType}
         className="bg-transparent p-0 m-0"
       >
         <Image
@@ -150,11 +143,7 @@ function TableRow({ game1guess }: TableItemProps) {
           objectFit="cover"
         />
       </Cell>
-      <Cell
-        attributeResult={attributesResults.age}
-        guessKol={guessKol}
-        targetKol={targetKol}
-      >
+      <Cell attributeResult={age} guessKol={guessKol} targetKol={targetKol}>
         <span
           className={
             "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
@@ -163,11 +152,7 @@ function TableRow({ game1guess }: TableItemProps) {
           {guessKol.age}
         </span>
       </Cell>
-      <Cell
-        attributeResult={attributesResults.country}
-        guessKol={guessKol}
-        targetKol={targetKol}
-      >
+      <Cell attributeResult={country} guessKol={guessKol} targetKol={targetKol}>
         <span
           className={
             "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
@@ -176,9 +161,8 @@ function TableRow({ game1guess }: TableItemProps) {
           {guessKol.country}
         </span>
       </Cell>
-
       <Cell
-        attributeResult={attributesResults.accountCreation}
+        attributeResult={accountCreation}
         guessKol={guessKol}
         targetKol={targetKol}
       >
@@ -191,7 +175,7 @@ function TableRow({ game1guess }: TableItemProps) {
         </span>
       </Cell>
       <Cell
-        attributeResult={attributesResults.followers}
+        attributeResult={followers}
         guessKol={guessKol}
         targetKol={targetKol}
       >
@@ -204,7 +188,7 @@ function TableRow({ game1guess }: TableItemProps) {
         </span>
       </Cell>
       <Cell
-        attributeResult={attributesResults.ecosystem}
+        attributeResult={ecosystem}
         guessKol={guessKol}
         targetKol={targetKol}
       >
