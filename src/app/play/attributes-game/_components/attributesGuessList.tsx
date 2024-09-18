@@ -1,3 +1,5 @@
+"use client";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { formatCount } from "@/lib/utils";
@@ -168,7 +170,7 @@ function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
     pfpType,
   } = attributesResults;
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <KOLLoading />;
   if (!targetKol || !guessKol) return null;
   if (!targetKol) return <div>No Guess Here.</div>;
 
@@ -233,6 +235,31 @@ function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
           {guessKol.ecosystem}
         </span>
       </Cell>
+    </>
+  );
+}
+
+function KOLLoading() {
+  return (
+    <>
+      {[...Array(7)].map((_, index) => (
+        <div key={index} className="overflow-hidden bg-[#111411] rounded-md">
+          <div className="w-full h-full flex items-center justify-center aspect-[2/1]">
+            <motion.div
+              className="w-3/4 h-3/4 bg-gradient-to-r from-[#1a1e1b] via-[#2FFF2B20] to-[#1a1e1b] rounded-md"
+              animate={{
+                opacity: [0.5, 0.8, 0.5],
+                scale: [0.97, 1, 0.97],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          </div>
+        </div>
+      ))}
     </>
   );
 }
