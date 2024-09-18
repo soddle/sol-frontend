@@ -17,7 +17,11 @@ import { GameSession, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import QuestionBox from "./_components/questionBox";
 import { fetchGameSessionFromApi } from "@/lib/api";
 
-export default function GameIdPageClient({ kols }: { kols: KolWithTweets[] }) {
+export default function AttributesGameClient({
+  kols,
+}: {
+  kols: KolWithTweets[];
+}) {
   const router = useRouter();
   const { wallet } = useWallet();
   const { fetchGameSession, makeGuess } = useGameSession();
@@ -111,7 +115,11 @@ export default function GameIdPageClient({ kols }: { kols: KolWithTweets[] }) {
 
       {/* search bar */}
       <Container>
-        <SearchBar kols={kols} handleGuess={handleGuess} />
+        <SearchBar
+          kols={kols}
+          handleGuess={handleGuess}
+          // gameSessionFromApi={gameSessionFromApi}
+        />
       </Container>
 
       {/* guessResults section */}

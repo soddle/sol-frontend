@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";
-import { toast } from "sonner";
-import { useGameSession } from "@/hooks/useGameSession";
-import { KOL, KolWithTweets } from "@/types";
+import { KolWithTweets } from "@/types";
 
 interface KOLSearchProps {
   kols: KolWithTweets[];
@@ -12,6 +10,7 @@ interface KOLSearchProps {
 
 const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [availableKols, setAvailableKols] = useState<KolWithTweets[]>(kols);
   const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -34,7 +33,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
 
   useEffect(() => {
     if (searchTerm.length > 0) {
-      const filteredKOLs = kols.filter((kol) =>
+      const filteredKOLs = availableKols.filter((kol) =>
         kol.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setSuggestions(filteredKOLs);
@@ -43,7 +42,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
       setSuggestions([]);
       setIsDropdownOpen(false);
     }
-  }, [searchTerm, kols]);
+  }, [searchTerm, availableKols]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -53,6 +52,9 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
     setSearchTerm("");
     setIsDropdownOpen(false);
     handleGuess(kol);
+
+    // Remove the guessed KOL from available KOLs
+    setAvailableKols((prevKols) => prevKols.filter((k) => k.id !== kol.id));
   };
 
   return (

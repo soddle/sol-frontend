@@ -1,9 +1,10 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { formatCount } from "@/lib/utils";
-import { Game1Guess, GameSessionFromApi, KOL } from "@/types";
-import { fetchGameSessionFromApi } from "@/lib/api";
+import { Game1Guess, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
+import { fetchGameSessionFromApi, fetchKOLs } from "@/lib/api";
 import { useWallet } from "@solana/wallet-adapter-react";
+
 interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi | null;
 }
@@ -12,7 +13,7 @@ interface CellProps {
   children: React.ReactNode;
   attributeResult: any;
   targetKol: KOL;
-  guessKol: KOL;
+  guessKol: KolWithTweets;
   className?: string;
 }
 
@@ -23,7 +24,7 @@ const Cell: React.FC<CellProps> = ({
 }) => {
   return (
     <div
-      className={` overflow-hidden ${
+      className={`overflow-hidden ${
         attributeResult === "Correct"
           ? "bg-green-500"
           : attributeResult === "Incorrect"
@@ -45,7 +46,7 @@ const Cell: React.FC<CellProps> = ({
 };
 
 const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className={` overflow-hidden `}>
+  <div className={`overflow-hidden`}>
     <div
       className={`w-full h-full flex items-center justify-center aspect-[2/1]`}
     >
@@ -63,9 +64,13 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   gameSessionFromApi,
 }) => {
+  const [kolsFromApi, setKolsFromApi] = useState<KolWithTweets[] | null>();
+
   const wallet = useWallet();
   useEffect(() => {
     async function fetchGameSess() {
+      const _kolsFromApi = await fetchKOLs();
+      setKolsFromApi(_kolsFromApi);
       const gameSession = await fetchGameSessionFromApi({
         publicKey: wallet.publicKey?.toString()!,
       });
@@ -73,6 +78,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
     }
     fetchGameSess();
   }, []);
+
   if (!gameSessionFromApi)
     return (
       <div className="text-center text-green-500">
@@ -91,11 +97,12 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
-        <div className="grid grid-cols-6 gap-2 ">
+        <div className="grid grid-cols-7 gap-2 ">
           {[
             "KOL",
             "Age",
             "Country",
+            "Pfp",
             "Account creation",
             "Followers",
             "Ecosystem",
@@ -104,7 +111,11 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           ))}
           {game1Guesses?.map((game1guess) => {
             return (
-              <TableRow key={game1guess.guess.id} game1guess={game1guess} />
+              <TableRow
+                key={game1guess.guess.id}
+                game1guess={game1guess}
+                kolsFromApi={kolsFromApi!}
+              />
             );
           })}
         </div>
@@ -115,9 +126,10 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
 
 interface TableRowProps {
   game1guess: Game1Guess;
+  kolsFromApi: KolWithTweets[];
 }
 
-function TableRow({ game1guess }: TableRowProps) {
+function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
   const { wallet } = useWallet();
   const [targetKol, setTargetKol] = useState<KOL | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,7 +153,11 @@ function TableRow({ game1guess }: TableRowProps) {
     fetchGameSession();
   }, [wallet?.adapter?.publicKey]);
 
-  const { guess: guessKol, result: attributesResults } = game1guess;
+  const { guess, result: attributesResults } = game1guess;
+  const guessKol = kolsFromApi.find(
+    (kol) => kol.id === guess.id && kol.age === guess.age
+  );
+
   const {
     account_creation: accountCreation,
     age,
@@ -153,15 +169,8 @@ function TableRow({ game1guess }: TableRowProps) {
   } = attributesResults;
 
   if (loading) return <div>Loading...</div>;
-  if (!targetKol) return null;
+  if (!targetKol || !guessKol) return null;
   if (!targetKol) return <div>No Guess Here.</div>;
-
-  console.log("guessKol", guessKol);
-  console.log("result", attributesResults);
-
-  // const attributesResults = result.map(
-  //   (obj: any) => Object.keys(obj)[0]
-  // ) as any[];
 
   return (
     <>
@@ -173,7 +182,7 @@ function TableRow({ game1guess }: TableRowProps) {
       >
         <Image
           unoptimized
-          src={guessKol.pfp || "/user-icon.svg"}
+          src={guessKol?.pfp || "/user-icon.svg"}
           className="rounded-full"
           alt="user"
           width={40}
@@ -181,22 +190,20 @@ function TableRow({ game1guess }: TableRowProps) {
           objectFit="cover"
         />
       </Cell>
+
       <Cell attributeResult={age} guessKol={guessKol} targetKol={targetKol}>
-        <span
-          className={
-            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
-          }
-        >
-          {guessKol.age}
+        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+          {guessKol.ageDisplay}
         </span>
       </Cell>
       <Cell attributeResult={country} guessKol={guessKol} targetKol={targetKol}>
-        <span
-          className={
-            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
-          }
-        >
+        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
           {guessKol.country}
+        </span>
+      </Cell>
+      <Cell attributeResult={name} guessKol={guessKol} targetKol={targetKol}>
+        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+          {guessKol.pfpType}
         </span>
       </Cell>
       <Cell
@@ -204,11 +211,7 @@ function TableRow({ game1guess }: TableRowProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span
-          className={
-            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
-          }
-        >
+        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
           {guessKol.accountCreation}
         </span>
       </Cell>
@@ -217,12 +220,8 @@ function TableRow({ game1guess }: TableRowProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span
-          className={
-            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
-          }
-        >
-          {formatCount(guessKol.followers)}
+        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+          {guessKol.followersDisplay}
         </span>
       </Cell>
       <Cell
@@ -230,363 +229,10 @@ function TableRow({ game1guess }: TableRowProps) {
         guessKol={guessKol}
         targetKol={targetKol}
       >
-        <span
-          className={
-            "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
-          }
-        >
+        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
           {guessKol.ecosystem}
         </span>
       </Cell>
     </>
   );
 }
-
-const t = {
-  _id: "66e96811f7701e0638ab572c",
-  player: "DWcQ72YcxVN783QVeLHeLoegELtjEdudEvdiTuBuM1Tm",
-  gameType: 2,
-  startTime: 1726582146828,
-  game1Completed: false,
-  game2Completed: false,
-  game1Score: 0,
-  game2Score: 0,
-  game1Guesses: [
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19c",
-        name: "vitalik.eth",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "Russia",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/msnhff7mch5y4qze5sxs",
-        accountCreation: 2011,
-        followers: 5000000,
-        followersDisplay: "over 5M",
-        ecosystem: "Chain Founder",
-        tweets: [
-          "7 years ago, before ethereum even\nbegan, I had only a few thousand dollars\nof net worth. I nevertheless sold half my\nbitcoin to make sure that I would not be\nbroke if BTC went to zero.",
-          'Against choosing your political allegiances based on who is "pro-crypto',
-          "7 years ago, before ethereum even began, I had only a few thousand\ndollars of net worth. I nevertheless sold half my bitcoin to make sure that\nI would not be broke if BTC went to zero.",
-          'If all that we accomplish is lambo\nmemes and immature puns about\n"sharting", then I WILL leave.\nThough I still have a lot of hope that the\ncommunity can steer in the right\ndirection.',
-          "The 'metaverse' is going to happen but I don't think any of the existing corporate attempts to intentionally create the metaverse are going anywhere.",
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Higher",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Correct",
-        followers: "Lower",
-        ecosystem: "Correct",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19c",
-        name: "vitalik.eth",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "Russia",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/msnhff7mch5y4qze5sxs",
-        accountCreation: 2011,
-        followers: 5000000,
-        followersDisplay: "over 5M",
-        ecosystem: "Chain Founder",
-        tweets: [
-          "7 years ago, before ethereum even\nbegan, I had only a few thousand dollars\nof net worth. I nevertheless sold half my\nbitcoin to make sure that I would not be\nbroke if BTC went to zero.",
-          'Against choosing your political allegiances based on who is "pro-crypto',
-          "7 years ago, before ethereum even began, I had only a few thousand\ndollars of net worth. I nevertheless sold half my bitcoin to make sure that\nI would not be broke if BTC went to zero.",
-          'If all that we accomplish is lambo\nmemes and immature puns about\n"sharting", then I WILL leave.\nThough I still have a lot of hope that the\ncommunity can steer in the right\ndirection.',
-          "The 'metaverse' is going to happen but I don't think any of the existing corporate attempts to intentionally create the metaverse are going anywhere.",
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Higher",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Correct",
-        followers: "Lower",
-        ecosystem: "Correct",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19e",
-        name: "Brian Armstrong",
-        age: 45,
-        ageDisplay: "41-50",
-        country: "USA",
-        pfpType: "artificial",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ij2djmahfktykkt9vp5r",
-        accountCreation: 2008,
-        followers: 2000000,
-        followersDisplay: "1-3M",
-        ecosystem: "CEX",
-        tweets: [
-          "ETH is trading up 4% since we launched\nabout an hour ago.",
-          "1/ Some folks asked for details of how our super bowl ad came to be, here\nis the quick back story...",
-          "Regarding the SEC complaint against us today, we're\nproud to represent the industry in court to finally get\nsome clarity around crypto rules.\nRemember:\n1. The SEC reviewed our business and allowed us to\nbecome a public company in 2021.\n2. There is no path to \"come in and...",
-          "Ripple, Stellar, and Altcoins are all a\ndistraction. Bitcoin is way too far ahead. We\nshould be focused on bitcoin and sidechains",
-          'Achievement unlocked! I dreamt about a sitting U.S.\npresident needing to respond to growing cryptocurrency\nusage years ago. "First they ignore you, then they laugh at\nyou, then they fight you, then you win". We just made it to\nstep 3 y\'all.',
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Correct",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Higher",
-        followers: "Lower",
-        ecosystem: "Incorrect",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19e",
-        name: "Brian Armstrong",
-        age: 45,
-        ageDisplay: "41-50",
-        country: "USA",
-        pfpType: "artificial",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ij2djmahfktykkt9vp5r",
-        accountCreation: 2008,
-        followers: 2000000,
-        followersDisplay: "1-3M",
-        ecosystem: "CEX",
-        tweets: [
-          "ETH is trading up 4% since we launched\nabout an hour ago.",
-          "1/ Some folks asked for details of how our super bowl ad came to be, here\nis the quick back story...",
-          "Regarding the SEC complaint against us today, we're\nproud to represent the industry in court to finally get\nsome clarity around crypto rules.\nRemember:\n1. The SEC reviewed our business and allowed us to\nbecome a public company in 2021.\n2. There is no path to \"come in and...",
-          "Ripple, Stellar, and Altcoins are all a\ndistraction. Bitcoin is way too far ahead. We\nshould be focused on bitcoin and sidechains",
-          'Achievement unlocked! I dreamt about a sitting U.S.\npresident needing to respond to growing cryptocurrency\nusage years ago. "First they ignore you, then they laugh at\nyou, then they fight you, then you win". We just made it to\nstep 3 y\'all.',
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Correct",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Higher",
-        followers: "Lower",
-        ecosystem: "Incorrect",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19c",
-        name: "vitalik.eth",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "Russia",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/msnhff7mch5y4qze5sxs",
-        accountCreation: 2011,
-        followers: 5000000,
-        followersDisplay: "over 5M",
-        ecosystem: "Chain Founder",
-        tweets: [
-          "7 years ago, before ethereum even\nbegan, I had only a few thousand dollars\nof net worth. I nevertheless sold half my\nbitcoin to make sure that I would not be\nbroke if BTC went to zero.",
-          'Against choosing your political allegiances based on who is "pro-crypto',
-          "7 years ago, before ethereum even began, I had only a few thousand\ndollars of net worth. I nevertheless sold half my bitcoin to make sure that\nI would not be broke if BTC went to zero.",
-          'If all that we accomplish is lambo\nmemes and immature puns about\n"sharting", then I WILL leave.\nThough I still have a lot of hope that the\ncommunity can steer in the right\ndirection.',
-          "The 'metaverse' is going to happen but I don't think any of the existing corporate attempts to intentionally create the metaverse are going anywhere.",
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Higher",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Correct",
-        followers: "Lower",
-        ecosystem: "Correct",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19c",
-        name: "vitalik.eth",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "Russia",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/msnhff7mch5y4qze5sxs",
-        accountCreation: 2011,
-        followers: 5000000,
-        followersDisplay: "over 5M",
-        ecosystem: "Chain Founder",
-        tweets: [
-          "7 years ago, before ethereum even\nbegan, I had only a few thousand dollars\nof net worth. I nevertheless sold half my\nbitcoin to make sure that I would not be\nbroke if BTC went to zero.",
-          'Against choosing your political allegiances based on who is "pro-crypto',
-          "7 years ago, before ethereum even began, I had only a few thousand\ndollars of net worth. I nevertheless sold half my bitcoin to make sure that\nI would not be broke if BTC went to zero.",
-          'If all that we accomplish is lambo\nmemes and immature puns about\n"sharting", then I WILL leave.\nThough I still have a lot of hope that the\ncommunity can steer in the right\ndirection.',
-          "The 'metaverse' is going to happen but I don't think any of the existing corporate attempts to intentionally create the metaverse are going anywhere.",
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Higher",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Correct",
-        followers: "Lower",
-        ecosystem: "Correct",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19c",
-        name: "vitalik.eth",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "Russia",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/msnhff7mch5y4qze5sxs",
-        accountCreation: 2011,
-        followers: 5000000,
-        followersDisplay: "over 5M",
-        ecosystem: "Chain Founder",
-        tweets: [
-          "7 years ago, before ethereum even\nbegan, I had only a few thousand dollars\nof net worth. I nevertheless sold half my\nbitcoin to make sure that I would not be\nbroke if BTC went to zero.",
-          'Against choosing your political allegiances based on who is "pro-crypto',
-          "7 years ago, before ethereum even began, I had only a few thousand\ndollars of net worth. I nevertheless sold half my bitcoin to make sure that\nI would not be broke if BTC went to zero.",
-          'If all that we accomplish is lambo\nmemes and immature puns about\n"sharting", then I WILL leave.\nThough I still have a lot of hope that the\ncommunity can steer in the right\ndirection.',
-          "The 'metaverse' is going to happen but I don't think any of the existing corporate attempts to intentionally create the metaverse are going anywhere.",
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Higher",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Correct",
-        followers: "Lower",
-        ecosystem: "Correct",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19c",
-        name: "vitalik.eth",
-        age: 25,
-        ageDisplay: "21-30",
-        country: "Russia",
-        pfpType: "human",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/msnhff7mch5y4qze5sxs",
-        accountCreation: 2011,
-        followers: 5000000,
-        followersDisplay: "over 5M",
-        ecosystem: "Chain Founder",
-        tweets: [
-          "7 years ago, before ethereum even\nbegan, I had only a few thousand dollars\nof net worth. I nevertheless sold half my\nbitcoin to make sure that I would not be\nbroke if BTC went to zero.",
-          'Against choosing your political allegiances based on who is "pro-crypto',
-          "7 years ago, before ethereum even began, I had only a few thousand\ndollars of net worth. I nevertheless sold half my bitcoin to make sure that\nI would not be broke if BTC went to zero.",
-          'If all that we accomplish is lambo\nmemes and immature puns about\n"sharting", then I WILL leave.\nThough I still have a lot of hope that the\ncommunity can steer in the right\ndirection.',
-          "The 'metaverse' is going to happen but I don't think any of the existing corporate attempts to intentionally create the metaverse are going anywhere.",
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Higher",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Correct",
-        followers: "Lower",
-        ecosystem: "Correct",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19e",
-        name: "Brian Armstrong",
-        age: 45,
-        ageDisplay: "41-50",
-        country: "USA",
-        pfpType: "artificial",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ij2djmahfktykkt9vp5r",
-        accountCreation: 2008,
-        followers: 2000000,
-        followersDisplay: "1-3M",
-        ecosystem: "CEX",
-        tweets: [
-          "ETH is trading up 4% since we launched\nabout an hour ago.",
-          "1/ Some folks asked for details of how our super bowl ad came to be, here\nis the quick back story...",
-          "Regarding the SEC complaint against us today, we're\nproud to represent the industry in court to finally get\nsome clarity around crypto rules.\nRemember:\n1. The SEC reviewed our business and allowed us to\nbecome a public company in 2021.\n2. There is no path to \"come in and...",
-          "Ripple, Stellar, and Altcoins are all a\ndistraction. Bitcoin is way too far ahead. We\nshould be focused on bitcoin and sidechains",
-          'Achievement unlocked! I dreamt about a sitting U.S.\npresident needing to respond to growing cryptocurrency\nusage years ago. "First they ignore you, then they laugh at\nyou, then they fight you, then you win". We just made it to\nstep 3 y\'all.',
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Correct",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Higher",
-        followers: "Lower",
-        ecosystem: "Incorrect",
-      },
-    },
-    {
-      guess: {
-        id: "66e73ef703e3b6308e74f19e",
-        name: "Brian Armstrong",
-        age: 45,
-        ageDisplay: "41-50",
-        country: "USA",
-        pfpType: "artificial",
-        pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ij2djmahfktykkt9vp5r",
-        accountCreation: 2008,
-        followers: 2000000,
-        followersDisplay: "1-3M",
-        ecosystem: "CEX",
-        tweets: [
-          "ETH is trading up 4% since we launched\nabout an hour ago.",
-          "1/ Some folks asked for details of how our super bowl ad came to be, here\nis the quick back story...",
-          "Regarding the SEC complaint against us today, we're\nproud to represent the industry in court to finally get\nsome clarity around crypto rules.\nRemember:\n1. The SEC reviewed our business and allowed us to\nbecome a public company in 2021.\n2. There is no path to \"come in and...",
-          "Ripple, Stellar, and Altcoins are all a\ndistraction. Bitcoin is way too far ahead. We\nshould be focused on bitcoin and sidechains",
-          'Achievement unlocked! I dreamt about a sitting U.S.\npresident needing to respond to growing cryptocurrency\nusage years ago. "First they ignore you, then they laugh at\nyou, then they fight you, then you win". We just made it to\nstep 3 y\'all.',
-        ],
-      },
-      result: {
-        name: "Incorrect",
-        age: "Correct",
-        country: "Incorrect",
-        pfpType: "Incorrect",
-        account_creation: "Higher",
-        followers: "Lower",
-        ecosystem: "Incorrect",
-      },
-    },
-  ],
-  game2Guesses: [],
-  game1GuessesCount: 24,
-  game2GuessesCount: 0,
-  totalScore: 0,
-  completed: false,
-  score: 0,
-  kol: {
-    id: "66c7dbc1d484e54c72d24066",
-    name: "Emin Gün Sirer",
-    age: 45,
-    country: "Turkey",
-    pfp: "https://res.cloudinary.com/dbuaprzc0/image/upload/f_auto,q_auto/v1/Soddle/ngmforjkndyfzkgwtbtm",
-    accountCreation: 2011,
-    followers: 250000,
-    ecosystem: "Chain Founder",
-  },
-  competitionId: "comp321",
-  __v: 42,
-};
-
-/* 
-
-december anxiety sun chase play ginger panel theory domain soccer keep lock
-
-
-
-*/
