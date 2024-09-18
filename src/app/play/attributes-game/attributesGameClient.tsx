@@ -78,7 +78,10 @@ export default function GameIdPageClient({ kols }: { kols: KolWithTweets[] }) {
     try {
       setLoading(true);
       const res = await makeGuess(GameType.Attributes, kol);
-      setGameSessionFromApi(res.data);
+      console.log("res after making a successful guess", res);
+
+      setGameSessionFromApi(res);
+      console.log("res after set state: ", gameSessionFromApi);
     } catch (error) {
       console.log("error", error);
       toast.error("Error making guess");

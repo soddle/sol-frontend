@@ -25,11 +25,9 @@ import { KOL, StartGameRequestBody } from "@/types";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
-  // const { startGameSession, fetchGameSession } = useGameSession();
   const { ui, game } = useRootStore();
   const setLoading = ui((state) => state.setLoading);
   const setCurrentGameType = game((state) => state.setCurrentGameType);
-  // const setGameSession = game((state) => state.setGameSession);
   const router = useRouter();
 
   // game session

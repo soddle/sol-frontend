@@ -63,6 +63,16 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   gameSessionFromApi,
 }) => {
+  const wallet = useWallet();
+  useEffect(() => {
+    async function fetchGameSess() {
+      const gameSession = await fetchGameSessionFromApi({
+        publicKey: wallet.publicKey?.toString()!,
+      });
+      gameSessionFromApi = gameSession;
+    }
+    fetchGameSess();
+  }, []);
   if (!gameSessionFromApi)
     return (
       <div className="text-center text-green-500">
@@ -70,7 +80,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
       </div>
     );
 
-  const game1Guesses = gameSessionFromApi.game1Guesses;
+  const game1Guesses = gameSessionFromApi.game1Guesses.reverse();
   if (game1Guesses.length <= 0)
     return (
       <div className="text-center text-green-500">
