@@ -111,7 +111,7 @@ export const useGameSession = () => {
         guess: guess,
       });
 
-      toast.success("Guess made successfully");
+      // toast.success("Guess made successfully");
       // await fetchGameSessionFromApi({
       //   publicKey: wallet?.adapter.publicKey?.toString()!,
       // });
