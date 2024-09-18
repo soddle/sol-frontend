@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";
-import { KolWithTweets } from "@/types";
+import { KolWithTweets, GameSessionFromApi } from "@/types";
+import { fetchGameSessionFromApi } from "@/lib/api";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 interface KOLSearchProps {
   kols: KolWithTweets[];
@@ -10,10 +12,30 @@ interface KOLSearchProps {
 
 const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [availableKols, setAvailableKols] = useState<KolWithTweets[]>(kols);
+  const [availableKols, setAvailableKols] = useState<KolWithTweets[]>([]);
   const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const wallet = useWallet();
+
+  useEffect(() => {
+    async function initializeAvailableKols() {
+      if (wallet.publicKey) {
+        const gameSession = await fetchGameSessionFromApi({
+          publicKey: wallet.publicKey.toString(),
+        });
+        const guessedKolIds = new Set(
+          gameSession.game1Guesses.map((guess) => guess.guess.id)
+        );
+        const filteredKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
+        setAvailableKols(filteredKols);
+      } else {
+        setAvailableKols(kols);
+      }
+    }
+
+    initializeAvailableKols();
+  }, [kols, wallet.publicKey]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -53,8 +75,17 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
     setIsDropdownOpen(false);
     handleGuess(kol);
 
-    // Remove the guessed KOL from available KOLs
-    setAvailableKols((prevKols) => prevKols.filter((k) => k.id !== kol.id));
+    if (wallet.publicKey) {
+      const gameSess = await fetchGameSessionFromApi({
+        publicKey: wallet.publicKey.toString(),
+      });
+      const guessedKolIds = new Set(
+        gameSess.game1Guesses.map((guess) => guess.guess.id)
+      );
+      setAvailableKols((prevKols) =>
+        prevKols.filter((k) => !guessedKolIds.has(k.id))
+      );
+    }
   };
 
   return (
@@ -67,7 +98,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
         className="w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       {isDropdownOpen && suggestions.length > 0 && (
-        <ul className="absolute z-10 w-full mt-1 bg-[#111411] shadow-lg max-h-60 overflow-auto no-scrollbar">
+        <ul className="absolute z-10 w-full mt-1 bg-[#111411] shadow-lg max-h-[40vh] overflow-auto no-scrollbar">
           {suggestions.map((kol) => (
             <ListItem kol={kol} key={kol.id} handleSelect={handleSelectKOL} />
           ))}

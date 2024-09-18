@@ -104,7 +104,7 @@ export default function AttributesGameClient({
       </Container>
       {/* question box */}
       <Container>
-        <QuestionBox className="">
+        <QuestionBox>
           <section className=" text-white flex flex-col justify-between items-center">
             <h1 className="text-2xl font-bold text-center">
               Guess today's personality!

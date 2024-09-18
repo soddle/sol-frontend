@@ -10,7 +10,7 @@ const QuestionBox: React.FC<QuestionBoxProps> = ({
   className = "",
 }) => {
   return (
-    <div className={`relative w-full h-full min-h-[200px] ${className}`}>
+    <div className={`relative w-full h-full min-h-[70px] ${className}`}>
       <div className="absolute inset-0 flex flex-col">
         <svg
           className="absolute inset-0 w-full h-full"

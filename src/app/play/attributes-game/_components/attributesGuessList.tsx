@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { formatCount } from "@/lib/utils";
 import { Game1Guess, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import { fetchGameSessionFromApi, fetchKOLs } from "@/lib/api";
 import { useWallet } from "@solana/wallet-adapter-react";
