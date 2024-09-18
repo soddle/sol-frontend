@@ -114,9 +114,7 @@ export default function GameIdPageClient({ kols }: { kols: KolWithTweets[] }) {
       {/* guessResults section */}
       {
         <section className="text-white no-scrollbar">
-          {gameSessionFromApi && (
-            <AttributesGuessListTable gameSessionFromApi={gameSessionFromApi} />
-          )}
+          <AttributesGuessListTable gameSessionFromApi={gameSessionFromApi} />
         </section>
       }
       {/* Legends */}

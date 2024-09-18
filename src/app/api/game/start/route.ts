@@ -14,7 +14,6 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify(body),
     });
-    console.log("response insde startgame route.ts", response);
 
     if (!response.ok) {
       throw new Error("Failed to starting game in api");

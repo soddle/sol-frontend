@@ -72,9 +72,9 @@ export default function GamePlayPageClient() {
       console.log("gametype: ", gameType);
       const startGameReq: StartGameRequestBody = {
         publicKey: wallet!.adapter.publicKey!.toString() || "",
-        gameType,
+        gameType: 2,
         game: {
-          gameType: gameType,
+          gameType: 2,
           startTime: gameSession.startTime.toString(),
           game1Completed: gameSession.game1Completed,
           game2Completed: gameSession.game2Completed,

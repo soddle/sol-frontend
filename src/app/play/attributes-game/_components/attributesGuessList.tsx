@@ -1,10 +1,11 @@
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatCount } from "@/lib/utils";
 import { Game1Guess, GameSessionFromApi, KOL } from "@/types";
 import { fetchGameSessionFromApi } from "@/lib/api";
+import { useWallet } from "@solana/wallet-adapter-react";
 interface AttributesGuessListProps {
-  gameSessionFromApi: GameSessionFromApi;
+  gameSessionFromApi: GameSessionFromApi | null;
 }
 
 interface CellProps {
@@ -28,10 +29,10 @@ const Cell: React.FC<CellProps> = ({
           : attributeResult === "Incorrect"
           ? "bg-red-500"
           : attributeResult === "Higher"
-          ? "bg-red-500"
+          ? "bg-red-700"
           : attributeResult === "Lower"
           ? "bg-red-500"
-          : "bg-yellow-500"
+          : ""
       } ${className}`}
     >
       <div
@@ -62,17 +63,21 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   gameSessionFromApi,
 }) => {
+  if (!gameSessionFromApi)
+    return (
+      <div className="text-center text-green-500">
+        We are having trouble fetching your guesses.
+      </div>
+    );
+
   const game1Guesses = gameSessionFromApi.game1Guesses;
-  console.log(
-    "game session from api called inside attributes table",
-    gameSessionFromApi
-  );
-  if (gameSessionFromApi.game1Guesses.length <= 0)
+  if (game1Guesses.length <= 0)
     return (
       <div className="text-center text-green-500">
         You have no guesses here yet. try making some guess.
       </div>
     );
+
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
@@ -103,7 +108,28 @@ interface TableRowProps {
 }
 
 function TableRow({ game1guess }: TableRowProps) {
+  const { wallet } = useWallet();
   const [targetKol, setTargetKol] = useState<KOL | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchGameSession() {
+      if (wallet?.adapter?.publicKey) {
+        try {
+          setLoading(true);
+          const gameSession = await fetchGameSessionFromApi({
+            publicKey: wallet.adapter.publicKey.toString(),
+          });
+          setTargetKol(gameSession.kol);
+        } catch (error) {
+          console.error("Error fetching game session:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+    fetchGameSession();
+  }, [wallet?.adapter?.publicKey]);
 
   const { guess: guessKol, result: attributesResults } = game1guess;
   const {
@@ -116,6 +142,8 @@ function TableRow({ game1guess }: TableRowProps) {
     pfpType,
   } = attributesResults;
 
+  if (loading) return <div>Loading...</div>;
+  if (!targetKol) return null;
   if (!targetKol) return <div>No Guess Here.</div>;
 
   console.log("guessKol", guessKol);
