@@ -90,6 +90,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           const gameSession = await fetchGameSessionFromApi({
             publicKey: wallet.publicKey.toString(),
           });
+          console.log("game session from api: ", gameSession);
           setGameSessionFromApi(gameSession);
         }
       } catch (error) {
