@@ -1,22 +1,25 @@
 "use client";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
-import { Game1Guess, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
-import { fetchGameSessionFromApi, fetchKOLs } from "@/lib/api";
-import { useWallet } from "@solana/wallet-adapter-react";
-import UserProfileModal from "@/components/modals/userProfileModal";
-import { useRootStore } from "@/stores/storeProvider";
+import React from "react";
+import {
+  AttributeGuess,
+  AttributeResult,
+  Game1Guess,
+  GameSessionFromApi,
+  KOL,
+  KolWithTweets,
+} from "@/types";
 
 interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi | null;
+  loadingApiGameSession: boolean;
+  allKols: KolWithTweets[];
 }
 
 interface CellProps {
   children: React.ReactNode;
-  attributeResult: any;
-  targetKol: KOL;
-  guessKol: KolWithTweets;
+  attributeResult: string;
   className?: string;
 }
 
@@ -65,63 +68,19 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
-  gameSessionFromApi: initialGameSession,
+  loadingApiGameSession,
+  gameSessionFromApi,
+  allKols,
 }) => {
-  const [kolsFromApi, setKolsFromApi] = useState<KolWithTweets[] | null>();
-  const [gameSessionFromApi, setGameSessionFromApi] =
-    useState<GameSessionFromApi | null>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { ui } = useRootStore();
-
-  const openModal = ui((state) => state.openModal);
-
-  const wallet = useWallet();
-
-  useEffect(() => {
-    const fetchGameSession = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const _kolsFromApi = await fetchKOLs();
-        setKolsFromApi(_kolsFromApi);
-
-        if (wallet.publicKey) {
-          const gameSession = await fetchGameSessionFromApi({
-            publicKey: wallet.publicKey.toString(),
-          });
-          console.log("game session from api: ", gameSession);
-          setGameSessionFromApi(gameSession);
-        }
-      } catch (error) {
-        console.error("Error fetching game session:", error);
-        setError(
-          "We are having trouble fetching your guesses. Please try again."
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchGameSession();
-  }, [wallet.publicKey]);
-
-  if (isLoading) {
+  if (loadingApiGameSession || !gameSessionFromApi) {
     return <TableLoader />;
   }
 
-  if (error) {
-    return <div className="text-center text-green-500">{error}</div>;
-  }
+  // if (error) {
+  //   return <div className="text-center text-green-500">{error}</div>;
+  // }
 
-  if (!gameSessionFromApi) {
-    return (
-      <div className="text-center text-green-500">
-        No game session found. Please start a new game.
-      </div>
-    );
-  }
-
-  const game1Guesses = gameSessionFromApi.game1Guesses.reverse();
+  const game1Guesses = gameSessionFromApi.game1Guesses;
 
   if (game1Guesses.length <= 0) {
     return (
@@ -146,51 +105,39 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           ].map((header) => (
             <HeaderCell key={header}>{header}</HeaderCell>
           ))}
-          {game1Guesses?.map((game1guess) => (
-            <TableRow
-              key={game1guess.guess.id}
-              game1guess={game1guess}
-              kolsFromApi={kolsFromApi!}
-            />
-          ))}
+          {game1Guesses?.map((game1guess) => {
+            const kolAndTweets = allKols.find(
+              (kol) =>
+                kol.id === game1guess.guess.id &&
+                kol.age === game1guess.guess.age
+            );
+
+            if (kolAndTweets) {
+              return (
+                <TableRow
+                  game1guess={{
+                    result: game1guess.result,
+                    guess: kolAndTweets,
+                  }}
+                />
+              );
+            }
+            return null;
+          })}
         </div>
       </div>
     </div>
   );
 };
 interface TableRowProps {
-  game1guess: Game1Guess;
-  kolsFromApi: KolWithTweets[];
+  game1guess: {
+    guess: KolWithTweets;
+    result: Game1Guess["result"];
+  };
 }
 
-function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
-  const { wallet } = useWallet();
-  const [targetKol, setTargetKol] = useState<KOL | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchGameSession() {
-      if (wallet?.adapter?.publicKey) {
-        try {
-          setLoading(true);
-          const gameSession = await fetchGameSessionFromApi({
-            publicKey: wallet.adapter.publicKey.toString(),
-          });
-          setTargetKol(gameSession.kol);
-        } catch (error) {
-          console.error("Error fetching game session:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    }
-    fetchGameSession();
-  }, [wallet?.adapter?.publicKey]);
-
+function TableRow({ game1guess }: TableRowProps) {
   const { guess, result: attributesResults } = game1guess;
-  const guessKol = kolsFromApi.find(
-    (kol) => kol.id === guess.id && kol.age === guess.age
-  );
 
   const {
     account_creation: accountCreation,
@@ -202,21 +149,12 @@ function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
     pfpType,
   } = attributesResults;
 
-  if (loading) return <TableRowLoader />;
-  if (!targetKol || !guessKol) return null;
-  if (!targetKol) return <div>No Guess Here.</div>;
-
   return (
     <>
-      <Cell
-        targetKol={targetKol}
-        guessKol={guessKol}
-        attributeResult={pfpType}
-        className="bg-transparent p-0 m-0"
-      >
+      <Cell attributeResult={pfpType} className="bg-transparent p-0 m-0">
         <Image
           unoptimized
-          src={guessKol?.pfp || "/user-icon.svg"}
+          src={guess?.pfp || "/user-icon.svg"}
           className="rounded-full"
           alt="user"
           width={40}
@@ -225,46 +163,34 @@ function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
         />
       </Cell>
 
-      <Cell attributeResult={age} guessKol={guessKol} targetKol={targetKol}>
+      <Cell attributeResult={age}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guessKol.ageDisplay}
+          {guess.ageDisplay}
         </span>
       </Cell>
-      <Cell attributeResult={country} guessKol={guessKol} targetKol={targetKol}>
+      <Cell attributeResult={country}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guessKol.country}
+          {guess.country}
         </span>
       </Cell>
-      <Cell attributeResult={name} guessKol={guessKol} targetKol={targetKol}>
+      <Cell attributeResult={name}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guessKol.pfpType}
+          {guess.pfpType}
         </span>
       </Cell>
-      <Cell
-        attributeResult={accountCreation}
-        guessKol={guessKol}
-        targetKol={targetKol}
-      >
+      <Cell attributeResult={accountCreation}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guessKol.accountCreation}
+          {guess.accountCreation}
         </span>
       </Cell>
-      <Cell
-        attributeResult={followers}
-        guessKol={guessKol}
-        targetKol={targetKol}
-      >
+      <Cell attributeResult={followers}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guessKol.followersDisplay}
+          {guess.followersDisplay}
         </span>
       </Cell>
-      <Cell
-        attributeResult={ecosystem}
-        guessKol={guessKol}
-        targetKol={targetKol}
-      >
+      <Cell attributeResult={ecosystem}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guessKol.ecosystem}
+          {guess.ecosystem}
         </span>
       </Cell>
     </>
