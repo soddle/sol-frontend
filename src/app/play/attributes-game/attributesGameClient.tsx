@@ -16,6 +16,8 @@ import { useRootStore } from "@/stores/storeProvider";
 import { GameSession, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import QuestionBox from "./_components/questionBox";
 import { fetchGameSessionFromApi } from "@/lib/api";
+import { useUIStore } from "@/components/providers/storesProvider";
+import UserProfileModal from "@/components/modals/userProfileModal";
 
 export default function AttributesGameClient({
   kols,
@@ -79,10 +81,39 @@ export default function AttributesGameClient({
       pfp: kolWithTweets.pfp,
     };
     console.log("kol inside handleGuess", kol);
+    // const setLoading = useUIStore((state) => state.setLoading);
+    // const openModal = useUIStore((state) => state.openModal);
+    // const closeModal = useUIStore((state) => state.closeModal);
+    // await fetchGameSessionFromApi({
+    //   publicKey: wallet?.adapter.publicKey?.toString()!,
+    // });
     try {
+      // openModal({
+      //   // @ts-expect-error ddd
+      //   component: UserProfileModal,
+      //   props: {
+      //     onClose: closeModal,
+      //     gameSession: gameSessionFromApi,
+      //   },
+      // });
+      console.log("modal was called");
       setLoading(true);
       const res = await makeGuess(GameType.Attributes, kol);
-      console.log("res after making a successful guess", res);
+
+      const guess = res.game1Guesses.find((g) => g.guess.id === kol.id)!;
+
+      // Check if all guess results are Correct
+      const allCorrect = Object.values(guess.result).every(
+        (value) => value === "Correct"
+      );
+      console.log("all correct?", allCorrect);
+      if (allCorrect) {
+        alert(`Yey! you guessed right! ${res.game1Score} is your score.`);
+        // You can add additional logic here, such as showing a message to the user
+        toast.error("All guesses were correct. Congratulations!");
+      } else {
+        console.log("At least one guess was incorrect or partially incorrect.");
+      }
 
       setGameSessionFromApi(res);
       console.log("res after set state: ", gameSessionFromApi);
