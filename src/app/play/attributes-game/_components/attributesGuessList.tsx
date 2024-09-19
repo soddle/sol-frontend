@@ -5,6 +5,8 @@ import React, { useEffect, useState } from "react";
 import { Game1Guess, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import { fetchGameSessionFromApi, fetchKOLs } from "@/lib/api";
 import { useWallet } from "@solana/wallet-adapter-react";
+import UserProfileModal from "@/components/modals/userProfileModal";
+import { useRootStore } from "@/stores/storeProvider";
 
 interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi | null;
@@ -63,37 +65,70 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
-  gameSessionFromApi,
+  gameSessionFromApi: initialGameSession,
 }) => {
   const [kolsFromApi, setKolsFromApi] = useState<KolWithTweets[] | null>();
+  const [gameSessionFromApi, setGameSessionFromApi] =
+    useState<GameSessionFromApi | null>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { ui } = useRootStore();
+
+  const openModal = ui((state) => state.openModal);
 
   const wallet = useWallet();
-  useEffect(() => {
-    async function fetchGameSess() {
-      const _kolsFromApi = await fetchKOLs();
-      setKolsFromApi(_kolsFromApi);
-      const gameSession = await fetchGameSessionFromApi({
-        publicKey: wallet.publicKey?.toString()!,
-      });
-      gameSessionFromApi = gameSession;
-    }
-    fetchGameSess();
-  }, []);
 
-  if (!gameSessionFromApi)
+  useEffect(() => {
+    const fetchGameSession = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const _kolsFromApi = await fetchKOLs();
+        setKolsFromApi(_kolsFromApi);
+
+        if (wallet.publicKey) {
+          const gameSession = await fetchGameSessionFromApi({
+            publicKey: wallet.publicKey.toString(),
+          });
+          setGameSessionFromApi(gameSession);
+        }
+      } catch (error) {
+        console.error("Error fetching game session:", error);
+        setError(
+          "We are having trouble fetching your guesses. Please try again."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchGameSession();
+  }, [wallet.publicKey]);
+
+  if (isLoading) {
+    return <TableLoader />;
+  }
+
+  if (error) {
+    return <div className="text-center text-green-500">{error}</div>;
+  }
+
+  if (!gameSessionFromApi) {
     return (
       <div className="text-center text-green-500">
-        We are having trouble fetching your guesses.
+        No game session found. Please start a new game.
       </div>
     );
+  }
 
   const game1Guesses = gameSessionFromApi.game1Guesses.reverse();
-  if (game1Guesses.length <= 0)
+
+  if (game1Guesses.length <= 0) {
     return (
       <div className="text-center text-green-500">
-        You have no guesses here yet. try making some guess.
+        You have no guesses here yet. Try making some guesses.
       </div>
     );
+  }
 
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
@@ -110,21 +145,18 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
           ].map((header) => (
             <HeaderCell key={header}>{header}</HeaderCell>
           ))}
-          {game1Guesses?.map((game1guess) => {
-            return (
-              <TableRow
-                key={game1guess.guess.id}
-                game1guess={game1guess}
-                kolsFromApi={kolsFromApi!}
-              />
-            );
-          })}
+          {game1Guesses?.map((game1guess) => (
+            <TableRow
+              key={game1guess.guess.id}
+              game1guess={game1guess}
+              kolsFromApi={kolsFromApi!}
+            />
+          ))}
         </div>
       </div>
     </div>
   );
 };
-
 interface TableRowProps {
   game1guess: Game1Guess;
   kolsFromApi: KolWithTweets[];
@@ -169,7 +201,7 @@ function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
     pfpType,
   } = attributesResults;
 
-  if (loading) return <KOLLoading />;
+  if (loading) return <TableRowLoader />;
   if (!targetKol || !guessKol) return null;
   if (!targetKol) return <div>No Guess Here.</div>;
 
@@ -238,7 +270,7 @@ function TableRow({ game1guess, kolsFromApi }: TableRowProps) {
   );
 }
 
-function KOLLoading() {
+function TableRowLoader() {
   return (
     <>
       {[...Array(7)].map((_, index) => (
@@ -260,5 +292,71 @@ function KOLLoading() {
         </div>
       ))}
     </>
+  );
+}
+
+function TableLoader() {
+  const headers = [
+    "KOL",
+    "Age",
+    "Country",
+    "Pfp",
+    "Account creation",
+    "Followers",
+    "Ecosystem",
+  ];
+
+  return (
+    <div className="w-full max-w-[700px] mx-auto overflow-x-auto">
+      <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+        <div className="grid grid-cols-7 gap-2">
+          {headers.map((header) => (
+            <HeaderCell key={header}>
+              <motion.div
+                className="w-full h-4 bg-[#2FFF2B20] rounded"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </HeaderCell>
+          ))}
+          {[...Array(5)].map((_, rowIndex) => (
+            <React.Fragment key={rowIndex}>
+              {[...Array(7)].map((_, colIndex) => (
+                <motion.div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="overflow-hidden bg-[#111411] rounded-md"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: rowIndex * 0.1 + colIndex * 0.05,
+                  }}
+                >
+                  <div className="w-full h-full flex items-center justify-center aspect-[2/1]">
+                    <motion.div
+                      className="w-3/4 h-3/4 bg-gradient-to-r from-[#1a1e1b] via-[#2FFF2B20] to-[#1a1e1b] rounded-md"
+                      animate={{
+                        opacity: [0.5, 0.8, 0.5],
+                        scale: [0.97, 1, 0.97],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: rowIndex * 0.2 + colIndex * 0.1,
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }

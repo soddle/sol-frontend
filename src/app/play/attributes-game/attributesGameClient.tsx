@@ -90,14 +90,6 @@ export default function AttributesGameClient({
     console.log("kol inside handleGuess", kol);
 
     try {
-      // openModal({
-      //   // @ts-expect-error ddd
-      //   component: UserProfileModal,
-      //   props: {
-      //     onClose: closeModal,
-      //     gameSession: gameSessionFromApi,
-      //   },
-      // });
       console.log("modal was called");
       setLoading(true);
       const res = await makeGuess(GameType.Attributes, kol);
@@ -119,7 +111,6 @@ export default function AttributesGameClient({
       }
 
       setGameSessionFromApi(res);
-      console.log("res after set state: ", gameSessionFromApi);
     } catch (error) {
       console.log("error", error);
       toast.error("Error making guess");
