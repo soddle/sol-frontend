@@ -31,10 +31,17 @@ export default function AttributesGameClient({
   const [gameSessionFromApi, setGameSessionFromApi] =
     useState<GameSessionFromApi | null>(null);
 
+  // const setLoading = useUIStore((state) => state.setLoading);
+  // const openModal = useUIStore((state) => state.openModal);
+  // const closeModal = useUIStore((state) => state.closeModal);
+
   const { ui } = useRootStore();
   const isLegendOpen = ui((state) => state.isLegendOpen);
   const setLoading = ui((state) => state.setLoading);
   const setError = ui((state) => state.setError);
+
+  const openModal = ui((state) => state.openModal);
+  const closeModal = ui((state) => state.closeModal);
 
   useEffect(() => {
     if (!wallet) {
@@ -81,12 +88,7 @@ export default function AttributesGameClient({
       pfp: kolWithTweets.pfp,
     };
     console.log("kol inside handleGuess", kol);
-    // const setLoading = useUIStore((state) => state.setLoading);
-    // const openModal = useUIStore((state) => state.openModal);
-    // const closeModal = useUIStore((state) => state.closeModal);
-    // await fetchGameSessionFromApi({
-    //   publicKey: wallet?.adapter.publicKey?.toString()!,
-    // });
+
     try {
       // openModal({
       //   // @ts-expect-error ddd
@@ -108,6 +110,7 @@ export default function AttributesGameClient({
       );
       console.log("all correct?", allCorrect);
       if (allCorrect) {
+        openModal(<UserProfileModal gameSession={res} />);
         alert(`Yey! you guessed right! ${res.game1Score} is your score.`);
         // You can add additional logic here, such as showing a message to the user
         toast.error("All guesses were correct. Congratulations!");

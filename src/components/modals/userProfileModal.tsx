@@ -2,12 +2,12 @@ import Image from "next/image";
 import * as React from "react";
 import Button2 from "@/components/ui/button2";
 import Trapezoid from "@/app/play/[gameId]/_components/trapezoid";
-import { GameSession } from "@/types";
+import { GameSession, GameSessionFromApi } from "@/types";
 
 export default function UserProfileModal({
   gameSession,
 }: {
-  gameSession: GameSession;
+  gameSession: GameSessionFromApi;
 }) {
   const handleShareOnX = () => {
     const tweetText = encodeURIComponent(
