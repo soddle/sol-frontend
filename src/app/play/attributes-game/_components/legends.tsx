@@ -1,28 +1,28 @@
 import { useRootStore } from "@/stores/storeProvider";
 import React from "react";
 
-enum LegendBoxType {
-  Correct = "Correct",
-  PartiallyCorrect = "PartiallyCorrect",
-  Wrong = "Wrong",
-  Higher = "Higher",
-  Lower = "Lower",
-}
+import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
 
 interface LegendItemProps {
-  type: LegendBoxType;
+  type: LEGEND_BOX_TYPES;
   color: string;
   icon?: string;
 }
 
 const LegendItem: React.FC<LegendItemProps> = ({ type, color, icon }) => (
   <div className="flex flex-col items-center">
-    <span className="text-white text-sm mb-2">{type}</span>
+    <span className="text-white text-sm font-medium mb-2">{type}</span>
     <div
-      className={`w-20 h-20  flex items-center justify-center`}
+      className={`w-20 h-20 shadow-md flex items-center justify-center overflow-hidden transition-transform hover:scale-105`}
       style={{ backgroundColor: color }}
     >
-      {icon && <img src={icon} alt={type} />}
+      {icon && (
+        <img
+          src={icon}
+          alt={type}
+          className="max-w-[80%] max-h-[80%] object-contain"
+        />
+      )}
     </div>
   </div>
 );
@@ -35,11 +35,22 @@ const Legend: React.FC<LegendProps> = () => {
   const setIsLegendOpen = ui((state) => state.setIsLegendOpen);
 
   const items: LegendItemProps[] = [
-    { type: LegendBoxType.Correct, color: "#0DBF2E" },
-    { type: LegendBoxType.PartiallyCorrect, color: "#FFA500" },
-    { type: LegendBoxType.Wrong, color: "#D21210" },
-    { type: LegendBoxType.Higher, color: "#D21210", icon: "/legend-up.png" },
-    { type: LegendBoxType.Lower, color: "#D21210", icon: "/legend-down.png" },
+    { type: LEGEND_BOX_TYPES.Correct, color: LEGEND_BOX_COLORS.Correct },
+    // {
+    //   type: LEGEND_BOX_TYPES.PartiallyCorrect,
+    //   color: LEGEND_BOX_COLORS.PartiallyCorrect,
+    // },
+    { type: LEGEND_BOX_TYPES.Incorrect, color: LEGEND_BOX_COLORS.Incorrect },
+    {
+      type: LEGEND_BOX_TYPES.Higher,
+      color: LEGEND_BOX_COLORS.Higher,
+      icon: "/legend-up.png",
+    },
+    {
+      type: LEGEND_BOX_TYPES.Lower,
+      color: LEGEND_BOX_COLORS.Lower,
+      icon: "/legend-down.png",
+    },
   ];
 
   return (
