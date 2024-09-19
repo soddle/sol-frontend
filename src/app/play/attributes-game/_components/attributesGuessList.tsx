@@ -80,7 +80,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   //   return <div className="text-center text-green-500">{error}</div>;
   // }
 
-  const game1Guesses = gameSessionFromApi.game1Guesses;
+  const game1Guesses = [...gameSessionFromApi.game1Guesses].reverse();
 
   if (game1Guesses.length <= 0) {
     return (
