@@ -44,3 +44,27 @@ export function formatCount(count: number): string {
 
   return formatter.format(count);
 }
+
+/**
+ * Shortens a string by keeping a certain number of characters at the start and end,
+ * replacing the middle with an ellipsis.
+ *
+ * @param str The string to shorten
+ * @param startChars The number of characters to keep at the start
+ * @param endChars The number of characters to keep at the end
+ * @returns The shortened string
+ */
+export function shortenAddress(
+  str: string,
+  startChars: number = 6,
+  endChars: number = 4
+): string {
+  if (str.length <= startChars + endChars) {
+    return str;
+  }
+
+  const start = str.slice(0, startChars);
+  const end = str.slice(-endChars);
+
+  return `${start}...${end}`;
+}

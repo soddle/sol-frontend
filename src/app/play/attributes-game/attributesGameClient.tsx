@@ -13,21 +13,31 @@ import { useWallet } from "@solana/wallet-adapter-react";
 
 import { useGameSession } from "@/hooks/useGameSession";
 import { useRootStore } from "@/stores/storeProvider";
-import { GameSession, KOL } from "@/types";
+import { GameSession, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import QuestionBox from "./_components/questionBox";
+import { fetchGameSessionFromApi } from "@/lib/api";
+import { useUIStore } from "@/components/providers/storesProvider";
+import UserProfileModal from "@/components/modals/userProfileModal";
 
-export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
+export default function AttributesGameClient({
+  kols,
+}: {
+  kols: KolWithTweets[];
+}) {
   const router = useRouter();
   const { wallet } = useWallet();
   const { fetchGameSession, makeGuess } = useGameSession();
   const [gameSess, setGameSess] = useState<GameSession | null>(null);
+  const [gameSessionFromApi, setGameSessionFromApi] =
+    useState<GameSessionFromApi | null>(null);
+  const [loadingApiGameSession, setLoadingApiGameSession] =
+    useState<boolean>(true);
 
-  const { ui, game } = useRootStore();
+  const { ui } = useRootStore();
   const isLegendOpen = ui((state) => state.isLegendOpen);
   const setLoading = ui((state) => state.setLoading);
   const setError = ui((state) => state.setError);
-  //   const setGameSession = game((state) => state.setGameSession);
-  //   const gameSession = game((state) => state.gameSession);
+  const openModal = ui((state) => state.openModal);
 
   useEffect(() => {
     if (!wallet) {
@@ -36,18 +46,30 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
   }, [wallet, router, gameSess]);
 
   useEffect(() => {
-    async function getGameSession() {
-      const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
-      console.log("Game session: ", gameSession);
-
-      if (gameSession) {
-        setGameSess(gameSession);
-      }
+    async function fetchGSFromApi() {
+      const sess = await fetchGameSessionFromApi({
+        publicKey: wallet?.adapter.publicKey?.toString()!,
+      });
+      setGameSessionFromApi(sess);
     }
 
     try {
+      fetchGSFromApi();
+    } catch (error) {
+      console.log("error fetching game session: ", error);
+    } finally {
+      setLoadingApiGameSession(false);
+    }
+  }, [wallet?.adapter.publicKey]);
+
+  useEffect(() => {
+    async function getGameSessionFromOnchain() {
+      const gameSession = await fetchGameSession(wallet?.adapter.publicKey!);
+      setGameSess(gameSession);
+    }
+    try {
       setLoading(true);
-      getGameSession();
+      getGameSessionFromOnchain();
     } catch (error) {
       toast.error("Error fetching game session");
       setError("Error fetching game session");
@@ -56,16 +78,49 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
     }
   }, []);
 
-  const handleSelect = async (kol: KOL) => {
+  const handleGuess = async (kolWithTweets: KolWithTweets) => {
+    const kol: KOL = {
+      accountCreation: kolWithTweets.accountCreation,
+      age: kolWithTweets.age,
+      country: kolWithTweets.country,
+      ecosystem: kolWithTweets.ecosystem,
+      followers: kolWithTweets.followers,
+      id: kolWithTweets.id,
+      name: kolWithTweets.name,
+      pfp: kolWithTweets.pfp,
+    };
+    console.log("kol inside handleGuess", kol);
+
     try {
+      console.log("modal was called");
       setLoading(true);
-      if (kol) {
-        await makeGuess(GameType.Attributes, kol);
-        return;
+      const returnedSessionFromApi = await makeGuess(GameType.Attributes, kol);
+      setGameSessionFromApi(returnedSessionFromApi);
+
+      const guess = returnedSessionFromApi.game1Guesses.find(
+        (g) => g.guess.id === kol.id
+      )!;
+
+      // Check if all guess results are Correct
+      const allCorrect = Object.values(guess.result).every(
+        (value) => value === "Correct"
+      );
+      console.log("all correct?", allCorrect);
+      if (allCorrect) {
+        openModal(<UserProfileModal gameSession={returnedSessionFromApi} />);
+        alert(
+          `Yey! you guessed right! ${returnedSessionFromApi.game1Score} is your score.`
+        );
+        // You can add additional logic here, such as showing a message to the user
+        toast.error("All guesses were correct. Congratulations!");
+      } else {
+        console.log("At least one guess was incorrect or partially incorrect.");
       }
+
+      setGameSessionFromApi(returnedSessionFromApi);
     } catch (error) {
+      console.log("error", error);
       toast.error("Error making guess");
-      setError("Error making guess");
     } finally {
       setLoading(false);
     }
@@ -81,7 +136,7 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
       </Container>
       {/* question box */}
       <Container>
-        <QuestionBox className="">
+        <QuestionBox>
           <section className=" text-white flex flex-col justify-between items-center">
             <h1 className="text-2xl font-bold text-center">
               Guess today's personality!
@@ -92,17 +147,17 @@ export default function GameIdPageClient({ kols }: { kols: KOL[] }) {
 
       {/* search bar */}
       <Container>
-        <SearchBar kols={kols} onSelect={handleSelect} />
+        <SearchBar kols={kols} handleGuess={handleGuess} />
       </Container>
 
       {/* guessResults section */}
       {
         <section className="text-white no-scrollbar">
-          {/* <AttributesGuessListTable
-            guess1Results={
-              gameSession?.game1Guesses as unknown as []
-            }
-          /> */}
+          <AttributesGuessListTable
+            allKols={kols}
+            loadingApiGameSession={loadingApiGameSession}
+            gameSessionFromApi={gameSessionFromApi}
+          />
         </section>
       }
       {/* Legends */}

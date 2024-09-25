@@ -1,4 +1,6 @@
-import { KOL, AttributeResult } from "../index";
+import { KOL } from "../index";
+
+export type AttributeResult = "correct" | "incorrect" | "higher" | "lower";
 
 export interface AttributeGuess {
   kol: KOL;

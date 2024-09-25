@@ -1,11 +1,11 @@
 import { appConfig } from "@/lib/config";
-import { ApiPostBody } from "@/types";
+import { StartGameRequestBody } from "@/types";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const apiBaseUrl = appConfig.apiBaseUrl;
   try {
-    const body: ApiPostBody = await request.json();
+    const body: StartGameRequestBody = await request.json();
 
     const response = await fetch(`${apiBaseUrl}/api/v1/game/start`, {
       method: "POST",
@@ -14,7 +14,6 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify(body),
     });
-    console.log("response insde startgame route.ts", response);
 
     if (!response.ok) {
       throw new Error("Failed to starting game in api");

@@ -1,10 +1,14 @@
 "use server";
 
 const API_BASE_URL = appConfig.apiBaseUrl;
-import { APIKOL, KOL } from "@/types";
+import {
+  APIKOL,
+  GameSessionFromApi,
+  GameSessionFromApiResponse,
+  KOL,
+  KolWithTweets,
+} from "@/types";
 import { appConfig } from "../config";
-
-type KolWithTweets = KOL;
 
 interface ApiResponse<T> {
   status: string;
@@ -35,24 +39,28 @@ export async function fetchKOLs(): Promise<KolWithTweets[]> {
 
 export async function fetchRandomKOL(): Promise<APIKOL> {
   try {
-    return await fetchData<APIKOL>(`api/v1/kols/random`);
+    const randKol = await fetchData<APIKOL>(`api/v1/kols/random`);
+    console.log("random KOL", randKol);
+    return randKol;
   } catch (error) {
     console.error("Error fetching random APIKOL:", error);
     throw error;
   }
 }
 
-export async function fetchGameSession({
-  sessionId,
+export async function fetchGameSessionFromApi({
+  publicKey,
 }: {
-  sessionId: string;
-}): Promise<KolWithTweets> {
+  publicKey: string;
+}): Promise<GameSessionFromApi> {
   try {
-    return await fetchData<KolWithTweets>(
-      `api/v1/game/66e7138f95c2213b2aff761b`
+    const data = await fetchData<GameSessionFromApiResponse>(
+      `api/v1/game/${publicKey}`
     );
+
+    return data.data;
   } catch (error) {
-    console.error("Error fetching random KolWithTweets:", error);
+    console.error("Error fetching random GameSessionFromApi:", error);
     throw error;
   }
 }

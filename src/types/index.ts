@@ -7,8 +7,6 @@ export enum GameType {
   Emojis = 3,
 }
 
-export type AttributeResult = "correct" | "incorrect" | "higher" | "lower";
-
 export interface KOL {
   id: string;
   name: string;
@@ -19,8 +17,18 @@ export interface KOL {
   followers: number;
   ecosystem: string;
 }
-
-export interface KolWithTweets extends KOL {
+export interface KolWithTweets {
+  id: string;
+  name: string;
+  age: number;
+  ageDisplay: string;
+  country: string;
+  pfpType: string;
+  pfp: string;
+  accountCreation: number;
+  followers: number;
+  followersDisplay: string;
+  ecosystem: string;
   tweets: string[];
 }
 

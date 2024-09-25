@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { GameSession } from "@/types/";
 import { useWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
@@ -8,28 +8,33 @@ import { useProgram } from "./useProgram";
 
 import { KOL } from "@/types";
 import { submitGuess } from "@/lib/api/game";
+import { useGameState } from "./useGameState";
+import { fetchGameSessionFromApi } from "@/lib/api";
 
 export const useGameSession = () => {
   const getProgram = useProgram();
+  const { fetchGameState } = useGameState();
 
   const { wallet } = useWallet();
 
   const fetchGameSession = useCallback(
     async (playerPublicKey: PublicKey) => {
       const program = getProgram();
+      const gameState = await fetchGameState();
 
       const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("game_session"), playerPublicKey.toBuffer()],
+        [
+          Buffer.from("game_session"),
+          playerPublicKey.toBuffer(),
+          Buffer.from(gameState?.currentCompetition.id!),
+        ],
         program.programId
       );
+      console.log("gameSessionPDA", gameSessionPDA.toString());
 
       //@ts-expect-error Not typed
       const fetchedSession = await program.account.gameSession.fetch(
         gameSessionPDA
-      );
-      console.log(
-        "returned value from fetching game session: ",
-        fetchedSession
       );
 
       return fetchedSession as GameSession;
@@ -38,8 +43,14 @@ export const useGameSession = () => {
   );
 
   const startGameSession = useCallback(
-    async (gameType: number, kol: KOL) => {
+    async (
+      gameType: number,
+      kol: KOL,
+      playerPubKey = wallet?.adapter.publicKey
+    ) => {
       const program = getProgram();
+      const gameState = await fetchGameState();
+      console.log("game state: ", gameState);
 
       const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_state")],
@@ -47,12 +58,17 @@ export const useGameSession = () => {
       );
 
       const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
+        [
+          Buffer.from("game_session"),
+          playerPubKey?.toBuffer()!,
+          Buffer.from(gameState?.currentCompetition.id!),
+        ],
         program.programId
       );
+      console.log("gameSessionPDA", gameSessionPDA.toString());
 
       const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-        [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
+        [Buffer.from("player_state"), playerPubKey?.toBuffer()!],
         program.programId
       );
 
@@ -61,24 +77,25 @@ export const useGameSession = () => {
         program.programId
       );
 
-      const gameSess = await fetchGameSession(wallet?.adapter.publicKey!);
-      if (gameSess) return gameSess;
+      try {
+        return await fetchGameSession(playerPubKey!);
+      } catch (err) {
+        console.log(err);
+      }
 
-      const tx = await program.methods
+      await program.methods
         .startGameSession(gameType, kol)
         .accounts({
           gameState: gameStatePDA,
           gameSession: gameSessionPDA,
-          player: wallet?.adapter.publicKey!,
+          player: playerPubKey!,
           playerState: playerStatePDA,
           vault: vaultPDA,
           systemProgram: SystemProgram.programId,
         })
         .rpc();
-      console.log("transaction: ", tx);
 
-      const gS = fetchGameSession(wallet?.adapter.publicKey!);
-      console.log("game session", gS);
+      const gS = fetchGameSession(playerPubKey!);
 
       return gS;
     },
@@ -87,50 +104,20 @@ export const useGameSession = () => {
 
   const makeGuess = useCallback(
     async (gameType: number, guess: KOL) => {
-      const response = await submitGuess({
+      console.log(gameType, guess);
+      const res = await submitGuess({
         gameType: gameType,
         publicKey: wallet?.adapter.publicKey!,
         guess: guess,
       });
 
-      console.log("response from submit guess", response);
-      /*   const program = getProgram();
-        if (!program) {
-          throw new WalletConnectionError();
-        }
-
-        setLoading(true);
-        const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("game_state")],
-          program.programId
-        );
-
-        const [gameSessionPDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("game_session"), wallet?.adapter.publicKey!.toBuffer()!],
-          program.programId
-        );
-
-        const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("player_state"), wallet?.adapter.publicKey!.toBuffer()!],
-          program.programId
-        );
-
-        await program.methods
-          .makeGuess(gameType, guess)
-          .accounts({
-            gameState: gameStatePDA,
-            gameSession: gameSessionPDA,
-            player: wallet?.adapter.publicKey!,
-            playerState: playerStatePDA,
-          })
-          .rpc();
-
-        */
-
-      toast.success("Guess made successfully");
-      await fetchGameSession(wallet?.adapter.publicKey!);
+      // toast.success("Guess made successfully");
+      // await fetchGameSessionFromApi({
+      //   publicKey: wallet?.adapter.publicKey?.toString()!,
+      // });
+      return res;
     },
-    [getProgram, fetchGameSession, wallet]
+    [getProgram, fetchGameSession]
   );
 
   return {
@@ -139,20 +126,6 @@ export const useGameSession = () => {
     makeGuess,
   };
 };
-
-export function getKeypairFromSecretKey(): Keypair {
-  const secretKey = new Uint8Array([
-    209, 21, 219, 119, 127, 25, 156, 84, 17, 101, 204, 253, 197, 190, 92, 69,
-    102, 251, 213, 250, 241, 240, 228, 145, 231, 142, 86, 8, 193, 173, 7, 240,
-    115, 41, 26, 145, 167, 22, 121, 57, 110, 119, 234, 247, 252, 144, 196, 236,
-    32, 187, 12, 30, 168, 111, 163, 0, 93, 10, 55, 245, 93, 54, 62, 254,
-  ]);
-
-  const keypair = Keypair.fromSecretKey(secretKey);
-  console.log("keypair to copy", keypair.publicKey.toString());
-
-  return keypair;
-}
 
 /* 
 curl https://staging-rpc.dev2.eclipsenetwork.xyz -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1, "method":"requestAirdrop", "params":["8kYEnR6Uq4R84hBRWk6ptufHnHgX7x9h9Ar2J4snuBAV", 1000000000]}'

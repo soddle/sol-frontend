@@ -20,14 +20,14 @@ import {
 
 import { AnchorError } from "@coral-xyz/anchor";
 import { startGameApi } from "@/lib/api/game";
+import { fetchRandomKOL } from "@/lib/api";
+import { KOL, StartGameRequestBody } from "@/types";
 
 export default function GamePlayPageClient() {
   const { wallet } = useWallet();
-  // const { startGameSession, fetchGameSession } = useGameSession();
   const { ui, game } = useRootStore();
   const setLoading = ui((state) => state.setLoading);
   const setCurrentGameType = game((state) => state.setCurrentGameType);
-  // const setGameSession = game((state) => state.setGameSession);
   const router = useRouter();
 
   // game session
@@ -39,53 +39,56 @@ export default function GamePlayPageClient() {
         throw new Error("Wallet not connected");
       }
       setLoading(true);
-      // const apiKol = await fetchRandomKOL();
-      // const randomKol: KOL = {
-      //   pfp: apiKol.pfp,
-      //   accountCreation: apiKol.accountCreation,
-      //   age: apiKol.age,
-      //   country: apiKol.country,
-      //   ecosystem: apiKol.ecosystem,
-      //   followers: apiKol.followers,
-      //   id: apiKol.id,
-      //   name: apiKol.name,
-      // };
-      // console.log("Random KOL", randomKol);
+      const apiKol = await fetchRandomKOL();
+      const {
+        pfp,
+        accountCreation,
+        age,
+        country,
+        ecosystem,
+        followers,
+        id,
+        name,
+      } = apiKol;
 
-      // starting the game
-      const kol = {
-        id: "KOL123",
-        name: "Test KOL",
-        age: 25,
-        country: "Test Country",
-        pfp: "https://example.com/pfp.jpg",
-        accountCreation: 2020,
-        followers: 10000,
-        ecosystem: "Test Ecosystem",
+      console.log("api kol: ", apiKol);
+      const randomKol: KOL = {
+        pfp,
+        accountCreation,
+        age,
+        country,
+        ecosystem,
+        followers,
+        id,
+        name,
       };
 
-      const gameSession = await startGameSession(gameType, kol);
-      console.log(gameSession.kol);
-      const res = await startGameApi({
-        gameType: gameType,
-        publicKey: wallet.adapter.publicKey.toString(),
+      console.log("Random KOL", randomKol);
+
+      const gameSession = await startGameSession(gameType, randomKol);
+      console.log("gamesession in handleStartGameSession", gameSession);
+      console.log("gametype: ", gameType);
+      const startGameReq: StartGameRequestBody = {
+        publicKey: wallet!.adapter.publicKey!.toString() || "",
+        gameType: 2,
         game: {
-          kol: gameSession.kol,
-          competitionId: gameSession.competitionId,
-          completed: gameSession.completed,
+          gameType: 2,
+          startTime: gameSession.startTime.toString(),
           game1Completed: gameSession.game1Completed,
           game2Completed: gameSession.game2Completed,
-          game1Guesses: [],
           game1Score: gameSession.game1Score,
-          game2Guesses: [],
           game2Score: gameSession.game2Score,
-          gameType: gameType,
-          guesses: [],
-          score: gameSession.score,
-          startTime: gameSession.startTime,
+          game1Guesses: [],
+          game2Guesses: [],
           totalScore: gameSession.totalScore,
+          completed: gameSession.completed,
+          score: gameSession.score,
+          kol: randomKol,
+          competitionId: gameSession.competitionId,
+          guesses: [],
         },
-      });
+      };
+      const res = await startGameApi(startGameReq);
 
       // {
       //   publicKey: wallet.adapter.publicKey.toString(),
