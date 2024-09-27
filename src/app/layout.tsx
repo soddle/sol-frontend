@@ -17,7 +17,7 @@ export default function RootLayout({
 	return (
 		<html
 			lang='en'
-			className={`${satoshi.variable} font-satoshi`}>
+			className={`${satoshi.variable}`}>
 			<body
 				className={`
           bg-[#181716] 

@@ -156,18 +156,20 @@ const leaderBoardDetails: LeaderBoardDetails[] = [
 ];
 
 function LeaderBoardCard() {
-	const [date, setDate] = useState("today");
+	const [interval, setInterval] = useState("today");
 
-	function handleSelectDate(date: string): void {
-		setDate(date);
+	function handleSelectInterval(interval: string): void {
+		setInterval(interval);
 	}
 	return (
 		<section className='w-full md:w-4/5 mx-auto text-white border border-[#2FFF2B80] p-4'>
 			<div className='flex items-center justify-center gap-4 mb-6 mx-auto w-4/5 h-10'>
 				<div className='w-1/2 h-full'>
 					<select
-						value={date}
-						onChange={(e) => {}}
+						value={interval}
+						onChange={(e) => {
+							handleSelectInterval(e.target.value);
+						}}
 						className='bg-[#181716] border border-[#2A342A] h-full text-xl w-full px-2 outline-none'>
 						<option value='today'>Today</option>
 						<option value='weekly'>Weekly</option>
