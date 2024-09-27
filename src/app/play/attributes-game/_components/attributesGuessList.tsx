@@ -60,7 +60,7 @@ const Cell: React.FC<CellProps> = ({
             />
           </div>
         )}
-        <div className="relative z-10 text-center">{children}</div>
+        <div className="relative z-10 text-center break-words">{children}</div>
       </div>
     </div>
   );
@@ -90,10 +90,6 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   if (loadingApiGameSession || !gameSessionFromApi) {
     return <TableLoader />;
   }
-
-  // if (error) {
-  //   return <div className="text-center text-green-500">{error}</div>;
-  // }
 
   const game1Guesses = [...gameSessionFromApi.game1Guesses].reverse();
 
