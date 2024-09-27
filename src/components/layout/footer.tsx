@@ -8,6 +8,19 @@ const Footer: React.FC = () => {
     <footer className=" py-4">
       <div className="container mx-auto flex justify-center items-center space-x-6">
         <Link
+          href="https://x.com/soddle_"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            src="/images/twitterx.png"
+            alt="Twitter"
+            width={24}
+            height={24}
+            className="hover:opacity-80 transition-opacity"
+          />
+        </Link>
+        {/* <Link
           href="https://t.me/SoddleOfficial"
           target="_blank"
           rel="noopener noreferrer"
@@ -19,7 +32,7 @@ const Footer: React.FC = () => {
             height={24}
             className="hover:opacity-80 transition-opacity"
           />
-        </Link>
+        </Link> */}
       </div>
     </footer>
   );

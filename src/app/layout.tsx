@@ -28,7 +28,6 @@ export default function RootLayout({
         `}
       >
         <Providers>
-          {/* <LeaderBoard /> */}
           <MainLayout>{children}</MainLayout>
         </Providers>
       </body>
