@@ -1,3 +1,5 @@
+import LeaderBoardClient from "./_components/leaderboardClient";
+
 export default function LeaderBoardPage() {
-  return <div>Leaderboard page</div>;
+  return <LeaderBoardClient />;
 }

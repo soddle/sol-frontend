@@ -56,3 +56,10 @@ export interface GameState {
   currentCompetition: Competition;
   lastUpdateTime: number;
 }
+
+export interface LeaderboardEntry {
+  rank: number;
+  reward: string;
+  name: string;
+  points: number;
+}

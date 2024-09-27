@@ -1,7 +1,8 @@
 import React from "react";
+import ProfilePageClient from "./_components/profilePageClient";
 
 function ProfilePage() {
-  return <div>ProfilePage</div>;
+  return <ProfilePageClient />;
 }
 
 export default ProfilePage;

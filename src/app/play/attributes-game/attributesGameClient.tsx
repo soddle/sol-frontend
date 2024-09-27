@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import SearchBar from "./_components/searchBar";
 import { GameType } from "@/lib/constants";
-import TimerDisplay from "./_components/timeDisplay";
+import TimerDisplay from "../../../components/ui/timeDisplay";
 import Container from "@/components/layout/container";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
 
