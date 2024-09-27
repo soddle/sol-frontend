@@ -2,14 +2,8 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
-import {
-  AttributeGuess,
-  AttributeResult,
-  Game1Guess,
-  GameSessionFromApi,
-  KOL,
-  KolWithTweets,
-} from "@/types";
+import { Game1Guess, GameSessionFromApi, KolWithTweets } from "@/types";
+import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
 
 interface AttributesGuessListProps {
   gameSessionFromApi: GameSessionFromApi | null;
@@ -21,31 +15,52 @@ interface CellProps {
   children: React.ReactNode;
   attributeResult: string;
   className?: string;
+  isPfp?: boolean;
 }
 
 const Cell: React.FC<CellProps> = ({
   children,
   attributeResult,
   className,
+  isPfp = false,
 }) => {
+  const cellStyle = isPfp
+    ? { background: "transparent" }
+    : {
+        background:
+          attributeResult === LEGEND_BOX_TYPES.Correct
+            ? LEGEND_BOX_COLORS.Correct
+            : attributeResult === LEGEND_BOX_TYPES.Higher
+            ? LEGEND_BOX_COLORS.Higher
+            : attributeResult === LEGEND_BOX_TYPES.Incorrect
+            ? LEGEND_BOX_COLORS.Incorrect
+            : attributeResult === LEGEND_BOX_TYPES.Lower
+            ? LEGEND_BOX_COLORS.Lower
+            : "",
+      };
+
+  const icon =
+    attributeResult === LEGEND_BOX_TYPES.Higher
+      ? "/legend-up.png"
+      : attributeResult === LEGEND_BOX_TYPES.Lower
+      ? "/legend-down.png"
+      : null;
+
   return (
-    <div
-      className={`overflow-hidden ${
-        attributeResult === "Correct"
-          ? "bg-green-500"
-          : attributeResult === "Incorrect"
-          ? "bg-red-500"
-          : attributeResult === "Higher"
-          ? "bg-red-700"
-          : attributeResult === "Lower"
-          ? "bg-red-500"
-          : ""
-      } ${className}`}
-    >
+    <div style={cellStyle} className={`overflow-hidden ${className}`}>
       <div
-        className={`w-full h-full flex items-center justify-center aspect-[2/1]`}
+        className={`w-full aspect-square flex items-center justify-center relative`}
       >
-        {children}
+        {icon && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <img
+              src={icon}
+              alt={attributeResult}
+              className="max-w-full max-h-full object-contain opacity-"
+            />
+          </div>
+        )}
+        <div className="relative z-10 text-center break-words">{children}</div>
       </div>
     </div>
   );
@@ -76,11 +91,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
     return <TableLoader />;
   }
 
-  // if (error) {
-  //   return <div className="text-center text-green-500">{error}</div>;
-  // }
-
-  const game1Guesses = gameSessionFromApi.game1Guesses;
+  const game1Guesses = [...gameSessionFromApi.game1Guesses].reverse();
 
   if (game1Guesses.length <= 0) {
     return (
@@ -151,7 +162,11 @@ function TableRow({ game1guess }: TableRowProps) {
 
   return (
     <>
-      <Cell attributeResult={pfpType} className="bg-transparent p-0 m-0">
+      <Cell
+        attributeResult={pfpType}
+        className="bg-transparent p-0 m-0"
+        isPfp={true}
+      >
         <Image
           unoptimized
           src={guess?.pfp || "/user-icon.svg"}

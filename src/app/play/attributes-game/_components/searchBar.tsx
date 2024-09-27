@@ -125,7 +125,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
         className="w-full focus:outline-none focus:ring-2 focus:ring-[#2FFF2B]"
       />
       {isDropdownOpen && (
-        <ul className="absolute z-10 w-full mt-1 bg-[#111411] border border-[#2FFF2B] rounded-md shadow-lg max-h-[40vh] overflow-auto no-scrollbar">
+        <ul className="absolute z-20 w-full mt-1 bg-[#111411] border border-[#2FFF2B] rounded-md shadow-lg max-h-[40vh] overflow-auto no-scrollbar">
           {isLoading ? (
             <li className="flex justify-center items-center h-20">
               <motion.div
