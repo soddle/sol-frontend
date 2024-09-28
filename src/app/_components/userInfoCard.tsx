@@ -6,6 +6,7 @@ import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEclipseCluster } from "@/hooks/useEclipseCluster";
 import { WalletIcon } from "@heroicons/react/24/outline";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import Link from "next/link";
 
 export default function UserInfoCard() {
   const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
@@ -44,7 +45,7 @@ export default function UserInfoCard() {
 
   return (
     <div
-      className="p-5 grid gap-5 border-[#03B500] border text-white bg-[#111411]"
+      className="p-5 grid gap-5 border-[#03B500] border text-white bg-[#111411] relative"
       style={{
         clipPath: "polygon(5% 0%, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%)",
       }}
@@ -87,6 +88,11 @@ export default function UserInfoCard() {
             {balance !== null ? (balance * 5000).toFixed(2) : "..."}
           </span>
         </div>
+        <Link href="/leaderboard" className="">
+          <button className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider hover:text-white hover:border-white transition-colors duration-300">
+            Leaderboard
+          </button>
+        </Link>
       </div>
     </div>
   );

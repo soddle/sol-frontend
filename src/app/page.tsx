@@ -1,7 +1,7 @@
-import LandingPageClient from "./landingPageClient";
+import { fetchKOLs } from "@/lib/api";
+import GamePlayPageClient from "./playPageClient";
+import Image from "next/image";
 
-async function LandingPage() {
-  return <LandingPageClient />;
+export default async function GamePlayPage() {
+  return <GamePlayPageClient />;
 }
-
-export default LandingPage;
