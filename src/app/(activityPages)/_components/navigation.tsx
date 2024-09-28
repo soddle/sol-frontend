@@ -44,7 +44,7 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 sm:relative sm:mb-5">
+    <nav className="fixed bottom-0 left-0 right-0 sm:relative sm:mb-5 z-20">
       <div className="relative h-16 sm:h-[60px] w-full max-w-4xl mx-auto overflow-hidden">
         <AnimatePresence initial={false}>
           {orderedItems.map((item, index) => (
