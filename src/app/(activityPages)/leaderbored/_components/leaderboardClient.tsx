@@ -6,11 +6,11 @@ import Trapezoid from "@/components/ui/trapezoid";
 import LeaderboardContainer from "./leaderboardContainer";
 
 export default function LeaderBoardClient({}) {
-  return (
-    <Container className="sm:max-w-[700px] h-full">
-      <Trapezoid>
-        <LeaderboardContainer />
-      </Trapezoid>
-    </Container>
-  );
+	return (
+		<Container className='sm:max-w-[700px] h-full'>
+			<Trapezoid className='p-4'>
+				<LeaderboardContainer />
+			</Trapezoid>
+		</Container>
+	);
 }
