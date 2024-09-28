@@ -1,18 +1,26 @@
 "use client";
 import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useEclipseCluster } from "@/hooks/useEclipseCluster";
 import { WalletIcon } from "@heroicons/react/24/outline";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
+
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function UserInfoCard() {
   const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
   const [balance, setBalance] = useState<number | null>(null);
   const { endpoint, cluster } = useEclipseCluster();
-
+  const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
   const { setVisible } = useWalletModal();
 
   const handleConnectWallet = () => {
@@ -23,22 +31,41 @@ export default function UserInfoCard() {
     }
   };
 
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!publicKey) return;
+  const fetchBalance = useCallback(async () => {
+    if (!publicKey) return;
 
-      const connection = new Connection(endpoint);
+    const connection = new Connection(endpoint);
 
-      try {
-        const balance = await connection.getBalance(publicKey);
-        setBalance(balance / LAMPORTS_PER_SOL);
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      }
-    };
-
-    fetchBalance();
+    try {
+      const balance = await connection.getBalance(publicKey);
+      setBalance(balance / LAMPORTS_PER_SOL);
+      setCountdown(REFRESH_INTERVAL / 1000);
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+    }
   }, [publicKey, endpoint]);
+
+  useEffect(() => {
+    fetchBalance();
+    const interval = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : REFRESH_INTERVAL / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [fetchBalance]);
+
+  useEffect(() => {
+    if (countdown === 0) {
+      fetchBalance();
+    }
+  }, [countdown, fetchBalance]);
+
+  const copyAddress = () => {
+    if (publicKey) {
+      navigator.clipboard.writeText(publicKey.toBase58());
+      toast.success("Copied to clipboard");
+    }
+  };
 
   if (!connected && connecting) return <Skeleton />;
   if (!wallet) return <NoWallet handleConnectWallet={handleConnectWallet} />;
@@ -51,16 +78,32 @@ export default function UserInfoCard() {
       }}
     >
       <div className="flex items-center">
-        <Image
-          src="/user-icon.svg"
-          width={25}
-          height={25}
-          alt="user"
-          className="mr-2 w-10 h-10 cursor-pointer"
-        />
-        <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl ">
-          {publicKey ? shortenAddress(publicKey.toBase58(), 4) : "..."}
-        </p>
+        <Link href={"/profile"}>
+          <Image
+            src="/user-icon.svg"
+            width={25}
+            height={25}
+            alt="user"
+            className="mr-2 w-10 h-10 cursor-pointer"
+          />
+        </Link>
+
+        <Tooltip>
+          <TooltipTrigger>
+            <p
+              onClick={copyAddress}
+              className="text-xs sm:text-xs md:text-sm lg:text-base xl:text-lg 2xl:text-xl "
+            >
+              {publicKey ? shortenAddress(publicKey.toBase58(), 4) : "..."}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{publicKey?.toBase58()}</p>
+          </TooltipContent>
+        </Tooltip>
+        {/* <button onClick={copyAddress} className="ml-2">
+          <ClipboardDocumentIcon className="h-5 w-5" />
+        </button> */}
         <p className="ml-2 text-sm">({cluster.name})</p>
 
         <Image
@@ -72,7 +115,7 @@ export default function UserInfoCard() {
           onClick={disconnect}
         />
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
         <div className="flex items-center justify-center">
           <Image src={"/ethereum.svg"} width={25} height={25} alt="ETH icon" />
           <span>ETH</span>
@@ -88,12 +131,23 @@ export default function UserInfoCard() {
             {balance !== null ? (balance * 5000).toFixed(2) : "..."}
           </span>
         </div>
-        <Link href="/leaderboard" className="">
-          <button className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider hover:text-white hover:border-white transition-colors duration-300">
+        {/* <button onClick={fetchBalance} className="ml-2">
+          <ArrowPathIcon className="h-5 w-5" />
+        </button> */}
+        {/* <span className="text-xs">Refresh in {countdown}s</span> */}
+        <Link href="/leaderboard" className="flex-1">
+          <button className="w-full bg-[#181716] border-2 border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider  transition-colors ">
             Leaderboard
           </button>
         </Link>
       </div>
+      {/* <div className="flex gap-3">
+        <Link href="/transactions" className="flex-1">
+          <button className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider  transition-colors ">
+            Transactions
+          </button>
+        </Link>
+      </div> */}
     </div>
   );
 }
@@ -111,13 +165,12 @@ function NoWallet({
       }}
     >
       <div className="flex items-center">
-        <WalletIcon className="w-8 h-8 mr-2 text-[#03B500]" />
-        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl">
-          No Wallet Connected
+        <p className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider  transition-colors ">
+          No wallet connected
         </p>
       </div>
       <button
-        className="bg-[#03B500] text-white py-2 px-4 rounded-md hover:bg-[#029400] transition-colors duration-200 text-sm sm:text-base flex items-center justify-center"
+        className="bg-[#111411] border border-[#03B500] border-opacity-50 p-2 text-white text-lg transition-all duration-300 ease-in-out hover:drop-shadow-[0_0_10px_rgba(47,255,43,1)] hover:shadow-[0_0_20px_rgba(47,255,43,0.5)]"
         onClick={handleConnectWallet}
       >
         click to connect wallet
