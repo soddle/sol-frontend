@@ -182,6 +182,7 @@ const data = [
 	},
 ];
 
+//Please don't try changing this to a functional component, it won't work that way
 class Example extends PureComponent {
 	render() {
 		return (
