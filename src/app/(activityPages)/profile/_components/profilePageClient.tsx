@@ -118,13 +118,13 @@ export default function ProfileClient({
 					<h3 className='text-xl font-semibold mb-3'>Quests</h3>
 					{quests?.length > 0 ? (
 						quests?.map((quest, index) => (
-							<div
+							<button
 								key={index}
-								className='bg-[#33333380] py-2 rounded mb-2'>
+								className='bg-[#33333380] py-2 rounded mb-2 hover:bg-[#2A342A] block text-center w-full transition-colors duration-300'>
 								<p className='text-lg text-center capitalize'>
 									{quest}
 								</p>
-							</div>
+							</button>
 						))
 					) : (
 						<p className='text-center text-white/50'>
