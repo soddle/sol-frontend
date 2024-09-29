@@ -16,7 +16,6 @@ import { useRootStore } from "@/stores/storeProvider";
 import { GameSession, GameSessionFromApi, KOL, KolWithTweets } from "@/types";
 import QuestionBox from "./_components/questionBox";
 import { fetchGameSessionFromApi } from "@/lib/api";
-import { useUIStore } from "@/components/providers/storesProvider";
 import UserProfileModal from "@/components/modals/userProfileModal";
 
 export default function AttributesGameClient({
