@@ -128,8 +128,8 @@ export default function UserInfoCard() {
       </div>
       <div className="flex gap-3 items-center">
         <div className="flex items-center justify-center">
-          <Image src={"/ethereum.svg"} width={25} height={25} alt="ETH icon" />
-          <span>ETH</span>
+          <Image src={"/solana.svg"} width={25} height={25} alt="ETH icon" />
+          <span>Sol</span>
         </div>
         <div className="flex items-center justify-center">
           <span className="text-3xl font-bold">
