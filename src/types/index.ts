@@ -64,8 +64,8 @@ export interface LeaderboardEntry {
   points: number;
 }
 
-export interface LeaderboardEntry {
-  totalScore: number;
-  gamesPlayed: number;
-  player: string;
-}
+// export interface LeaderboardEntry {
+//   totalScore: number;
+//   gamesPlayed: number;
+//   player: string;
+// }
