@@ -105,7 +105,6 @@ export default function AttributesGameClient({
       const allCorrect = Object.values(guess.result).every(
         (value) => value === "Correct"
       );
-      console.log("all correct?", allCorrect);
       if (allCorrect) {
         openModal(<UserProfileModal gameSession={returnedSessionFromApi} />);
         alert(
