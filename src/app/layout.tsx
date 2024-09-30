@@ -2,7 +2,7 @@ import "./globals.css";
 import { MainLayout } from "@/components/layout/main";
 import Providers from "@/components/providers";
 import { satoshi } from "@/lib/fonts";
-import LeaderBoard from "./leaderboard/page";
+import LeaderBoard from "./leaderbud/page";
 
 export const metadata = {
   title: "Soddle",

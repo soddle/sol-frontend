@@ -10,7 +10,7 @@ const Navigation: React.FC = () => {
 
   const navItems = [
     { name: "PLAY", path: "/play", icon: PlayIcon },
-    { name: "LEADERBORED", path: "/leaderbored", icon: ChartBarIcon },
+    { name: "LEADERBOARD", path: "/leaderboard", icon: ChartBarIcon },
     { name: "PROFILE", path: "/profile", icon: UserIcon },
   ];
   const [orderedItems, setOrderedItems] = useState(navItems);
