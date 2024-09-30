@@ -5,6 +5,7 @@ import { GameSession, GameSessionFromApi } from "@/types";
 import { shortenAddress } from "@/lib/utils";
 import { useRootStore } from "@/stores/storeProvider";
 import Trapezoid from "@/components/ui/trapezoid";
+import Link from "next/link";
 
 export default function UserProfileModal({
   gameSession,
@@ -84,9 +85,12 @@ export default function UserProfileModal({
         >
           Share on X
         </Button2>
-        <Button2 className="relative -bottom-4" onClick={closeModal}>
-          Continue{" "}
-        </Button2>
+        <Link href={"/"}>
+          <Button2 className="relative -bottom-4" onClick={closeModal}>
+            Continue{" "}
+          </Button2>
+          ß
+        </Link>
       </div>
     </div>
   );
