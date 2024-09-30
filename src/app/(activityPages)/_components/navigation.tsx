@@ -9,7 +9,7 @@ const Navigation: React.FC = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "PLAY", path: "/play", icon: PlayIcon },
+    { name: "PLAY", path: "/", icon: PlayIcon },
     { name: "LEADERBOARD", path: "/leaderboard", icon: ChartBarIcon },
     { name: "PROFILE", path: "/profile", icon: UserIcon },
   ];
