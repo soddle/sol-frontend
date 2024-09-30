@@ -6,6 +6,7 @@ import { shortenAddress } from "@/lib/utils";
 import { useRootStore } from "@/stores/storeProvider";
 import Trapezoid from "@/components/ui/trapezoid";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function UserProfileModal({
   gameSession,
@@ -13,6 +14,7 @@ export default function UserProfileModal({
   gameSession: GameSessionFromApi;
 }) {
   const { ui } = useRootStore();
+  const router = useRouter();
 
   const closeModal = ui((state) => state.closeModal);
   const handleShareOnX = () => {
@@ -70,14 +72,14 @@ export default function UserProfileModal({
         </Trapezoid>
         <div className="flex  justify-between items-center">
           <div className="text-sm px-2 py-1 bg-[#181716] border border-[#2A342A]">
-            20 seconds
+            15 seconds
           </div>
           <div className="text-sm px-2 py-1 bg-[#181716] border border-[#2A342A] ">
-            13 mistakes
+            8 mistakes
           </div>
         </div>
         <div className="text-xl w-full h-52 flex items-center justify-center  bg-[#181716] border border-[#2A342A]">
-          "I solved the riddle in 20 seconds."
+          "I solved the riddle in 15 seconds."
         </div>
         <Button2
           className="text-black px-4 py-2 relative -top-8 max-w-[200px]"
@@ -85,12 +87,16 @@ export default function UserProfileModal({
         >
           Share on X
         </Button2>
-        <Link href={"/"}>
-          <Button2 className="relative -bottom-4" onClick={closeModal}>
-            Continue{" "}
-          </Button2>
-          ß
-        </Link>
+
+        <Button2
+          className="relative -bottom-4"
+          onClick={() => {
+            closeModal();
+            router.push("/");
+          }}
+        >
+          Continue{" "}
+        </Button2>
       </div>
     </div>
   );
