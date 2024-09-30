@@ -3,7 +3,7 @@
 import Container from "@/components/layout/container";
 import TimerDisplay from "@/components/ui/timeDisplay";
 import Trapezoid from "@/components/ui/trapezoid";
-import LeaderboardContainer from "./leaderboardContainer";
+import LeaderboardContainer from "./_components/leaderboardContainer";
 
 export default function LeaderBoardClient({}) {
   return (

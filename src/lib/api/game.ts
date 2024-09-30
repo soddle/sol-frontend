@@ -3,7 +3,7 @@ import {
   GameStartResponse,
   StartGameRequestBody,
   GameSessionFromApi,
-  GameSessionFromApiResponse,
+  // GameSessionFromApiResponse,
 } from "@/types";
 
 export async function startGameApi(

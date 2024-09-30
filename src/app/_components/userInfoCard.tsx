@@ -6,6 +6,7 @@ import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useSolanaCluster } from "@/hooks/useSolanaCluster";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
+
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +17,9 @@ import { toast } from "sonner";
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function UserInfoCard() {
-  const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
+  const { publicKey, disconnect, connecting, connected, wallet, select } =
+    useWallet();
+
   const [balance, setBalance] = useState<number | null>(null);
   const [solPrice, setSolPrice] = useState<number | null>(null);
   const { endpoint, cluster } = useSolanaCluster();
