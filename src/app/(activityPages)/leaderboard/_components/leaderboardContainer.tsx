@@ -20,7 +20,7 @@ const LeaderboardContainer: React.FC = () => {
   useEffect(() => {
     const fetchLeaderboardData = async () => {
       try {
-        const gameType = selectedGameType === "Attributes" ? 1 : 2; // Adjust this mapping as needed
+        const gameType = selectedGameType === "Attributes" ? 1 : 2;
         const leaderboardType = getLeaderboardType(selectedDate);
         const response = await fetchLeaderboard(gameType, leaderboardType);
 
