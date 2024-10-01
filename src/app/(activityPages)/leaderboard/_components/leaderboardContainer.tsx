@@ -5,6 +5,7 @@ import LeaderboardTable from "./leaderboardTable";
 import PaginationIndicator from "./paginationIndicator";
 import TimerDisplay from "@/components/ui/timeDisplay";
 import { LeaderboardEntry } from "@/types";
+import { fetchLeaderboard } from "@/lib/api";
 
 const LeaderboardContainer: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -18,20 +19,29 @@ const LeaderboardContainer: React.FC = () => {
 
   useEffect(() => {
     const fetchLeaderboardData = async () => {
-      /* TODO:
-       API call to fetch leaderboard data based on selectedDate, selectedGameType, and currentPage
-       Update setLeaderboardData and setTotalEntries with the fetched data
-    */
+      try {
+        const gameType = selectedGameType === "Attributes" ? 1 : 2; // Adjust this mapping as needed
+        const leaderboardType = getLeaderboardType(selectedDate);
+        const response = await fetchLeaderboard(gameType, leaderboardType);
 
-      // Simulating API call with mock data
-      const mockData = generateMockLeaderboardData(100);
-      const pageSize = 10;
-      const startIndex = (currentPage - 1) * pageSize;
-      const endIndex = startIndex + pageSize;
+        if (response.success) {
+          const formattedData = response.data.map((entry, index) => ({
+            rank: index + 1,
+            reward: calculateReward(index + 1),
+            name: entry.player,
+            points: entry.totalScore,
+          }));
 
-      setLeaderboardData(mockData.slice(startIndex, endIndex));
-      setTotalEntries(mockData.length);
+          setLeaderboardData(formattedData);
+          setTotalEntries(formattedData.length);
+        } else {
+          console.error("Failed to fetch leaderboard:", response.message);
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      }
     };
+
     fetchLeaderboardData();
   }, [selectedDate, selectedGameType, currentPage]);
 
@@ -60,25 +70,20 @@ const LeaderboardContainer: React.FC = () => {
 
 export default LeaderboardContainer;
 
-export function generateMockLeaderboardData(count: number): LeaderboardEntry[] {
-  const mockData: LeaderboardEntry[] = [];
-
-  for (let i = 1; i <= count; i++) {
-    mockData.push({
-      rank: i,
-      reward: `${Math.min(5 + Math.floor(i / 20), 20)}% (${Math.max(
-        6 - Math.floor(i / 20),
-        1
-      )}x)`,
-      name: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random()
-        .toString(16)
-        .substr(2, 4)}`,
-      points: Math.floor(1000 - i * 10 + Math.random() * 20),
-    });
+function getLeaderboardType(date: Date): string {
+  const today = new Date();
+  if (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth()
+  ) {
+    return "monthly";
+  } else {
+    return "all-time"; // Or adjust this based on your API's available options
   }
-
-  return mockData;
 }
 
-// Example usage:
-export const mockLeaderboardData = generateMockLeaderboardData(100);
+function calculateReward(rank: number): string {
+  const percentage = Math.min(5 + Math.floor(rank / 20), 20);
+  const multiplier = Math.max(6 - Math.floor(rank / 20), 1);
+  return `${percentage}% (${multiplier}x)`;
+}

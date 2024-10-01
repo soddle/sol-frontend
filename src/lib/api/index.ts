@@ -64,3 +64,29 @@ export async function fetchGameSessionFromApi({
     throw error;
   }
 }
+
+export interface LeaderboardEntry {
+  totalScore: number;
+  gamesPlayed: number;
+  player: string;
+}
+export interface LeaderboardResponse {
+  success: boolean;
+  data: LeaderboardEntry[];
+  message: string;
+}
+
+export async function fetchLeaderboard(
+  gameType: number,
+  leaderboardType: string
+): Promise<LeaderboardResponse> {
+  try {
+    const data = await fetchData<LeaderboardResponse>(
+      `api/v1/game/leaderboard?gameType=${gameType}&leaderboardType=${leaderboardType}`
+    );
+    return data;
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    throw error;
+  }
+}
