@@ -20,9 +20,10 @@ const LeaderboardContainer: React.FC = () => {
   useEffect(() => {
     const fetchLeaderboardData = async () => {
       try {
-        const gameType = selectedGameType === "Attributes" ? 1 : 2;
+        const gameType = selectedGameType === "Attributes" ? 2 : 1;
         const leaderboardType = getLeaderboardType(selectedDate);
         const response = await fetchLeaderboard(gameType, leaderboardType);
+        console.log("leaderboard response: ", response);
 
         if (response.success) {
           const formattedData = response.data.map((entry, index) => ({
@@ -71,6 +72,7 @@ const LeaderboardContainer: React.FC = () => {
 export default LeaderboardContainer;
 
 function getLeaderboardType(date: Date): string {
+  // return "weekly";
   const today = new Date();
   if (
     date.getFullYear() === today.getFullYear() &&
@@ -78,7 +80,7 @@ function getLeaderboardType(date: Date): string {
   ) {
     return "monthly";
   } else {
-    return "all-time"; // Or adjust this based on your API's available options
+    return "alltime";
   }
 }
 

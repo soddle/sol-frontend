@@ -107,11 +107,6 @@ export default function AttributesGameClient({
       );
       if (allCorrect) {
         openModal(<UserProfileModal gameSession={returnedSessionFromApi} />);
-        alert(
-          `Yey! you guessed right! ${returnedSessionFromApi.game1Score} is your score.`
-        );
-        // You can add additional logic here, such as showing a message to the user
-        toast.error("All guesses were correct. Congratulations!");
       } else {
         console.log("At least one guess was incorrect or partially incorrect.");
       }
