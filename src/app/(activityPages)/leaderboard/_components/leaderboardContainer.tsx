@@ -8,7 +8,9 @@ import { LeaderboardEntry } from "@/types";
 import { fetchLeaderboard } from "@/lib/api";
 
 const LeaderboardContainer: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedLeaderboardType, setSelectedLeaderboardType] = useState<
+    "weekly" | "monthly" | "alltime"
+  >("weekly");
   const [selectedGameType, setSelectedGameType] =
     useState<string>("Attributes");
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
@@ -21,8 +23,11 @@ const LeaderboardContainer: React.FC = () => {
     const fetchLeaderboardData = async () => {
       try {
         const gameType = selectedGameType === "Attributes" ? 2 : 1;
-        const leaderboardType = getLeaderboardType(selectedDate);
-        const response = await fetchLeaderboard(gameType, leaderboardType);
+        // const leaderboardType = getLeaderboardType(selectedLeaderboardType);
+        const response = await fetchLeaderboard(
+          gameType,
+          selectedLeaderboardType
+        );
         console.log("leaderboard response: ", response);
 
         if (response.success) {
@@ -44,14 +49,14 @@ const LeaderboardContainer: React.FC = () => {
     };
 
     fetchLeaderboardData();
-  }, [selectedDate, selectedGameType, currentPage]);
+  }, [selectedLeaderboardType, selectedGameType, currentPage]);
 
   return (
     <div className="">
       <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4 px-4 sm:px-6 py-4">
         <DateSelector
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
+          selectedDate={selectedLeaderboardType}
+          onDateChange={setSelectedLeaderboardType}
         />
         <TimerDisplay />
       </div>
@@ -71,18 +76,18 @@ const LeaderboardContainer: React.FC = () => {
 
 export default LeaderboardContainer;
 
-function getLeaderboardType(date: Date): string {
-  // return "weekly";
-  const today = new Date();
-  if (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth()
-  ) {
-    return "monthly";
-  } else {
-    return "alltime";
-  }
-}
+// function getLeaderboardType(date: Date): string {
+//   // return "weekly";
+//   const today = new Date();
+//   if (
+//     date.getFullYear() === today.getFullYear() &&
+//     date.getMonth() === today.getMonth()
+//   ) {
+//     return "monthly";
+//   } else {
+//     return "alltime";
+//   }
+// }
 
 function calculateReward(rank: number): string {
   const percentage = Math.min(5 + Math.floor(rank / 20), 20);

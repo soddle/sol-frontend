@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
 interface DateSelectorProps {
-  selectedDate: Date;
-  onDateChange: (date: Date) => void;
+  selectedDate: "weekly" | "monthly" | "alltime";
+  onDateChange: (date: "weekly" | "monthly" | "alltime") => void;
 }
 
 const DateSelector: React.FC<DateSelectorProps> = ({
@@ -14,24 +14,23 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const dateOptions = [
-    { label: "Today", value: new Date() },
-    { label: "Yesterday", value: new Date(Date.now() - 86400000) },
-    { label: "This Week", value: new Date(Date.now() - 7 * 86400000) },
-    { label: "This Month", value: new Date(new Date().setDate(1)) },
+    { label: "All Time", value: "alltime" },
+    { label: "This Week", value: "weekly" },
+    { label: "This Month", value: "monthly" },
   ];
 
-  const handleDateChange = (date: Date) => {
+  const handleDateChange = (date: "weekly" | "monthly" | "alltime") => {
     onDateChange(date);
     setIsOpen(false);
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // const formatDate = (date: Date) => {
+  //   return date.toLocaleDateString("en-US", {
+  //     month: "short",
+  //     day: "numeric",
+  //     year: "numeric",
+  //   });
+  // };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,7 +54,9 @@ const DateSelector: React.FC<DateSelectorProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base text-left bg-[#181716] text-white border border-[#2A342A]  focus:outline-none focus:ring-2 focus:ring-green-600 transition-all duration-300 ease-in-out hover:bg-[#2A342A] hover:border-green-500"
       >
-        <span className="truncate">{formatDate(selectedDate)}</span>
+        <span className="truncate">
+          {dateOptions.find((date) => date.value === selectedDate)?.label}
+        </span>
         <ChevronDownIcon
           className={`w-5 h-5 ml-2 transition-transform duration-300 ${
             isOpen ? "rotate-180" : ""
@@ -67,7 +68,11 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           {dateOptions.map((option, index) => (
             <button
               key={option.label}
-              onClick={() => handleDateChange(option.value)}
+              onClick={() =>
+                handleDateChange(
+                  option.value as "weekly" | "monthly" | "alltime"
+                )
+              }
               className={`block w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base text-left text-white hover:bg-green-600 hover:text-white transition-all duration-300 ease-in-out ${
                 index === 0
                   ? "rounded-t-lg"
