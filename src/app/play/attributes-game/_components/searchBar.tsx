@@ -12,6 +12,7 @@ interface KOLSearchProps {
 }
 
 const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
+  console.log(kols);
   const [searchTerm, setSearchTerm] = useState("");
   const [availableKols, setAvailableKols] = useState<KolWithTweets[]>([]);
   const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);
