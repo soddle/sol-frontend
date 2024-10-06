@@ -7,7 +7,7 @@ async function AttributesGamePage() {
     cache: "no-store",
   });
   const kols = await response.json();
-
+  console.log("kols: ", kols);
   return <AttributesGamePageClient kols={kols} />;
 }
 

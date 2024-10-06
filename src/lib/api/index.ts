@@ -15,7 +15,9 @@ interface ApiResponse<T> {
 }
 
 async function fetchData<T>(url: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}/${url}`);
+  const response = await fetch(`${API_BASE_URL}/${url}`, {
+    cache: "no-store",
+  });
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);

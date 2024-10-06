@@ -94,6 +94,7 @@ export default function AttributesGameClient({
       setLoading(true);
       const returnedSessionFromApi = await makeGuess(GameType.Attributes, kol);
       setGameSessionFromApi(returnedSessionFromApi);
+      console.log("returned session from API: ", returnedSessionFromApi);
 
       const guess = returnedSessionFromApi.game1Guesses.find(
         (g) => g.guess.id === kol.id

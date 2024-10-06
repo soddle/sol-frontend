@@ -62,6 +62,7 @@ export default function GamePlayPageClient() {
         ecosystem,
         followers,
         id,
+
         name,
       };
 
