@@ -14,9 +14,9 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const dateOptions = [
-    { label: "All Time", value: "alltime" },
-    { label: "This Week", value: "weekly" },
-    { label: "This Month", value: "monthly" },
+    { label: "Today", value: "alltime" },
+    { label: "yesterday", value: "weekly" },
+    // { label: "This Month", value: "monthly" },
   ];
 
   const handleDateChange = (date: "weekly" | "monthly" | "alltime") => {
