@@ -51,6 +51,7 @@ export interface KOL {
   age: number;
   country: string;
   pfp: string;
+  pfpType: string;
   accountCreation: number;
   followers: number;
   ecosystem: string;

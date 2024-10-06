@@ -47,6 +47,7 @@ export default function GamePlayPageClient() {
         country,
         ecosystem,
         followers,
+        pfpType,
         id,
         name,
       } = fetchedRandomKol;
@@ -82,7 +83,7 @@ export default function GamePlayPageClient() {
           totalScore: gameSession.totalScore,
           completed: gameSession.completed,
           score: gameSession.score,
-          kol: randomKol,
+          kol: { ...randomKol, pfpType: pfpType },
           competitionId: gameSession.competitionId,
           guesses: [],
         },

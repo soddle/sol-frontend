@@ -6,10 +6,9 @@ async function AttributesGamePage() {
   const response = await fetch(`${appConfig.apiBaseUrl}/api/v1/kols`, {
     cache: "no-store",
   });
-  const data = await response.json();
-  console.log("data:", data);
+  const kols = await response.json();
 
-  return <AttributesGamePageClient kols={data} />;
+  return <AttributesGamePageClient kols={kols} />;
 }
 
 export default AttributesGamePage;

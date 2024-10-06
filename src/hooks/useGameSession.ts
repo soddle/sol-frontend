@@ -9,7 +9,6 @@ import { useProgram } from "./useProgram";
 import { KOL } from "@/types";
 import { submitGuess } from "@/lib/api/game";
 import { useGameState } from "./useGameState";
-import { fetchGameSessionFromApi } from "@/lib/api";
 
 export const useGameSession = () => {
   const getProgram = useProgram();

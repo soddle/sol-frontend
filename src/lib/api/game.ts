@@ -27,6 +27,7 @@ export async function startGameApi(
 export async function submitGuess(
   guessRequest: any
 ): Promise<GameSessionFromApi> {
+  console.log("submitted guess request: ", guessRequest);
   const response = await fetch("/api/game/guess", {
     method: "POST",
     headers: {
