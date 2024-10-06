@@ -55,7 +55,7 @@ export default function AttributesGameClient({
     try {
       fetchGSFromApi();
     } catch (error) {
-      console.log("error fetching game session: ", error);
+      console.error("error fetching game session: ", error);
     } finally {
       setLoadingApiGameSession(false);
     }
@@ -89,10 +89,8 @@ export default function AttributesGameClient({
       pfp: kolWithTweets.pfp,
       pfpType: kolWithTweets.pfpType,
     };
-    console.log("kol inside handleGuess", kol);
 
     try {
-      console.log("modal was called");
       setLoading(true);
       const returnedSessionFromApi = await makeGuess(GameType.Attributes, kol);
       setGameSessionFromApi(returnedSessionFromApi);
@@ -108,12 +106,11 @@ export default function AttributesGameClient({
       if (allCorrect) {
         openModal(<UserProfileModal gameSession={returnedSessionFromApi} />);
       } else {
-        console.log("At least one guess was incorrect or partially incorrect.");
       }
 
       setGameSessionFromApi(returnedSessionFromApi);
     } catch (error) {
-      console.log("error", error);
+      console.error("error", error);
       toast.error("Error making guess");
     } finally {
       setLoading(false);
