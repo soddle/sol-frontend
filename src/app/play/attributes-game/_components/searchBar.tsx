@@ -184,12 +184,8 @@ function ListItem({
         />
       </div>
       <div className="flex flex-col">
-        <div className="text-sm text-[#2FFF2B]">
-          {kol.name.trim().split(" ")[0]}
-        </div>
-        <div className="text-xs text-[#2FFF2B80]">
-          @{kol.name.trim().split(" ")[1] || kol.id}
-        </div>
+        <div className="text-sm text-[#2FFF2B]">{kol.name}</div>
+        <div className="text-xs text-[#2FFF2B80]">@{kol.twitterHandle}</div>
       </div>
     </li>
   );
