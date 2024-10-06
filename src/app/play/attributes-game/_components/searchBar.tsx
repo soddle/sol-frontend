@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";
-import { KolWithTweets, GameSessionFromApi } from "@/types";
+import { KolWithTweets } from "@/types";
 import { fetchGameSessionFromApi } from "@/lib/api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
@@ -12,7 +12,6 @@ interface KOLSearchProps {
 }
 
 const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
-  console.log(kols);
   const [searchTerm, setSearchTerm] = useState("");
   const [availableKols, setAvailableKols] = useState<KolWithTweets[]>([]);
   const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);

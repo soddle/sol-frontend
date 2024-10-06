@@ -30,6 +30,7 @@ export interface KolWithTweets {
   followersDisplay: string;
   ecosystem: string;
   tweets: string[];
+  twitterHandle: string;
 }
 
 export interface Competition {

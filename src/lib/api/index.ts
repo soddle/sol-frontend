@@ -5,7 +5,6 @@ import {
   APIKOL,
   GameSessionFromApi,
   GameSessionFromApiResponse,
-  KOL,
   KolWithTweets,
 } from "@/types";
 import { appConfig } from "../config";
