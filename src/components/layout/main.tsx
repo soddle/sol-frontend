@@ -30,7 +30,6 @@ export function MainLayout({ children }: { children: ReactNode }) {
   React.useEffect(() => {
     const fetchGState = async () => {
       const gameState = await fetchGameState();
-      console.log("game state:", gameState);
       if (gameState) {
         setGameState(gameState);
       }

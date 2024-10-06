@@ -30,7 +30,6 @@ export const useGameSession = () => {
         ],
         program.programId
       );
-      console.log("gameSessionPDA", gameSessionPDA.toString());
 
       //@ts-expect-error Not typed
       const fetchedSession = await program.account.gameSession.fetch(
@@ -50,7 +49,6 @@ export const useGameSession = () => {
     ) => {
       const program = getProgram();
       const gameState = await fetchGameState();
-      console.log("game state: ", gameState);
 
       const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("game_state")],
@@ -65,7 +63,6 @@ export const useGameSession = () => {
         ],
         program.programId
       );
-      console.log("gameSessionPDA", gameSessionPDA.toString());
 
       const [playerStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
         [Buffer.from("player_state"), playerPubKey?.toBuffer()!],
@@ -83,6 +80,7 @@ export const useGameSession = () => {
         console.log(err);
       }
 
+      console.log("Starting a new game session >>>>>>>>>>>");
       await program.methods
         .startGameSession(gameType, kol)
         .accounts({
@@ -104,7 +102,6 @@ export const useGameSession = () => {
 
   const makeGuess = useCallback(
     async (gameType: number, guess: KOL) => {
-      console.log(gameType, guess);
       const res = await submitGuess({
         gameType: gameType,
         publicKey: wallet?.adapter.publicKey!,

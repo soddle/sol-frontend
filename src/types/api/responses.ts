@@ -33,16 +33,19 @@ export interface GameStartResponse {
 }
 
 export interface APIKOL {
+  _id: string;
   id: string;
   name: string;
   age: number;
   ageDisplay: string;
+  twitterHandle: string;
+  pfpType: "artificial" | "real" | string; // Extend union type if there are more specific options
   country: string;
-  pfpType: string;
   pfp: string;
   accountCreation: number;
   followers: number;
   followersDisplay: string;
   ecosystem: string;
   tweets: string[];
+  __v: number;
 }

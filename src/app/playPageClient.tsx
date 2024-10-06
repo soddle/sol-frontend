@@ -39,7 +39,7 @@ export default function GamePlayPageClient() {
         throw new Error("Wallet not connected");
       }
       setLoading(true);
-      const apiKol = await fetchRandomKOL();
+      const fetchedRandomKol = await fetchRandomKOL();
       const {
         pfp,
         accountCreation,
@@ -49,9 +49,10 @@ export default function GamePlayPageClient() {
         followers,
         id,
         name,
-      } = apiKol;
+      } = fetchedRandomKol;
 
-      console.log("api kol: ", apiKol);
+      console.log("fetchedRandomKol: ", fetchedRandomKol);
+
       const randomKol: KOL = {
         pfp,
         accountCreation,
@@ -63,11 +64,9 @@ export default function GamePlayPageClient() {
         name,
       };
 
-      console.log("Random KOL", randomKol);
+      console.log("onchain random kol ", randomKol);
 
       const gameSession = await startGameSession(gameType, randomKol);
-      console.log("gamesession in handleStartGameSession", gameSession);
-      console.log("gametype: ", gameType);
       const startGameReq: StartGameRequestBody = {
         publicKey: wallet!.adapter.publicKey!.toString() || "",
         gameType: 2,
@@ -83,7 +82,7 @@ export default function GamePlayPageClient() {
           totalScore: gameSession.totalScore,
           completed: gameSession.completed,
           score: gameSession.score,
-          kol: apiKol,
+          kol: randomKol,
           competitionId: gameSession.competitionId,
           guesses: [],
         },
@@ -120,7 +119,6 @@ export default function GamePlayPageClient() {
       //   },
       // }
 
-      console.log("response form starting the game", res);
       if (gameSession.game1Completed)
         throw new GameAlreadyCompletedError(
           `Game ${gameSession.gameType} already completed`
@@ -142,8 +140,7 @@ export default function GamePlayPageClient() {
           throw new Error("Invalid game type");
       }
     } catch (error) {
-      console.log("error inside playPageClient.tsx", error);
-
+      console.log(error);
       if (error instanceof AnchorError) {
         console.log("anchor error occurred", error);
       } else if (error instanceof GameSessionNotFoundError) {

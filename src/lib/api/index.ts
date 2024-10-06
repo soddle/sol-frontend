@@ -15,7 +15,9 @@ interface ApiResponse<T> {
 }
 
 async function fetchData<T>(url: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}/${url}`);
+  const response = await fetch(`${API_BASE_URL}/${url}`, {
+    cache: "no-cache",
+  });
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -39,7 +41,6 @@ export async function fetchKOLs(): Promise<KolWithTweets[]> {
 export async function fetchRandomKOL(): Promise<APIKOL> {
   try {
     const randKol = await fetchData<APIKOL>(`api/v1/kols/random`);
-    console.log("random KOL", randKol);
     return randKol;
   } catch (error) {
     console.error("Error fetching random APIKOL:", error);

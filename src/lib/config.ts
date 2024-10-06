@@ -5,3 +5,4 @@ export const appConfig = {
       : "http://localhost:3000",
   apiBaseUrl: "https://soddle-solana-production.up.railway.app",
 };
+("backend-production-ea29.up.railway.app");

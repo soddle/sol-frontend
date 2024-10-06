@@ -26,7 +26,7 @@ export const SOLANA_CLUSTERS = {
   },
   [SolanaClusterName.DEVNET]: {
     name: "Solana Devnet",
-    endpoint: `https://devnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`,
+    endpoint: `https://api.devnet.solana.com`,
     network: WalletAdapterNetwork.Devnet,
     explorer: "",
   },
