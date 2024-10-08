@@ -49,6 +49,7 @@ export async function getUser(publicKey: string): Promise<UserResponse> {
     headers: {
       "Content-Type": "application/json",
     },
+    next: { revalidate: 3600 },
     body: JSON.stringify({ publicKey }),
   });
 

@@ -54,7 +54,7 @@ export default function GamePlayPageClient() {
 
       console.log("fetchedRandomKol: ", fetchedRandomKol);
 
-      const randomKol: KOL = {
+      const onChainKol: KOL = {
         pfp,
         accountCreation,
         age,
@@ -62,13 +62,13 @@ export default function GamePlayPageClient() {
         ecosystem,
         followers,
         id,
-
+        pfpType,
         name,
       };
 
-      console.log("onchain random kol ", randomKol);
+      console.log("onchain random kol ", onChainKol);
 
-      const gameSession = await startGameSession(gameType, randomKol);
+      const gameSession = await startGameSession(gameType, onChainKol);
       const startGameReq: StartGameRequestBody = {
         publicKey: wallet!.adapter.publicKey!.toString() || "",
         gameType: 2,
@@ -84,7 +84,7 @@ export default function GamePlayPageClient() {
           totalScore: gameSession.totalScore,
           completed: gameSession.completed,
           score: gameSession.score,
-          kol: { ...randomKol, pfpType: pfpType },
+          kol: { ...onChainKol, pfpType },
           competitionId: gameSession.competitionId,
           guesses: [],
         },

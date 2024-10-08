@@ -14,6 +14,7 @@ export interface KOL {
   country: string;
   accountCreation: number;
   pfp: string;
+  pfpType: "artificial" | "human" | string;
   followers: number;
   ecosystem: string;
 }

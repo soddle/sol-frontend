@@ -9,12 +9,12 @@ export const useGameState = () => {
 
   const fetchGameState = useCallback(async (): Promise<GameState | null> => {
     const program = getProgram();
+    console.log(program.programId.toString());
 
     const [gameStatePDA] = anchor.web3.PublicKey.findProgramAddressSync(
       [Buffer.from("game_state")],
       program.programId
     );
-
     //@ts-expect-error
     const gameStateAccount = await program.account.gameState.fetch(
       gameStatePDA
