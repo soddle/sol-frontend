@@ -103,7 +103,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
 
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
-      <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+      <div className="">
         <div className="grid grid-cols-7 gap-2 ">
           {[
             "KOL",
