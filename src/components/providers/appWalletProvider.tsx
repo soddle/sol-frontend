@@ -11,9 +11,10 @@ import {
   SolflareWalletAdapter,
   PhantomWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import { useSolanaCluster } from "@/hooks/useSolanaCluster";
+import { EthereumProvider } from "@/lib/chains/evm/ethereumProvider";
+import { SVMChainAdapter, EVMChainAdapter } from "@/lib/chains/types";
+import { useChain } from "./chainProvider";
 
-// Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 export default function AppWalletProvider({
@@ -21,24 +22,34 @@ export default function AppWalletProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const cluster = useSolanaCluster();
-  const network = cluster.cluster.network;
-  const endpoint = cluster.cluster.endpoint;
+  const { currentChain, chainManager } = useChain();
+  const adapter = chainManager.getAdapter(currentChain);
 
-  const wallets = useMemo(
+  const solanaWallets = useMemo(
     () => [
-      new SolflareWalletAdapter({ network }),
-      new SalmonWalletAdapter({ network }),
-      new PhantomWalletAdapter({ network }),
+      new SolflareWalletAdapter(),
+      new SalmonWalletAdapter(),
+      new PhantomWalletAdapter(),
     ],
-    [network]
+    []
   );
 
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  if (chainManager.isSVMChain(currentChain)) {
+    const svmAdapter = adapter as SVMChainAdapter;
+    return (
+      <ConnectionProvider endpoint={svmAdapter.getChainConfig().rpcEndpoint}>
+        <WalletProvider wallets={solanaWallets} autoConnect>
+          <WalletModalProvider>{children}</WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
+    );
+  } else if (chainManager.isEVMChain(currentChain)) {
+    const evmAdapter = adapter as EVMChainAdapter;
+    return (
+      // chainId={evmAdapter.getChainConfig().chainId}
+      <EthereumProvider>{children}</EthereumProvider>
+    );
+  }
+
+  return <>{children}</>; // Fallback for unsupported chains
 }

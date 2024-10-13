@@ -1,5 +1,4 @@
 export * from "./game";
-export * from "./api";
 
 export enum GameType {
   Attributes = 1,
