@@ -1,27 +1,55 @@
-import { EVMChainAdapter, ChainConfig } from "../types";
+import { EVMChainAdapter, ChainConfig, SupportedNetwork } from "../types";
 import { EthereumAdapter } from "./ethereumAdapter";
 import { ethers } from "ethers";
 import { KOL, GameSession, GameState } from "@/types";
 
 export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
+  // protected currentNetwork: string;
   private blastProvider: ethers.JsonRpcProvider;
   private blastSigner: ethers.Signer | null = null;
-  // protected gameContract: ethers.Contract | null = null;
 
   constructor(config: ChainConfig) {
     super(config);
-    this.blastProvider = new ethers.JsonRpcProvider(config.rpcEndpoint);
+    this.currentNetwork = config.defaultNetwork;
+    this.blastProvider = new ethers.JsonRpcProvider(
+      config.networks[this.currentNetwork]!.rpcEndpoint
+    );
+  }
+
+  setNetwork(network: SupportedNetwork): void {
+    if (this.config.networks && this.config.networks[network]) {
+      this.currentNetwork = network;
+      this.blastProvider = new ethers.JsonRpcProvider(
+        this.config.networks[network].rpcEndpoint
+      );
+    } else {
+      throw new Error(`Invalid Blast network: ${network}`);
+    }
+  }
+
+  getCurrentNetwork(): SupportedNetwork {
+    return this.currentNetwork;
+  }
+
+  getChainConfig(): ChainConfig {
+    return {
+      ...this.config,
+      // rpcEndpoint: this.config.networks[this.currentNetwork].rpcEndpoint,
+      // chainId: this.config.networks[this.currentNetwork].chainId,
+    };
   }
 
   async connect(wallet: any): Promise<string> {
     this.blastSigner = await this.blastProvider.getSigner();
     const address = await this.blastSigner.getAddress();
 
-    // Initialize the game contract
     this.gameContract = new ethers.Contract(
       this.config.contractAddresses.game,
       [
         "function fetchGameState() view returns (tuple(uint256 id, uint256 startTime, uint256 endTime, uint256 prize))",
+        "function fetchGameSession(address) view returns (tuple(uint256 id, uint8 gameType, uint256 startTime, uint256 endTime, uint8 status))",
+        "function startGameSession(uint8, string) returns (tuple(uint256 id, uint8 gameType, uint256 startTime, uint256 endTime, uint8 status))",
+        "function makeGuess(uint8, string) returns (bool)",
       ],
       this.blastSigner
     );
@@ -35,12 +63,6 @@ export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
     }
 
     const gameState = await this.gameContract.fetchGameState();
-    // return {
-    //   id: gameState.id.toString(),
-    //   startTime: new Date(gameState.startTime.toNumber() * 1000),
-    //   endTime: new Date(gameState.endTime.toNumber() * 1000),
-    //   prize: ethers.utils.formatEther(gameState.prize),
-    // };
     return gameState;
   }
 
@@ -49,17 +71,7 @@ export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
       throw new Error("Game contract not initialized");
     }
 
-    // Implement Blast-specific logic to fetch game session
-    // This is a placeholder and should be replaced with actual contract call
     const gameSession = await this.gameContract.fetchGameSession(playerAddress);
-    // return {
-    //   id: gameSession.id.toString(),
-    //   playerAddress,
-    //   gameType: gameSession.gameType,
-    //   startTime: new Date(gameSession.startTime.toNumber() * 1000),
-    //   endTime: new Date(gameSession.endTime.toNumber() * 1000),
-    //   status: gameSession.status,
-    // };
     return gameSession;
   }
 
@@ -68,14 +80,12 @@ export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
       throw new Error("Game contract not initialized");
     }
 
-    // Implement Blast-specific logic to start a game session
     const tx = await this.gameContract.startGameSession(
       gameType,
       JSON.stringify(kol)
     );
     const receipt = await tx.wait();
 
-    // Assuming the event emitted contains the new game session details
     const event = receipt.events?.find(
       (e: any) => e.event === "GameSessionStarted"
     );
@@ -86,34 +96,23 @@ export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
     return this.fetchGameSession(await this.blastSigner!.getAddress());
   }
 
-  async makeGuess(gameType: number, guess: KOL): Promise<any> {
+  async makeGuess(gameType: number, guess: KOL): Promise<boolean> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
 
-    // Implement Blast-specific logic to make a guess
     const tx = await this.gameContract.makeGuess(
       gameType,
       JSON.stringify(guess)
     );
     const receipt = await tx.wait();
 
-    // Return the transaction receipt or any relevant data
-    return receipt;
+    const event = receipt.events?.find((e: any) => e.event === "GuessMade");
+    return event ? event.args.isCorrect : false;
   }
 
-  // Add any Blast-specific methods here
   async getBlastGasPrice(): Promise<string> {
-    // const gasPrice = await this.blastProvider.estimateGas();
-    return ethers.formatUnits(3000000, "gwei");
-  }
-
-  // Override the getChainConfig method if needed
-  getChainConfig(): ChainConfig {
-    return {
-      ...this.config,
-      // Add any Blast-specific config here
-      // blastSpecificField: "Some Blast specific value",
-    };
+    const gasPrice = await this.blastProvider.getFeeData();
+    return ethers.formatUnits(gasPrice.gasPrice || 3000000, "gwei");
   }
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Container from "./container";
 import Image from "next/image";
+import { Container } from "./mainLayoutClient";
 
 export default function Header() {
   return (

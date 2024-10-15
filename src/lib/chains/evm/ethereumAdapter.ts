@@ -8,10 +8,12 @@ import {
   EVMGuessResult,
   EVMGameState,
   EVMClaimResult,
+  SupportedNetwork,
 } from "../types";
 import { KOL, GameSession, GameState } from "@/types";
 
 export class EthereumAdapter implements EVMChainAdapter {
+  protected currentNetwork: SupportedNetwork;
   private provider: ethers.JsonRpcProvider;
   private signer: ethers.Signer | null = null;
   protected gameContract: ethers.Contract | null = null;
@@ -19,10 +21,30 @@ export class EthereumAdapter implements EVMChainAdapter {
 
   constructor(config: ChainConfig) {
     this.config = config;
-    this.provider = new ethers.JsonRpcProvider(config.rpcEndpoint);
+    this.currentNetwork = config.defaultNetwork;
+    this.provider = new ethers.JsonRpcProvider(
+      config.networks[this.currentNetwork]!.rpcEndpoint
+    );
     if (!config.abi) {
       throw new Error("ABI is required for EthereumAdapter");
     }
+  }
+
+  setNetwork(network: SupportedNetwork): void {
+    if (this.config.networks && this.config.networks[network]) {
+      this.currentNetwork = network;
+      this.provider = new ethers.JsonRpcProvider(
+        this.config.networks[network].rpcEndpoint
+      );
+      this.signer = null;
+      this.gameContract = null;
+    } else {
+      throw new Error(`Invalid Ethereum network: ${network}`);
+    }
+  }
+
+  getCurrentNetwork(): SupportedNetwork {
+    return this.currentNetwork;
   }
 
   getChainName(): string {
@@ -37,16 +59,9 @@ export class EthereumAdapter implements EVMChainAdapter {
     this.signer = await this.provider.getSigner();
     const address = await this.signer.getAddress();
 
-    // Initialize the game contract
     this.gameContract = new ethers.Contract(
       this.config.contractAddresses.game,
-      [
-        "function fetchGameState() view returns (tuple(uint256 id, uint256 startTime, uint256 endTime, uint256 prize))",
-        "function fetchGameSession(address player) view returns (tuple(uint256 id, address player, uint8 gameType, uint256 startTime, uint256 endTime, uint8 status))",
-        "function startGameSession(uint8 gameType, string memory kol) returns (uint256)",
-        "function makeGuess(uint8 gameType, string memory guess) returns (bool)",
-        "function claimRewards(uint256 gameSessionId) returns (uint256)",
-      ],
+      this.config.abi,
       this.signer
     );
 
@@ -72,13 +87,6 @@ export class EthereumAdapter implements EVMChainAdapter {
     }
 
     const gameState = await this.gameContract.fetchGameState();
-    // return {
-    //   id: gameState.id.toString(),
-    //   startTime: new Date(gameState.startTime.toNumber() * 1000),
-    //   endTime: new Date(gameState.endTime.toNumber() * 1000),
-    //   prize: ethers.formatEther(gameState.prize),
-    // };
-
     return gameState;
   }
 
@@ -88,27 +96,17 @@ export class EthereumAdapter implements EVMChainAdapter {
     }
 
     const gameSession = await this.gameContract.fetchGameSession(playerAddress);
-    // return {
-    //   id: gameSession.id.toString(),
-    //   playerAddress: gameSession.player,
-    //   gameType: gameSession.gameType,
-    //   startTime: new Date(gameSession.startTime.toNumber() * 1000),
-    //   endTime: new Date(gameSession.endTime.toNumber() * 1000),
-    //   status: gameSession.status,
-    // };
     return gameSession;
   }
 
   async startGameSession(gameType: number, kol: KOL): Promise<GameSession> {
-    // just to disable this error for now.
-
     // return this.startEVMGameSession(gameType, kol);
     return {} as GameSession;
   }
 
   async makeGuess(gameType: number, guess: KOL): Promise<boolean> {
-    // just to disable this error for now.
-    return this.makeEVMGuess(gameType, guess) as unknown as boolean;
+    const result = await this.makeEVMGuess(gameType, guess);
+    return true;
   }
 
   async signAndSendEVMTransaction(
@@ -125,7 +123,11 @@ export class EthereumAdapter implements EVMChainAdapter {
   }
 
   getChainConfig(): ChainConfig {
-    return this.config;
+    return {
+      ...this.config,
+      // rpcEndpoint: this.config.networks[this.currentNetwork].rpcEndpoint,
+      // chainId: this.config.networks[this.currentNetwork].chainId,
+    };
   }
 
   async startEVMGameSession(
@@ -180,11 +182,9 @@ export class EthereumAdapter implements EVMChainAdapter {
     };
   }
 
-  // Additional Ethereum-specific methods
   async getGasPrice(): Promise<string> {
-    // just to disable this error for now.
-    // const gasPrice = await this.provider.getGasPrice();
-    return ethers.formatUnits(3000000, "gwei");
+    const feeData = await this.provider.getFeeData();
+    return ethers.formatUnits(feeData.gasPrice || 3000000, "gwei");
   }
 
   async getBlockNumber(): Promise<number> {

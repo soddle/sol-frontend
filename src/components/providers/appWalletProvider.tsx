@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useMemo } from "react";
 import {
   ConnectionProvider,
@@ -22,8 +21,9 @@ export default function AppWalletProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { currentChain, chainManager } = useChain();
+  const { currentChain, currentNetwork, chainManager } = useChain();
   const adapter = chainManager.getAdapter(currentChain);
+  // alert(currentChain);
 
   const solanaWallets = useMemo(
     () => [
@@ -36,19 +36,38 @@ export default function AppWalletProvider({
 
   if (chainManager.isSVMChain(currentChain)) {
     const svmAdapter = adapter as SVMChainAdapter;
+    const config = svmAdapter.getChainConfig();
+
+    // Check if the currentNetwork exists in the config.networks
+    const networkConfig = config.networks[currentNetwork];
+    if (!networkConfig) {
+      throw new Error(
+        `Network configuration for ${currentNetwork} is not defined.`
+      );
+    }
+
+    const endpoint = networkConfig.rpcEndpoint;
     return (
-      <ConnectionProvider endpoint={svmAdapter.getChainConfig().rpcEndpoint}>
-        <WalletProvider wallets={solanaWallets} autoConnect>
+      <ConnectionProvider endpoint={endpoint}>
+        <WalletProvider wallets={solanaWallets} autoConnect={true}>
           <WalletModalProvider>{children}</WalletModalProvider>
         </WalletProvider>
       </ConnectionProvider>
     );
   } else if (chainManager.isEVMChain(currentChain)) {
     const evmAdapter = adapter as EVMChainAdapter;
-    return (
-      // chainId={evmAdapter.getChainConfig().chainId}
-      <EthereumProvider>{children}</EthereumProvider>
-    );
+    const config = evmAdapter.getChainConfig();
+
+    // Check if the currentNetwork exists in the config.networks
+    const networkConfig = config.networks[currentNetwork];
+    if (!networkConfig) {
+      throw new Error(
+        `Network configuration for ${currentNetwork} is not defined.`
+      );
+    }
+
+    const chainId = networkConfig.chainId;
+    return <EthereumProvider>{children}</EthereumProvider>;
   }
 
   return <>{children}</>; // Fallback for unsupported chains

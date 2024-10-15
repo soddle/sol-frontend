@@ -3,7 +3,6 @@ import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState, useCallback } from "react";
 import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { useSolanaCluster } from "@/hooks/useSolanaCluster";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
 
@@ -13,18 +12,23 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { useChainAdapter } from "@/hooks/useChainAdapter";
+import { ChainControls } from "@/components/chainControl";
+import { useChain } from "@/components/providers/chainProvider";
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function UserInfoCard() {
-  const { publicKey, disconnect, connecting, connected, wallet, select } =
-    useWallet();
+  const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
+  const { setVisible } = useWalletModal();
+  const chainAdapter = useChainAdapter();
+  const { currentChain } = useChain();
+  const chainConfig = chainAdapter.getChainConfig();
+  const currentNetwork = chainAdapter.getCurrentNetwork();
 
   const [balance, setBalance] = useState<number | null>(null);
   const [solPrice, setSolPrice] = useState<number | null>(null);
-  const { endpoint, cluster } = useSolanaCluster();
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
-  const { setVisible } = useWalletModal();
 
   const handleConnectWallet = () => {
     if (connected) {
@@ -37,7 +41,9 @@ export default function UserInfoCard() {
   const fetchBalance = useCallback(async () => {
     if (!publicKey) return;
 
-    const connection = new Connection(endpoint);
+    const connection = new Connection(
+      chainConfig.networks[currentNetwork]!.rpcEndpoint
+    );
 
     try {
       const balance = await connection.getBalance(publicKey);
@@ -46,7 +52,7 @@ export default function UserInfoCard() {
     } catch (error) {
       console.error("Error fetching balance:", error);
     }
-  }, [publicKey, endpoint]);
+  }, [publicKey, chainConfig.networks]);
 
   const fetchSolPrice = useCallback(async () => {
     try {
@@ -104,7 +110,7 @@ export default function UserInfoCard() {
             className="mr-2 w-10 h-10 cursor-pointer"
           />
         </Link>
-
+        {/* <ChainControls /> */}
         <Tooltip>
           <TooltipTrigger>
             <p
@@ -118,7 +124,9 @@ export default function UserInfoCard() {
             <p>{publicKey?.toBase58()}</p>
           </TooltipContent>
         </Tooltip>
-        <p className="ml-2 text-sm">({cluster.name})</p>
+        <p className="ml-2 text-sm">
+          ({currentChain}) ({chainAdapter.getCurrentNetwork()})
+        </p>
 
         <Image
           src={"/logout.svg"}
@@ -217,8 +225,7 @@ function Skeleton() {
   );
 }
 
-export function shortenAddress(address: string, chars = 4): string {
+function shortenAddress(address: string, chars = 4): string {
   if (!address) return "";
-
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }

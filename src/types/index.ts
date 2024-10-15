@@ -1,63 +1,42 @@
-export * from "./game";
+import { BN } from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+import { KOL } from "./kol";
+export type { KOL } from "./kol";
 
-export enum GameType {
-  Attributes = 1,
-  Tweets = 2,
-  Emojis = 3,
+export type GameType = 1 | 2 | 3;
+
+export interface InitializeGameAccounts {
+  gameState: PublicKey;
+  authority: PublicKey;
+  systemProgram: PublicKey;
 }
 
-export interface KOL {
-  id: string;
-  name: string;
-  age: number;
-  country: string;
-  accountCreation: number;
-  pfp: string;
-  pfpType: "artificial" | "human" | string;
-  followers: number;
-  ecosystem: string;
-}
-export interface KolWithTweets {
-  _id: string;
-  id: string;
-  name: string;
-  age: number;
-  ageDisplay: string;
-  twitterHandle: string;
-  pfpType: "artificial" | "real" | string;
-  country: string;
-  pfp: string;
-  accountCreation: number;
-  followers: number;
-  followersDisplay: string;
-  ecosystem: string;
-  tweets: string[];
-  __v: number;
-}
+// export interface StartGameSessionAccounts {
+//   gameState: PublicKey;
+//   gameSession: PublicKey;
+//   player: PublicKey;
+//   vault: PublicKey;
+//   systemProgram: PublicKey;
+// }
 
-export interface Competition {
-  id: string;
-  startTime: number;
-  endTime: number;
-}
+export type AttributeResult =
+  | "correct"
+  | "incorrect"
+  | "higher"
+  | "lower"
+  | "partially";
 
-export interface Player {
-  game1Completed: boolean;
-  game2Completed: boolean;
-  game3Completed: boolean;
-  game1Score: number;
-  game2Score: number;
-  game3Score: number;
-}
-
-export interface TweetGuessEvent {
-  kolId: number;
-  tweet: string;
-}
-
-export interface GameState {
-  currentCompetition: Competition;
-  lastUpdateTime: number;
+export interface AttributeGuess {
+  kol: KOL;
+  result: [
+    AttributeResult,
+    AttributeResult,
+    AttributeResult,
+    AttributeResult,
+    AttributeResult,
+    AttributeResult,
+    AttributeResult
+  ];
 }
 
 export interface LeaderboardEntry {
@@ -66,9 +45,3 @@ export interface LeaderboardEntry {
   name: string;
   points: number;
 }
-
-// export interface LeaderboardEntry {
-//   totalScore: number;
-//   gamesPlayed: number;
-//   player: string;
-// }

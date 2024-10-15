@@ -5,28 +5,66 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { SVMChainAdapter, ChainConfig } from "../types";
-import { KOL, GameSession, GameState } from "@/types";
-// import idl from "@/lib/constants/idl.json";
+import {
+  SVMChainAdapter,
+  ChainConfig,
+  SupportedNetwork,
+  OnchainGameState,
+  OnchainGameSession,
+} from "../types";
+import { KOL } from "@/types";
+import { createGameSession, fetchCurrentActiveSession } from "@/actions/game";
+import { fetchRandomKOL } from "@/actions/kol";
+import { GameSession } from "@prisma/client";
 
 export class SolanaAdapter implements SVMChainAdapter {
   private connection: Connection;
+  private currentNetwork: SupportedNetwork; // the same as cluster for SVM
   protected config: ChainConfig;
   private program: anchor.Program<anchor.Idl> | null = null;
   private wallet: anchor.Wallet | null = null;
 
   constructor(config: ChainConfig) {
     this.config = config;
-    this.connection = new Connection(config.rpcEndpoint);
+
+    // Ensure that the defaultNetwork is defined and exists in networks
+    if (!config.defaultNetwork || !config.networks[config.defaultNetwork]) {
+      throw new Error(
+        "Invalid configuration: defaultNetwork is not defined or does not exist in networks."
+      );
+    }
+
+    this.currentNetwork = config.defaultNetwork;
+    this.connection = new Connection(
+      config.networks[this.currentNetwork]!.rpcEndpoint
+    );
+
     if (!config.idl) {
       throw new Error("IDL is required for SolanaAdapter");
     }
   }
-  getProvider(): any {
+
+  setNetwork = (network: SupportedNetwork): void => {
+    if (this.config.networks[network]) {
+      this.currentNetwork = network;
+      this.connection = new Connection(
+        this.config.networks[network].rpcEndpoint
+      );
+    } else {
+      throw new Error(`Invalid Solana network: ${network}`);
+    }
+  };
+
+  getCurrentNetwork = (): SupportedNetwork => {
+    return this.currentNetwork;
+  };
+
+  getProvider = (): any => {
     if (!this.program) throw new Error("Program not initialized");
     return this.program.provider;
-  }
-  async connect(wallet: anchor.Wallet): Promise<string> {
+  };
+
+  connect = async (wallet: anchor.Wallet): Promise<anchor.Program> => {
     this.wallet = wallet;
     const provider = new anchor.AnchorProvider(this.connection, wallet, {
       commitment: "confirmed",
@@ -35,49 +73,54 @@ export class SolanaAdapter implements SVMChainAdapter {
 
     this.program = new anchor.Program(this.config.idl as anchor.Idl, provider);
 
-    return wallet.publicKey.toString();
-  }
+    return this.program;
+  };
 
-  async disconnect(): Promise<void> {
+  disconnect = async (): Promise<void> => {
     this.wallet = null;
     this.program = null;
-  }
+  };
 
-  getChainConfig(): ChainConfig {
+  get chainConfig(): ChainConfig {
     return this.config;
   }
-
-  getSVMProvider(): any {
+  getSVMProvider = (): any => {
     if (!this.program) throw new Error("Program not initialized");
     return this.program.provider;
-  }
+  };
 
-  async signAndSendTransaction(transaction: Transaction): Promise<string> {
+  signAndSendTransaction = async (
+    transaction: Transaction
+  ): Promise<string> => {
     return this.signAndSendSVMTransaction(transaction);
-  }
+  };
 
-  async signAndSendSVMTransaction(transaction: Transaction): Promise<string> {
+  signAndSendSVMTransaction = async (
+    transaction: Transaction
+  ): Promise<string> => {
     if (!this.wallet) throw new Error("Wallet not connected");
     if (!this.program) throw new Error("Program not initialized");
 
     const provider = this.program.provider as anchor.AnchorProvider;
     const signedTx = await provider.sendAndConfirm(transaction);
     return signedTx;
-  }
+  };
 
-  async startSVMGameSession(gameType: number, kol: KOL): Promise<GameSession> {
-    return this.startGameSession(gameType, kol);
-  }
+  startSVMGameSession = async (gameType: number): Promise<GameSession> => {
+    return this.startGameSession(gameType);
+  };
 
-  async makeSVMGuess(gameType: number, guess: KOL): Promise<any> {
+  makeSVMGuess = async (gameType: number, guess: KOL): Promise<any> => {
     return this.makeGuess(gameType, guess);
-  }
+  };
 
-  async getSVMPlayerGameState(address: string): Promise<GameSession> {
+  getSVMPlayerGameState = async (
+    address: string
+  ): Promise<OnchainGameSession> => {
     return this.fetchGameSession(address);
-  }
+  };
 
-  async claimSVMRewards(gameSessionId: string): Promise<any> {
+  claimSVMRewards = async (gameSessionId: string): Promise<any> => {
     if (!this.program) throw new Error("Program not initialized");
     if (!this.wallet) throw new Error("Wallet not connected");
 
@@ -108,14 +151,12 @@ export class SolanaAdapter implements SVMChainAdapter {
       .rpc();
 
     return tx;
-  }
+  };
 
-  async fetchGameState(): Promise<GameState> {
-    if (!this.program) throw new Error("Program not initialized");
-
+  fetchGameState = async (): Promise<OnchainGameState> => {
     const [gameStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("game_state")],
-      this.program.programId
+      new PublicKey(this.config.contractAddresses["game"])
     );
 
     // @ts-expect-error no type
@@ -123,10 +164,12 @@ export class SolanaAdapter implements SVMChainAdapter {
       gameStatePDA
     );
 
-    return gameStateAccount as GameState;
-  }
+    return gameStateAccount as OnchainGameState;
+  };
 
-  async fetchGameSession(playerAddress: string): Promise<GameSession> {
+  fetchGameSession = async (
+    playerAddress: string
+  ): Promise<OnchainGameSession> => {
     if (!this.program) throw new Error("Program not initialized");
 
     const gameState = await this.fetchGameState();
@@ -146,14 +189,24 @@ export class SolanaAdapter implements SVMChainAdapter {
       gameSessionPDA
     );
 
-    return gameSessionAccount as GameSession;
-  }
+    return gameSessionAccount as OnchainGameSession;
+  };
 
-  async startGameSession(gameType: number, kol: KOL): Promise<GameSession> {
+  startGameSession = async (gameType: number): Promise<GameSession> => {
     if (!this.program) throw new Error("Program not initialized");
-
-    const gameState = await this.fetchGameState();
     const playerPublicKey = this.program.provider.publicKey;
+
+    // fetch and return active game session if it exists (both onchain and offchain)
+    const activeSession = await fetchCurrentActiveSession(
+      playerPublicKey?.toString()!
+    );
+    if (activeSession) {
+      return activeSession;
+    }
+
+    // else start a new session for the wallet
+    const gameState = await this.fetchGameState();
+    const targetKOL = await fetchRandomKOL();
 
     const [gameStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("game_state")],
@@ -180,7 +233,7 @@ export class SolanaAdapter implements SVMChainAdapter {
     );
 
     await this.program.methods
-      .startGameSession(gameType, kol)
+      .startGameSession(gameType, targetKOL)
       .accounts({
         gameState: gameStatePDA,
         gameSession: gameSessionPDA,
@@ -191,10 +244,15 @@ export class SolanaAdapter implements SVMChainAdapter {
       })
       .rpc();
 
-    return this.fetchGameSession(playerPublicKey!.toString());
-  }
+    const newOnchainGameSession = await this.fetchGameSession(
+      playerPublicKey!.toString()
+    );
 
-  async makeGuess(gameType: number, guess: KOL): Promise<any> {
+    const newGameSession = await createGameSession(newOnchainGameSession);
+    return newGameSession;
+  };
+
+  makeGuess = async (gameType: number, guess: KOL): Promise<any> => {
     if (!this.program) throw new Error("Program not initialized");
 
     const gameState = await this.fetchGameState();
@@ -218,5 +276,5 @@ export class SolanaAdapter implements SVMChainAdapter {
       .rpc();
 
     return tx;
-  }
+  };
 }

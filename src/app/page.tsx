@@ -1,5 +1,5 @@
-import GamePlayPageClient from "./playPageClient";
+import GameHomePageClient from "./homePageClient";
 
-export default async function GamePlayPage() {
-  return <GamePlayPageClient />;
+export default async function GameHomePage() {
+  return <GameHomePageClient />;
 }

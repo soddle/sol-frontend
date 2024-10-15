@@ -1,4 +1,8 @@
-import { SVMChainAdapter, ChainConfig } from "../types";
+import {
+  SVMChainAdapter,
+  ChainConfig,
+  SupportedNetworksOrClusters,
+} from "../types";
 import { SolanaAdapter } from "./solanaAdapter";
 import {
   Connection,
@@ -10,15 +14,49 @@ import * as anchor from "@coral-xyz/anchor";
 import { KOL, GameSession, GameState } from "@/types";
 
 export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
+  private currentCluster: SupportedNetworksOrClusters;
   private eclipseConnection: Connection;
   private eclipseProgram: anchor.Program<anchor.Idl> | null = null;
 
   constructor(config: ChainConfig) {
     super(config);
-    this.eclipseConnection = new Connection(config.rpcEndpoint);
+
+    // Ensure that defaultNetwork is defined in the config
+    if (!config.defaultNetwork || !config.networks[config.defaultNetwork]) {
+      throw new Error(
+        "Invalid configuration: defaultNetwork is not defined or does not exist in networks."
+      );
+    }
+
+    this.currentCluster = config.defaultNetwork;
+    this.eclipseConnection = new Connection(
+      config.networks[this.currentCluster]!.rpcEndpoint
+    );
   }
 
-  async connect(wallet: anchor.Wallet): Promise<string> {
+  setNetwork = (cluster: SupportedNetworksOrClusters): void => {
+    if (this.config.networks && this.config.networks[cluster]) {
+      this.currentCluster = cluster;
+      this.eclipseConnection = new Connection(
+        this.config.networks[cluster].rpcEndpoint
+      );
+    } else {
+      throw new Error(`Invalid Eclipse cluster: ${cluster}`);
+    }
+  };
+
+  getCurrentClusterOrNetwork = (): SupportedNetworksOrClusters => {
+    return this.currentCluster;
+  };
+
+  getChainConfig = (): ChainConfig => {
+    return {
+      ...this.config,
+      // rpcEndpoint: this.config.clusters[this.currentCluster].rpcEndpoint,
+    };
+  };
+
+  connect = async (wallet: anchor.Wallet): Promise<anchor.Program> => {
     const provider = new anchor.AnchorProvider(this.eclipseConnection, wallet, {
       commitment: "confirmed",
     });
@@ -29,10 +67,10 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
       provider
     );
 
-    return wallet.publicKey.toString();
-  }
+    return this.eclipseProgram;
+  };
 
-  async fetchGameState(): Promise<GameState> {
+  fetchGameState = async (): Promise<GameState> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -49,9 +87,9 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     //   prize: gameState.prize.toString(),
     // };
     return gameState;
-  }
+  };
 
-  async fetchGameSession(playerAddress: string): Promise<GameSession> {
+  fetchGameSession = async (playerAddress: string): Promise<GameSession> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -79,9 +117,12 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     //   status: gameSession.status,
     // };
     return gameSession;
-  }
+  };
 
-  async startGameSession(gameType: number, kol: KOL): Promise<GameSession> {
+  startGameSession = async (
+    gameType: number,
+    kol: KOL
+  ): Promise<GameSession> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -106,9 +147,9 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
       .rpc();
 
     return this.fetchGameSession(playerPublicKey!.toString());
-  }
+  };
 
-  async makeGuess(gameType: number, guess: KOL): Promise<boolean> {
+  makeGuess = async (gameType: number, guess: KOL): Promise<boolean> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -133,9 +174,11 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
 
     // Assuming the transaction success means the guess was valid
     return tx ? true : false;
-  }
+  };
 
-  async signAndSendSVMTransaction(transaction: Transaction): Promise<string> {
+  signAndSendSVMTransaction = async (
+    transaction: Transaction
+  ): Promise<string> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -145,25 +188,17 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     // );
     throw Error("Not implemented yet");
     // return signedTx;
-  }
-
-  getChainConfig(): ChainConfig {
-    return {
-      ...this.config,
-      // Add any Eclipse-specific config here
-      // eclipseSpecificField: "Some Eclipse specific value",
-    };
-  }
+  };
 
   // Eclipse-specific methods
-  async getEclipseBlockHeight(): Promise<number> {
+  getEclipseBlockHeight = async (): Promise<number> => {
     return await this.eclipseConnection.getBlockHeight();
-  }
+  };
 
-  async getEclipseBalance(address: string): Promise<number> {
+  getEclipseBalance = async (address: string): Promise<number> => {
     const balance = await this.eclipseConnection.getBalance(
       new PublicKey(address)
     );
     return balance;
-  }
+  };
 }

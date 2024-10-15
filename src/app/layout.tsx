@@ -1,5 +1,5 @@
 import "./globals.css";
-import { MainLayout } from "@/components/layout/main";
+import { MainLayout } from "@/components/layout/mainLayoutClient";
 import Providers from "@/components/providers";
 import { satoshi } from "@/lib/fonts";
 import LeaderBoard from "./leaderbud/page";

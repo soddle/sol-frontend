@@ -1,18 +1,7 @@
-import { ChainConfig } from "./chains/types";
-// idl
-import solanaIdl from "@/lib/idl/svm/solana.json";
-import eclipseIdl from "@/lib/idl/svm/eclipse.json";
-import ethereumAbi from "@/lib/idl/evm/ethereum.json";
-import blastAbi from "@/lib/idl/evm/blast.json";
+import { ChainConfig, SupportedChain } from "./chains/types";
 import { Idl } from "@coral-xyz/anchor";
-
-// Define supported chains
-export type SupportedChain =
-  | "solana"
-  | "ethereum"
-  | "base"
-  | "eclipse"
-  | "blast";
+import { clusterApiUrl } from "@solana/web3.js";
+import { blastAbi, eclipseIdl, ethereumAbi, solanaIdl } from "./constants";
 
 // Environment types
 type Environment = "development" | "production" | "test";
@@ -66,47 +55,78 @@ const environmentConfigs: Record<Environment, BaseConfig> = {
 };
 
 const chainConfigs: ChainConfigs = {
-  // svm
-  solana: {
-    rpcEndpoint: "https://api.mainnet-beta.solana.com",
+  SOLANA: {
+    networks: {
+      "mainnet-beta": {
+        rpcEndpoint: "https://api.mainnet-beta.solana.com",
+        cluster: "mainnet-beta",
+      },
+      devnet: {
+        rpcEndpoint: "https://api.devnet.solana.com",
+        cluster: "devnet",
+      },
+      testnet: {
+        rpcEndpoint: "https://api.testnet.solana.com",
+        cluster: "testnet",
+      },
+    },
+    defaultNetwork: "mainnet-beta",
     idl: solanaIdl as Idl,
     contractAddresses: {
-      game: "SoddleGameAddress123...",
+      game: "4DJ2RtFHVUNgtZTNhioSBHnKqUqBeCbHfy6L1z6HqkjZ",
     },
   },
-  eclipse: {
-    rpcEndpoint: "https://rpc.eclipse.io",
+  ECLIPSE: {
+    networks: {
+      "mainnet-beta": {
+        rpcEndpoint: "https://mainnetbeta-rpc.eclipse.xyz",
+        cluster: "mainnet-beta",
+      },
+      devnet: {
+        rpcEndpoint: "https://staging-rpc.dev2.eclipsenetwork.xyz",
+      },
+      testnet: {
+        rpcEndpoint: "https://testnet.dev2.eclipsenetwork.xyz",
+        cluster: "testnet",
+      },
+    },
+    defaultNetwork: "mainnet-beta",
     idl: eclipseIdl as Idl,
     contractAddresses: {
-      game: "EclipseGameAddress123...",
+      game: "0xEclipseGameAddress123...",
     },
   },
-
-  // evm
-  ethereum: {
-    rpcEndpoint: "https://mainnet.infura.io/v3/YOUR-PROJECT-ID",
-    chainId: 1, // Mainnet
+  ETHEREUM: {
+    networks: {
+      mainnet: {
+        rpcEndpoint: "https://mainnet.infura.io/v3/PROJECT-ID",
+        chainId: 1,
+      },
+      sepolia: {
+        rpcEndpoint: "https://goerli.infura.io/v3/PROJECT-ID",
+        chainId: 5,
+      },
+    },
+    defaultNetwork: "sepolia",
     abi: ethereumAbi,
     contractAddresses: {
       game: "0xSoddleGameAddress...",
     },
   },
-  blast: {
-    rpcEndpoint: "https://rpc.blast.io",
-    chainId: 168587773, // Blast chainId
+  BLAST: {
+    networks: {
+      // mainnet: {
+      //   rpcEndpoint: "https://rpc.blast.io",
+      //   chainId: 168587773,
+      // },
+    },
+    defaultNetwork: "testnet",
+    abi: blastAbi,
     contractAddresses: {
       game: "0xBlastGameAddress...",
     },
   },
-  base: {
-    rpcEndpoint: "https://mainnet.base.org",
-    chainId: 8453, // Base Mainnet
-    contractAddresses: {
-      game: "0xSoddleGameAddressOnBase...",
-    },
-  },
 };
-
 // the final configuration
 const currentEnv = getEnvironment();
 export const appConfig: AppConfig = {
