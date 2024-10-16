@@ -44,12 +44,12 @@ const Legend: React.FC<LegendProps> = () => {
     {
       type: LEGEND_BOX_TYPES.Higher,
       color: LEGEND_BOX_COLORS.Higher,
-      icon: "/legend-up.png",
+      icon: "/images/legend-up.png",
     },
     {
       type: LEGEND_BOX_TYPES.Lower,
       color: LEGEND_BOX_COLORS.Lower,
-      icon: "/legend-down.png",
+      icon: "/images/legend-down.png",
     },
   ];
 

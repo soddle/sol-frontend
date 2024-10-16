@@ -1,4 +1,3 @@
-import { KOL } from "@/types";
 import { Idl } from "@coral-xyz/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
@@ -36,8 +35,11 @@ export interface BaseChainAdapter {
   setNetwork(network: SupportedNetwork): void;
   fetchGameState(): Promise<OnchainGameState>;
   fetchGameSession(playerAddress: string): Promise<OnchainGameSession>;
-  startGameSession(gameType: number): Promise<GameSession>;
-  makeGuess(gameType: number, guess: KOL): Promise<any>;
+  startGameSession(
+    gameType: number,
+    wallet: AnchorWallet
+  ): Promise<GameSession>;
+  makeGuess(gameType: number, guess: OnchainKOL): Promise<any>;
 }
 
 export interface SVMChainAdapter extends BaseChainAdapter {

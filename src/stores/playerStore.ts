@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { PublicKey } from "@solana/web3.js";
-import { KOL } from "@/types";
+import { KOL } from "@prisma/client";
 
 interface PlayerState {
   walletPublicKey: PublicKey | null;

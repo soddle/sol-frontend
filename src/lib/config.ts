@@ -115,12 +115,16 @@ const chainConfigs: ChainConfigs = {
   },
   BLAST: {
     networks: {
-      // mainnet: {
-      //   rpcEndpoint: "https://rpc.blast.io",
-      //   chainId: 168587773,
-      // },
+      mainnet: {
+        rpcEndpoint: "https://rpc.blast.io",
+        chainId: 168587773,
+      },
+      sepolia: {
+        rpcEndpoint: "https://goerli.infura.io/v3/PROJECT-ID",
+        chainId: 5,
+      },
     },
-    defaultNetwork: "testnet",
+    defaultNetwork: "sepolia",
     abi: blastAbi,
     contractAddresses: {
       game: "0xBlastGameAddress...",

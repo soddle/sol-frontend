@@ -2,13 +2,13 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
-import { Game1Guess, GameSessionFromApi, KolWithTweets } from "@/types";
 import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
+import { GameSession, KOL } from "@prisma/client";
 
 interface AttributesGuessListProps {
-  gameSessionFromApi: GameSessionFromApi | null;
+  gameSessionFromApi: GameSession | null;
   loadingApiGameSession: boolean;
-  allKols: KolWithTweets[];
+  allKols: KOL[];
 }
 
 interface CellProps {
@@ -91,7 +91,8 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
     return <TableLoader />;
   }
 
-  const game1Guesses = [...gameSessionFromApi.game1Guesses].reverse();
+  // const game1Guesses = [...gameSessionFromApi].reverse();
+  const game1Guesses: any = [];
 
   if (game1Guesses.length <= 0) {
     return (

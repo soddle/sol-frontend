@@ -1,7 +1,6 @@
+import { OnchainKOL } from "@/lib/chains/types";
 import { BN } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { KOL } from "./kol";
-export type { KOL } from "./kol";
 
 export type GameType = 1 | 2 | 3;
 
@@ -11,14 +10,6 @@ export interface InitializeGameAccounts {
   systemProgram: PublicKey;
 }
 
-// export interface StartGameSessionAccounts {
-//   gameState: PublicKey;
-//   gameSession: PublicKey;
-//   player: PublicKey;
-//   vault: PublicKey;
-//   systemProgram: PublicKey;
-// }
-
 export type AttributeResult =
   | "correct"
   | "incorrect"
@@ -27,7 +18,7 @@ export type AttributeResult =
   | "partially";
 
 export interface AttributeGuess {
-  kol: KOL;
+  kol: OnchainKOL;
   result: [
     AttributeResult,
     AttributeResult,

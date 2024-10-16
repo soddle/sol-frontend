@@ -1,7 +1,9 @@
 import {
   SVMChainAdapter,
   ChainConfig,
-  SupportedNetworksOrClusters,
+  OnchainGameSession,
+  SupportedNetwork,
+  OnchainGameState,
 } from "../types";
 import { SolanaAdapter } from "./solanaAdapter";
 import {
@@ -11,10 +13,12 @@ import {
   SystemProgram,
 } from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import { KOL, GameSession, GameState } from "@/types";
+import { KOL } from "@/types";
+import { GameSession } from "@prisma/client";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
-  private currentCluster: SupportedNetworksOrClusters;
+  private currentCluster: SupportedNetwork;
   private eclipseConnection: Connection;
   private eclipseProgram: anchor.Program<anchor.Idl> | null = null;
 
@@ -34,7 +38,7 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     );
   }
 
-  setNetwork = (cluster: SupportedNetworksOrClusters): void => {
+  setNetwork = (cluster: SupportedNetwork): void => {
     if (this.config.networks && this.config.networks[cluster]) {
       this.currentCluster = cluster;
       this.eclipseConnection = new Connection(
@@ -45,7 +49,7 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     }
   };
 
-  getCurrentClusterOrNetwork = (): SupportedNetworksOrClusters => {
+  getCurrentClusterOrNetwork = (): SupportedNetwork => {
     return this.currentCluster;
   };
 
@@ -56,7 +60,7 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     };
   };
 
-  connect = async (wallet: anchor.Wallet): Promise<anchor.Program> => {
+  connect = async (wallet: AnchorWallet): Promise<anchor.Program> => {
     const provider = new anchor.AnchorProvider(this.eclipseConnection, wallet, {
       commitment: "confirmed",
     });
@@ -70,7 +74,7 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     return this.eclipseProgram;
   };
 
-  fetchGameState = async (): Promise<GameState> => {
+  fetchGameState = async (): Promise<OnchainGameState> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -89,7 +93,9 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     return gameState;
   };
 
-  fetchGameSession = async (playerAddress: string): Promise<GameSession> => {
+  fetchGameSession = async (
+    playerAddress: string
+  ): Promise<OnchainGameSession> => {
     if (!this.eclipseProgram) {
       throw new Error("Eclipse program not initialized");
     }
@@ -119,35 +125,35 @@ export class EclipseAdapter extends SolanaAdapter implements SVMChainAdapter {
     return gameSession;
   };
 
-  startGameSession = async (
-    gameType: number,
-    kol: KOL
-  ): Promise<GameSession> => {
-    if (!this.eclipseProgram) {
-      throw new Error("Eclipse program not initialized");
-    }
+  // startGameSession = async (
+  //   gameType: number,
+  //   kol: KOL
+  // ): Promise<GameSession> => {
+  //   if (!this.eclipseProgram) {
+  //     throw new Error("Eclipse program not initialized");
+  //   }
 
-    const playerPublicKey = this.eclipseProgram.provider.publicKey;
-    const [gameSessionPDA] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("game_session"),
-        playerPublicKey!.toBuffer(),
-        Buffer.from(this.config.contractAddresses.game),
-      ],
-      this.eclipseProgram.programId
-    );
+  //   const playerPublicKey = this.eclipseProgram.provider.publicKey;
+  //   const [gameSessionPDA] = PublicKey.findProgramAddressSync(
+  //     [
+  //       Buffer.from("game_session"),
+  //       playerPublicKey!.toBuffer(),
+  //       Buffer.from(this.config.contractAddresses.game),
+  //     ],
+  //     this.eclipseProgram.programId
+  //   );
 
-    await this.eclipseProgram.methods
-      .startGameSession(gameType, JSON.stringify(kol))
-      .accounts({
-        gameSession: gameSessionPDA,
-        player: playerPublicKey!,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
+  //   await this.eclipseProgram.methods
+  //     .startGameSession(gameType, JSON.stringify(kol))
+  //     .accounts({
+  //       gameSession: gameSessionPDA,
+  //       player: playerPublicKey!,
+  //       systemProgram: SystemProgram.programId,
+  //     })
+  //     .rpc();
 
-    return this.fetchGameSession(playerPublicKey!.toString());
-  };
+  //   return this.fetchGameSession(playerPublicKey!.toString());
+  // };
 
   makeGuess = async (gameType: number, guess: KOL): Promise<boolean> => {
     if (!this.eclipseProgram) {

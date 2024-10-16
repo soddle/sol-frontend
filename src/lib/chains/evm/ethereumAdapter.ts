@@ -9,32 +9,35 @@ import {
   EVMGameState,
   EVMClaimResult,
   SupportedNetwork,
+  OnchainGameState,
+  OnchainGameSession,
 } from "../types";
-import { KOL, GameSession, GameState } from "@/types";
+import { KOL } from "@/types";
+import { GameSession } from "@prisma/client";
 
 export class EthereumAdapter implements EVMChainAdapter {
   protected currentNetwork: SupportedNetwork;
   private provider: ethers.JsonRpcProvider;
   private signer: ethers.Signer | null = null;
   protected gameContract: ethers.Contract | null = null;
-  protected config: ChainConfig;
+  public chainConfig: ChainConfig;
 
-  constructor(config: ChainConfig) {
-    this.config = config;
-    this.currentNetwork = config.defaultNetwork;
+  constructor(chainConfig: ChainConfig) {
+    this.chainConfig = chainConfig;
+    this.currentNetwork = chainConfig.defaultNetwork;
     this.provider = new ethers.JsonRpcProvider(
-      config.networks[this.currentNetwork]!.rpcEndpoint
+      chainConfig.networks[this.currentNetwork]!.rpcEndpoint
     );
-    if (!config.abi) {
+    if (!chainConfig.abi) {
       throw new Error("ABI is required for EthereumAdapter");
     }
   }
 
   setNetwork(network: SupportedNetwork): void {
-    if (this.config.networks && this.config.networks[network]) {
+    if (this.chainConfig.networks && this.chainConfig.networks[network]) {
       this.currentNetwork = network;
       this.provider = new ethers.JsonRpcProvider(
-        this.config.networks[network].rpcEndpoint
+        this.chainConfig.networks[network].rpcEndpoint
       );
       this.signer = null;
       this.gameContract = null;
@@ -60,8 +63,8 @@ export class EthereumAdapter implements EVMChainAdapter {
     const address = await this.signer.getAddress();
 
     this.gameContract = new ethers.Contract(
-      this.config.contractAddresses.game,
-      this.config.abi,
+      this.chainConfig.contractAddresses.game,
+      this.chainConfig.abi,
       this.signer
     );
 
@@ -81,7 +84,7 @@ export class EthereumAdapter implements EVMChainAdapter {
     return this.signAndSendEVMTransaction(transaction);
   }
 
-  async fetchGameState(): Promise<GameState> {
+  async fetchGameState(): Promise<OnchainGameState> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
@@ -90,7 +93,7 @@ export class EthereumAdapter implements EVMChainAdapter {
     return gameState;
   }
 
-  async fetchGameSession(playerAddress: string): Promise<GameSession> {
+  async fetchGameSession(playerAddress: string): Promise<OnchainGameSession> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
@@ -99,7 +102,7 @@ export class EthereumAdapter implements EVMChainAdapter {
     return gameSession;
   }
 
-  async startGameSession(gameType: number, kol: KOL): Promise<GameSession> {
+  async startGameSession(gameType: number): Promise<GameSession> {
     // return this.startEVMGameSession(gameType, kol);
     return {} as GameSession;
   }
@@ -124,9 +127,9 @@ export class EthereumAdapter implements EVMChainAdapter {
 
   getChainConfig(): ChainConfig {
     return {
-      ...this.config,
-      // rpcEndpoint: this.config.networks[this.currentNetwork].rpcEndpoint,
-      // chainId: this.config.networks[this.currentNetwork].chainId,
+      ...this.chainConfig,
+      // rpcEndpoint: this.chainConfig.networks[this.currentNetwork].rpcEndpoint,
+      // chainId: this.chainConfig.networks[this.currentNetwork].chainId,
     };
   }
 

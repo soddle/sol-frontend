@@ -22,6 +22,7 @@ export default function AppWalletProvider({
   children: React.ReactNode;
 }) {
   const { currentChain, currentNetwork, chainManager } = useChain();
+
   const adapter = chainManager.getAdapter(currentChain);
   // alert(currentChain);
 
@@ -36,7 +37,7 @@ export default function AppWalletProvider({
 
   if (chainManager.isSVMChain(currentChain)) {
     const svmAdapter = adapter as SVMChainAdapter;
-    const config = svmAdapter.getChainConfig();
+    const config = svmAdapter.chainConfig;
 
     // Check if the currentNetwork exists in the config.networks
     const networkConfig = config.networks[currentNetwork];
@@ -56,7 +57,7 @@ export default function AppWalletProvider({
     );
   } else if (chainManager.isEVMChain(currentChain)) {
     const evmAdapter = adapter as EVMChainAdapter;
-    const config = evmAdapter.getChainConfig();
+    const config = evmAdapter.chainConfig;
 
     // Check if the currentNetwork exists in the config.networks
     const networkConfig = config.networks[currentNetwork];

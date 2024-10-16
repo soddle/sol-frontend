@@ -11,18 +11,22 @@ import {
   SupportedNetwork,
   OnchainGameState,
   OnchainGameSession,
+  OnchainKOL,
 } from "../types";
-import { KOL } from "@/types";
-import { createGameSession, fetchCurrentActiveSession } from "@/actions/game";
-import { fetchRandomKOL } from "@/actions/kol";
+import {
+  createGameSession,
+  fetchCurrentActiveSession,
+} from "@/actions/gameActions";
+import { fetchRandomKOL } from "@/actions/kolActions";
 import { GameSession } from "@prisma/client";
+import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 export class SolanaAdapter implements SVMChainAdapter {
   private connection: Connection;
   private currentNetwork: SupportedNetwork; // the same as cluster for SVM
   protected config: ChainConfig;
   private program: anchor.Program<anchor.Idl> | null = null;
-  private wallet: anchor.Wallet | null = null;
+  private wallet: AnchorWallet | null = null;
 
   constructor(config: ChainConfig) {
     this.config = config;
@@ -64,7 +68,8 @@ export class SolanaAdapter implements SVMChainAdapter {
     return this.program.provider;
   };
 
-  connect = async (wallet: anchor.Wallet): Promise<anchor.Program> => {
+  connect = async (wallet: AnchorWallet): Promise<anchor.Program> => {
+    console.log("wallet address on connect: ", wallet);
     this.wallet = wallet;
     const provider = new anchor.AnchorProvider(this.connection, wallet, {
       commitment: "confirmed",
@@ -107,10 +112,11 @@ export class SolanaAdapter implements SVMChainAdapter {
   };
 
   startSVMGameSession = async (gameType: number): Promise<GameSession> => {
-    return this.startGameSession(gameType);
+    throw Error("not fully implemented");
+    // return this.startGameSession(gameType);
   };
 
-  makeSVMGuess = async (gameType: number, guess: KOL): Promise<any> => {
+  makeSVMGuess = async (gameType: number, guess: OnchainKOL): Promise<any> => {
     return this.makeGuess(gameType, guess);
   };
 
@@ -168,7 +174,7 @@ export class SolanaAdapter implements SVMChainAdapter {
   };
 
   fetchGameSession = async (
-    playerAddress: string
+    playerAddress: anchor.Address
   ): Promise<OnchainGameSession> => {
     if (!this.program) throw new Error("Program not initialized");
 
@@ -189,50 +195,57 @@ export class SolanaAdapter implements SVMChainAdapter {
       gameSessionPDA
     );
 
-    return gameSessionAccount as OnchainGameSession;
+    return gameSessionAccount;
   };
 
-  startGameSession = async (gameType: number): Promise<GameSession> => {
-    if (!this.program) throw new Error("Program not initialized");
-    const playerPublicKey = this.program.provider.publicKey;
+  startGameSession = async (
+    gameType: number,
+    wallet: AnchorWallet
+  ): Promise<GameSession> => {
+    const program = await this.connect(wallet);
+    if (!program) throw new Error("🚫 Program not initialized");
+    const playerPublicKey = program.provider.publicKey;
 
-    // fetch and return active game session if it exists (both onchain and offchain)
+    console.log("🕵️ Checking if an active session is available...");
     const activeSession = await fetchCurrentActiveSession(
       playerPublicKey?.toString()!
     );
     if (activeSession) {
+      console.log("🎉 Active session found! Returning existing session.");
       return activeSession;
     }
 
-    // else start a new session for the wallet
+    console.log("🆕 No active session found. Starting a new game session...");
     const gameState = await this.fetchGameState();
-    const targetKOL = await fetchRandomKOL();
+    console.log("🌍 Game state fetched successfully.");
 
+    const targetKOL = await fetchRandomKOL();
+    console.log("🎯 Target KOL selected:", targetKOL?.twitterHandle);
+
+    console.log("🔑 Generating program derived addresses...");
     const [gameStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("game_state")],
-      this.program.programId
+      program.programId
     );
-
     const [gameSessionPDA] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("game_session"),
         playerPublicKey!.toBuffer(),
         Buffer.from(gameState.currentCompetition.id),
       ],
-      this.program.programId
+      program.programId
     );
-
     const [playerStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("player_state"), playerPublicKey!.toBuffer()],
-      this.program.programId
+      program.programId
     );
-
     const [vaultPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("vault")],
-      this.program.programId
+      program.programId
     );
 
-    await this.program.methods
+    console.log("🚀 Initiating on-chain transaction to start game session...");
+    await program.methods
       .startGameSession(gameType, targetKOL)
       .accounts({
         gameState: gameStatePDA,
@@ -243,16 +256,40 @@ export class SolanaAdapter implements SVMChainAdapter {
         systemProgram: SystemProgram.programId,
       })
       .rpc();
+    console.log("✅ On-chain transaction completed successfully!");
 
+    console.log("📡 Fetching newly created game session from chain...");
     const newOnchainGameSession = await this.fetchGameSession(
       playerPublicKey!.toString()
     );
 
-    const newGameSession = await createGameSession(newOnchainGameSession);
+    console.log("💾 Creating off-chain game session record...");
+    console.log("New onchain Game Session: ", newOnchainGameSession);
+    const newSession: Partial<OnchainGameSession> = {
+      competitionId: newOnchainGameSession.competitionId,
+      completed: newOnchainGameSession.completed,
+      deposit: newOnchainGameSession.deposit,
+      game1Completed: newOnchainGameSession.game1Completed,
+      game1GuessesCount: newOnchainGameSession.game1GuessesCount,
+      game1Score: newOnchainGameSession.game1Score,
+      game2Completed: newOnchainGameSession.game2Completed,
+      game2GuessesCount: newOnchainGameSession.game2GuessesCount,
+      game2Score: newOnchainGameSession.game2Score,
+      gameType: newOnchainGameSession.gameType,
+      kol: newOnchainGameSession.kol,
+      player: newOnchainGameSession.player,
+      score: newOnchainGameSession.score,
+      startTime: new Date(parseInt(newOnchainGameSession.startTime, 16)),
+      targetIndex: newOnchainGameSession.targetIndex,
+      totalScore: newOnchainGameSession.totalScore,
+    };
+    const newGameSession = await createGameSession(newSession);
+    console.log("🎮 New game session created and ready to play!");
+
     return newGameSession;
   };
 
-  makeGuess = async (gameType: number, guess: KOL): Promise<any> => {
+  makeGuess = async (gameType: number, guess: OnchainKOL): Promise<any> => {
     if (!this.program) throw new Error("Program not initialized");
 
     const gameState = await this.fetchGameState();

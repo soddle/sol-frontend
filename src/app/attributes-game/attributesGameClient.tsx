@@ -14,112 +14,51 @@ import { useRootStore } from "@/stores/storeProvider";
 import QuestionBox from "./_components/questionBox";
 import UserProfileModal from "@/components/modals/userProfileModal";
 import { Container } from "@/components/layout/mainLayoutClient";
-import { KOL } from "@prisma/client";
+import { GameSession, KOL } from "@prisma/client";
 import { useChainAdapter } from "@/hooks/useChainAdapter";
-import { fetchCurrentActiveSession } from "@/actions/game";
-import { GameSession } from "@/types";
 
 export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
   const router = useRouter();
   const { wallet } = useWallet();
   const chainAdapter = useChainAdapter();
 
-  const [gameSess, setGameSess] = useState<GameSession | null>(null);
-
-  const [currentActiveSession, setCurrentActiveSession] =
-    useState<GameSession | null>();
-
-  const [loadingApiGameSession, setLoadingApiGameSession] =
-    useState<boolean>(true);
-
-  const { ui } = useRootStore();
-  const isLegendOpen = ui((state) => state.isLegendOpen);
-  const setLoading = ui((state) => state.setLoading);
-  const setError = ui((state) => state.setError);
-  const openModal = ui((state) => state.openModal);
+  const { ui, game } = useRootStore();
+  const uiStore = ui((state) => state);
+  const gameStore = game((state) => state);
 
   useEffect(() => {
-    if (!wallet) {
+    if (!gameStore.gameSession) {
+      toast("No Active game session!");
       router.push("/");
     }
-  }, [wallet, router, gameSess]);
-
-  useEffect(() => {
-    async function getActiveSession() {
-      const activeSession = await fetchCurrentActiveSession(
-        wallet?.adapter.publicKey?.toString()!
-      );
-      setCurrentActiveSession(activeSession);
-    }
-
-    try {
-      getActiveSession();
-    } catch (error) {
-      console.error("error fetching game session: ", error);
-    } finally {
-      setLoadingApiGameSession(false);
-    }
-  }, [wallet?.adapter.publicKey]);
-
-  useEffect(() => {
-    async function getGameSessionFromOnchain() {
-      const gameSession = await chainAdapter.fetchGameSession(
-        wallet?.adapter.publicKey?.toString()!
-      );
-      setGameSess(gameSession);
-    }
-    try {
-      setLoading(true);
-      getGameSessionFromOnchain();
-    } catch (error) {
-      toast.error("Error fetching game session");
-      setError("Error fetching game session");
-    } finally {
-      setLoading(false);
-    }
   }, []);
+  useEffect(() => {
+    if (!wallet || !gameStore.gameSession) {
+      router.push("/");
+    }
+  }, [wallet, router]);
+
+  useEffect(() => {
+    if (!gameStore.gameSession) {
+      router.push("/");
+    }
+  });
 
   const handleGuess = async (koll: KOL) => {
-    const kol: KOL = {
-      xAccountCreation: koll.accountCreation,
-      age: koll.age,
-      country: koll.country,
-      ecosystem: koll.ecosystem,
-      followers: koll.followers,
-      id: koll.id,
-      name: koll.name,
-      pfp: koll.pfp,
-      pfpType: koll.pfpType,
-    };
-
     try {
-      setLoading(true);
-      const returnedSessionFromApi = await chainAdapter.makeGuess(
-        GameType.Attributes,
-        kol
-      );
-      setGameSessionFromApi(returnedSessionFromApi);
-      console.log("returned session from API: ", returnedSessionFromApi);
-
-      const guess = returnedSessionFromApi.game1Guesses.find(
-        (g) => g.guess.id === kol.id
-      )!;
-
-      // Check if all guess results are Correct
-      const allCorrect = Object.values(guess.result).every(
-        (value) => value === "Correct"
-      );
-      if (allCorrect) {
-        openModal(<UserProfileModal gameSession={returnedSessionFromApi} />);
-      } else {
-      }
-
-      setGameSessionFromApi(returnedSessionFromApi);
+      uiStore.setLoading(true);
+      // const allCorrect = Object.values(guess.result).every(
+      //   (value) => value === "Correct"
+      // );
+      // if (allCorrect) {
+      //   // uiStore.openModal(<UserProfileModal gameSession={returnedSessionFromApi} />);
+      // } else {
+      // }
     } catch (error) {
       console.error("error", error);
       toast.error("Error making guess");
     } finally {
-      setLoading(false);
+      uiStore.setLoading(false);
     }
   };
 
@@ -149,16 +88,16 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
 
       {/* guessResults section */}
       {
-        <section className="text-white no-scrollbar">
-          <AttributesGuessListTable
-            allKols={kols}
-            loadingApiGameSession={loadingApiGameSession}
-            gameSessionFromApi={currentActiveSession}
-          />
-        </section>
+        // <section className="text-white no-scrollbar">
+        //   <AttributesGuessListTable
+        //     allKols={kols}
+        //     loadingApiGameSession={loadingApiGameSession}
+        //     gameSessionFromApi={currentActiveSession}
+        //   />
+        // </section>
       }
       {/* Legends */}
-      {isLegendOpen && (
+      {uiStore.isLegendOpen && (
         <Container>
           <Legend />
         </Container>

@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";
-import { KolWithTweets } from "@/types";
-import { fetchGameSessionFromApi } from "@/lib/api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
+import { KOL } from "@prisma/client";
 
 interface KOLSearchProps {
-  kols: KolWithTweets[];
-  handleGuess: (kol: KolWithTweets) => void;
+  kols: KOL[];
+  handleGuess: (kol: KOL) => void;
 }
 
 const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [availableKols, setAvailableKols] = useState<KolWithTweets[]>([]);
-  const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);
+  const [availableKols, setAvailableKols] = useState<KOL[]>([]);
+  const [suggestions, setSuggestions] = useState<KOL[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,34 +21,30 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   const wallet = useWallet();
 
   useEffect(() => {
-    async function initializeAvailableKols() {
-      setIsLoading(true);
-      setError(null);
-      if (wallet.publicKey) {
-        try {
-          const gameSession = await fetchGameSessionFromApi({
-            publicKey: wallet.publicKey.toString(),
-          });
-          const guessedKolIds = new Set(
-            gameSession.game1Guesses.map((guess) => guess.guess.id)
-          );
-          const filteredKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
-          setAvailableKols(filteredKols);
-          if (filteredKols.length === 0) {
-            setError("You've guessed all available KOLs!");
-          }
-        } catch (error) {
-          console.error("Error fetching game session:", error);
-          setError("Unable to fetch game session. Using all KOLs.");
-          setAvailableKols(kols);
-        }
-      } else {
-        setAvailableKols(kols);
-      }
-      setIsLoading(false);
-    }
-
-    initializeAvailableKols();
+    // async function initializeAvailableKols() {
+    //   setIsLoading(true);
+    //   setError(null);
+    //   if (wallet.publicKey) {
+    //     try {
+    //       const guessedKolIds = new Set(
+    //         gameSession.game1Guesses.map((guess) => guess.guess.id)
+    //       );
+    //       const filteredKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
+    //       setAvailableKols(filteredKols);
+    //       if (filteredKols.length === 0) {
+    //         setError("You've guessed all available KOLs!");
+    //       }
+    //     } catch (error) {
+    //       console.error("Error fetching game session:", error);
+    //       setError("Unable to fetch game session. Using all KOLs.");
+    //       setAvailableKols(kols);
+    //     }
+    //   } else {
+    //     setAvailableKols(kols);
+    //   }
+    //   setIsLoading(false);
+    // }
+    // initializeAvailableKols();
   }, [kols, wallet.publicKey]);
 
   useEffect(() => {
@@ -86,7 +81,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
     setIsDropdownOpen(true);
   };
 
-  const handleSelectKOL = async (kol: KolWithTweets) => {
+  const handleSelectKOL = async (kol: KOL) => {
     setSearchTerm("");
     setIsDropdownOpen(false);
     handleGuess(kol);
@@ -94,19 +89,19 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
     if (wallet.publicKey) {
       setIsLoading(true);
       try {
-        const gameSess = await fetchGameSessionFromApi({
-          publicKey: wallet.publicKey.toString(),
-        });
-        const guessedKolIds = new Set(
-          gameSess.game1Guesses.map((guess) => guess.guess.id)
-        );
-        const updatedKols = availableKols.filter(
-          (k) => !guessedKolIds.has(k.id)
-        );
-        setAvailableKols(updatedKols);
-        if (updatedKols.length === 0) {
-          setError("You've guessed all available KOLs!");
-        }
+        // const gameSess = await fetchGameSessionFromApi({
+        //   publicKey: wallet.publicKey.toString(),
+        // });
+        // const guessedKolIds = new Set(
+        //   gameSess.game1Guesses.map((guess) => guess.guess.id)
+        // );
+        // const updatedKols = availableKols.filter(
+        //   (k) => !guessedKolIds.has(k.id)
+        // );
+        // setAvailableKols(updatedKols);
+        // if (updatedKols.length === 0) {
+        //   setError("You've guessed all available KOLs!");
+        // }
       } catch (error) {
         console.error("Error updating available KOLs:", error);
         setError("Unable to update KOL list. Some KOLs may not be available.");
@@ -165,8 +160,8 @@ function ListItem({
   kol,
   handleSelect,
 }: {
-  kol: KolWithTweets;
-  handleSelect: (kol: KolWithTweets) => void;
+  kol: KOL;
+  handleSelect: (kol: KOL) => void;
 }) {
   return (
     <li

@@ -1,6 +1,7 @@
 "use server";
 import { OnchainGameSession } from "@/lib/chains/types";
 import { prisma } from "@/lib/prisma";
+// import { rawKOL } from "@/types/kol";
 import { GameSession } from "@prisma/client";
 
 export async function fetchGameSessionsByAddress(
@@ -20,7 +21,14 @@ export async function fetchGameSessionsByAddress(
 export async function fetchCurrentActiveSession(
   walletAddress: string
 ): Promise<GameSession | null> {
+  // const createdKOLs = await prisma.kOL.createMany({
+  //   data: rawKOL,
+  //   skipDuplicates: true,
+  // });
+
+  // console.log(createdKOLs);
   // Fetch the user by wallet address
+
   const user = await prisma.user.findUnique({
     where: { address: walletAddress },
   });
@@ -50,18 +58,19 @@ export async function fetchCurrentActiveSession(
 }
 
 export async function createGameSession(
-  session: OnchainGameSession
+  session: Partial<OnchainGameSession>
 ): Promise<GameSession> {
+  console.log(session);
   // create a new user (address) if it doesn't already exist;
   const user = await prisma.user.upsert({
-    where: { address: session.player.toString() },
+    where: { address: session.player!.toString() },
     update: {},
-    create: { address: session.player.toString() },
+    create: { address: session.player!.toString() },
   });
 
   const newSession = await prisma.gameSession.create({
     data: {
-      gameType: session.gameType,
+      gameType: session.gameType!,
       startTime: session.startTime,
       completed: false,
       userAddress: user.address,

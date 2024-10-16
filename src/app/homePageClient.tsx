@@ -15,6 +15,7 @@ import {
   InternalServerError,
 } from "@/lib/errors";
 import { Container } from "@/components/layout/mainLayoutClient";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
 
 const GAME_TYPES = [
   {
@@ -39,17 +40,30 @@ const GAME_TYPES = [
 
 export default function GamePlayPageClient() {
   const { ui, game } = useRootStore();
-  const setLoading = ui((state) => state.setLoading);
-  const setCurrentGameType = game((state) => state.setCurrentGameType);
+  const anchorWallet = useAnchorWallet();
+  const uiStore = ui((state) => state);
+  const gameStore = game((state) => state);
+
   const chainAdapter = useChainAdapter();
   const router = useRouter();
 
   const handleStartGameSession = async (gameType: GameType) => {
     try {
-      setLoading(true);
-      const gameSession = await chainAdapter.startGameSession(gameType);
+      if (!anchorWallet || !anchorWallet.publicKey) {
+        toast.error("Please connect your wallet first");
+        return;
+      }
+
+      uiStore.setLoading(true);
+      const gameSession = await chainAdapter.startGameSession(
+        gameType,
+        anchorWallet
+      );
+
       if (gameSession) {
-        router.push(`/play/${gameType.toString().toLowerCase()}-game`);
+        gameStore.setGameSession(gameSession);
+
+        router.push(`/attributes-game`);
       } else throw new Error("Unable to start game.");
     } catch (error) {
       console.error(error);
@@ -64,7 +78,7 @@ export default function GamePlayPageClient() {
         toast.error("An unknown error occurred");
       }
     } finally {
-      setLoading(false);
+      uiStore.setLoading(false);
     }
   };
 

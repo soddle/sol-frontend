@@ -14,51 +14,54 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(uuid())
-  address   String       @unique
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id        String        @id @default(uuid())
+  address   String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   sessions  GameSession[]
 }
 
 model GameSession {
-  id            String       @id @default(uuid())
-  userAddress   String      
-  user          User         @relation(fields: [userAddress], references: [address]) // Updated reference to address
-  gameType      Int
-  startTime     DateTime
-  endTime       DateTime?
-  completed     Boolean      @default(false)
-  score         Int          @default(0)
-  guesses       Guess[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id          String    @id @default(uuid())
+  userAddress String
+  user        User      @relation(fields: [userAddress], references: [address]) // Updated reference to address
+  gameType    Int
+  startTime   DateTime
+  endTime     DateTime?
+  completed   Boolean   @default(false)
+  score       Int       @default(0)
+  guesses     Guess[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Guess {
-  id            String       @id @default(uuid())
-  sessionId     String
-  session       GameSession  @relation(fields: [sessionId], references: [id])
-  guessedKOL    KOL          @relation(fields: [guessedKOLId], references: [id])
-  guessedKOLId  String
-  createdAt     DateTime     @default(now())
+  id           String      @id @default(uuid())
+  sessionId    String
+  session      GameSession @relation(fields: [sessionId], references: [id])
+  guessedKOL   KOL         @relation(fields: [guessedKOLId], references: [id])
+  guessedKOLId String
+  createdAt    DateTime    @default(now())
 }
 
 model KOL {
-  id                      String                     @id @default(uuid())
-  name                    String
-  xHandle                 String                     @unique
-  link                    String
-  country                 String
-  ageRange                String
-  xAccountCreation        Int
-  xFollowersRange         String
-  pfpType                 String
-  ecosystem               String[]
-  descriptions            String[]
-  supportedChains         String[]
-  tweets                  String[]                   // New field for tweets
-  guesses                 Guess[]
-  createdAt               DateTime                   @default(now())
-  updatedAt               DateTime                   @updatedAt
+  id   String @id @default(uuid())
+  name String
+  age  Int
+
+  followers                  Int
+  country                    String
+  ageRange                   String
+  twitterHandle              String
+  twitterAccountCreationYear Int
+  twitterFollowersRange      String
+  pfp                        String   @unique
+  pfpType                    String
+  ecosystem                  String
+  descriptions               String[]
+  supportedChains            String[]
+  tweets                     String[]
+  guesses                    Guess[]
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 }

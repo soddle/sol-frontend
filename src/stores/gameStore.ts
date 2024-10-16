@@ -4,12 +4,13 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import * as anchor from "@coral-xyz/anchor";
 
 import { GameType } from "@/lib/constants";
-import { GameSession, GameState } from "@/types";
+import { OnchainGameState } from "@/lib/chains/types";
+import { GameSession } from "@prisma/client";
 
 interface GameStoreState {
   program: anchor.Program<anchor.Idl> | null;
   currentGameType: GameType | null;
-  gameState: GameState | null;
+  gameState: OnchainGameState | null;
   gameSession: GameSession | null;
 }
 
@@ -17,7 +18,7 @@ interface GameStoreActions {
   setProgram: (program: anchor.Program<anchor.Idl> | null) => void;
   setCurrentGameType: (gameType: GameType) => void;
   setGameSession: (session: GameSession | null) => void;
-  setGameState: (state: GameState | null) => void;
+  setGameState: (state: OnchainGameState | null) => void;
   resetGame: () => void;
 }
 
@@ -41,7 +42,7 @@ export const createGameStore = () =>
           set((state) => {
             state.gameSession = session;
           }),
-        setGameState: (newState: GameState | null) =>
+        setGameState: (newState: OnchainGameState | null) =>
           set((state) => {
             state.gameState = newState;
           }),
