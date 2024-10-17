@@ -87,7 +87,7 @@ GlowingTime.displayName = "GlowingTime";
 
 export const DynamicGlowingTime = () => {
   const { game } = useRootStore();
-  const gameState = game((state) => state.gameState);
+  const currentCompetition = game((state) => state.currentCompetition);
   const [isLoading, setIsLoading] = useState(true);
 
   const [timeLeft, setTimeLeft] = useState({
@@ -97,13 +97,13 @@ export const DynamicGlowingTime = () => {
   });
 
   const endTime = useMemo(() => {
-    if (gameState) {
-      const inMill = Number(gameState.currentCompetition.endTime);
+    if (currentCompetition && currentCompetition.endTime) {
+      const endDate = new Date(currentCompetition.endTime);
       setIsLoading(false);
-      return inMill * 1000;
+      return endDate.getTime();
     }
     return 0;
-  }, [gameState]);
+  }, [currentCompetition]);
 
   useEffect(() => {
     const calculateTimeLeft = () => {

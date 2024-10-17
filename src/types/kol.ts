@@ -412,3 +412,15 @@ export const rawKOL: Omit<KOL, "createdAt" | "updatedAt">[] = [
     twitterFollowersRange: "0-50k",
   },
 ];
+
+export interface OnchainKOL {
+  pfp: string;
+  accountCreation: number;
+  age: number;
+  country: string;
+  ecosystem: string;
+  followers: number;
+  id: string;
+  pfpType: string;
+  name: string;
+}

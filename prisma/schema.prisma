@@ -3,20 +3,30 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String        @id @default(uuid())
+  id        String        @id @map("_id") @db.ObjectId
   address   String        @unique
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   sessions  GameSession[]
 }
 
+model Competition {
+  id           String        @id @map("_id") @db.ObjectId
+  startTime    DateTime
+  onChainId    String        @unique
+  endTime      DateTime
+  prize        Int
+  isActive     Boolean       @default(true)
+  gameSessions GameSession[]
+}
+
 model GameSession {
-  id            String      @id @default(uuid())
+  id            String      @id @map("_id") @db.ObjectId
   userAddress   String
   user          User        @relation(fields: [userAddress], references: [address])
   gameType      Int
@@ -28,20 +38,26 @@ model GameSession {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   competition   Competition @relation(fields: [competitionId], references: [id])
-  competitionId String
+  competitionId String      @db.ObjectId
+  targetKOL     KOL         @relation(fields: [targetKOLId], references: [id])
+  targetKOLId   String      @db.ObjectId
 }
 
 model Guess {
-  id           String      @id @default(uuid())
-  sessionId    String
-  session      GameSession @relation(fields: [sessionId], references: [id])
-  guessedKOL   KOL         @relation(fields: [guessedKOLId], references: [id])
-  guessedKOLId String
-  createdAt    DateTime    @default(now())
+  id            String      @id @map("_id") @db.ObjectId
+  sessionId     String      @db.ObjectId
+  session       GameSession @relation(fields: [sessionId], references: [id])
+  guessedKOL    KOL         @relation(fields: [guessedKOLId], references: [id])
+  guessedKOLId  String      @db.ObjectId
+  createdAt     DateTime    @default(now())
+  isCorrect     Boolean     @default(false)
+  feedback      Json
+  score         Int         @default(0)
+  attemptNumber Int
 }
 
 model KOL {
-  id                         String   @id @default(uuid())
+  id                         String        @id @map("_id") @db.ObjectId
   name                       String
   age                        Int
   followers                  Int
@@ -50,29 +66,14 @@ model KOL {
   twitterHandle              String
   twitterAccountCreationYear Int
   twitterFollowersRange      String
-  pfp                        String   @unique
+  pfp                        String        @unique
   pfpType                    String
   ecosystem                  String
   descriptions               String[]
   supportedChains            String[]
   tweets                     String[]
   guesses                    Guess[]
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
-}
-
-model Competition {
-  id           String        @id @default(uuid())
-  startTime    DateTime
-  endTime      DateTime
-  prize        BigInt
-  gameSessions GameSession[]
-  gameState    GameState?
-}
-
-model GameState {
-  id                 String      @id @default(uuid())
-  currentCompetition Competition @relation(fields: [competitionId], references: [id])
-  competitionId      String      @unique
-  lastUpdateTime     DateTime
+  targetForSessions          GameSession[]
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
 }

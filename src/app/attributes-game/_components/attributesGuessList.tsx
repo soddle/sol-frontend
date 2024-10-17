@@ -3,24 +3,25 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
 import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
-import { GameSession, KOL } from "@prisma/client";
+import { GuessWithFeedbackAndGussedKOL } from "@/lib/chains/types";
+import { KOL } from "@/types";
+import { Guess } from "@prisma/client";
 
 interface AttributesGuessListProps {
-  gameSessionFromApi: GameSession | null;
-  loadingApiGameSession: boolean;
-  allKols: KOL[];
+  guesses: Guess[];
+  loadingGuesses: boolean;
 }
 
 interface CellProps {
   children: React.ReactNode;
-  attributeResult: string;
+  feedback: string;
   className?: string;
   isPfp?: boolean;
 }
 
 const Cell: React.FC<CellProps> = ({
   children,
-  attributeResult,
+  feedback,
   className,
   isPfp = false,
 }) => {
@@ -28,22 +29,13 @@ const Cell: React.FC<CellProps> = ({
     ? { background: "transparent" }
     : {
         background:
-          attributeResult === LEGEND_BOX_TYPES.Correct
-            ? LEGEND_BOX_COLORS.Correct
-            : attributeResult === LEGEND_BOX_TYPES.Higher
-            ? LEGEND_BOX_COLORS.Higher
-            : attributeResult === LEGEND_BOX_TYPES.Incorrect
-            ? LEGEND_BOX_COLORS.Incorrect
-            : attributeResult === LEGEND_BOX_TYPES.Lower
-            ? LEGEND_BOX_COLORS.Lower
-            : "",
+          LEGEND_BOX_COLORS[feedback as keyof typeof LEGEND_BOX_COLORS] || "",
       };
-
   const icon =
-    attributeResult === LEGEND_BOX_TYPES.Higher
-      ? "/legend-up.png"
-      : attributeResult === LEGEND_BOX_TYPES.Lower
-      ? "/legend-down.png"
+    feedback === LEGEND_BOX_TYPES.higher
+      ? "/images/legend-up.png"
+      : feedback === LEGEND_BOX_TYPES.lower
+      ? "/images/legend-down.png"
       : null;
 
   return (
@@ -55,7 +47,7 @@ const Cell: React.FC<CellProps> = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <img
               src={icon}
-              alt={attributeResult}
+              alt={feedback}
               className="max-w-full max-h-full object-contain opacity-"
             />
           </div>
@@ -83,94 +75,76 @@ const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
-  loadingApiGameSession,
-  gameSessionFromApi,
-  allKols,
+  loadingGuesses,
+  guesses,
 }) => {
-  if (loadingApiGameSession || !gameSessionFromApi) {
+  if (loadingGuesses) {
     return <TableLoader />;
   }
 
-  // const game1Guesses = [...gameSessionFromApi].reverse();
-  const game1Guesses: any = [];
-
-  if (game1Guesses.length <= 0) {
+  if (guesses.length === 0) {
     return (
-      <div className="text-center text-green-500">
-        You have no guesses here yet. Try making some guesses.
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center text-green-500 p-4 bg-[#111411] rounded-md"
+      >
+        You have no guesses yet. Try making some guesses!
+      </motion.div>
     );
   }
+
+  const headers = [
+    "KOL",
+    "Age",
+    "Country",
+    "Pfp",
+    "Account creation",
+    "Followers",
+    "Ecosystem",
+  ];
 
   return (
     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
       <div className="">
         <div className="grid grid-cols-7 gap-2 ">
-          {[
-            "KOL",
-            "Age",
-            "Country",
-            "Pfp",
-            "Account creation",
-            "Followers",
-            "Ecosystem",
-          ].map((header) => (
+          {headers.map((header) => (
             <HeaderCell key={header}>{header}</HeaderCell>
           ))}
-          {game1Guesses?.map((game1guess) => {
-            const kolAndTweets = allKols.find(
-              (kol) =>
-                kol.id === game1guess.guess.id &&
-                kol.age === game1guess.guess.age
-            );
-
-            if (kolAndTweets) {
-              return (
-                <TableRow
-                  game1guess={{
-                    result: game1guess.result,
-                    guess: kolAndTweets,
-                  }}
-                />
-              );
-            }
-            return null;
-          })}
+          {guesses.map((guess, index) => (
+            <TableRow key={guess.id} guess={guess} index={index} />
+          ))}
         </div>
       </div>
     </div>
   );
 };
 interface TableRowProps {
-  game1guess: {
-    guess: KolWithTweets;
-    result: Game1Guess["result"];
-  };
+  guess: Guess;
+  index: number;
 }
 
-function TableRow({ game1guess }: TableRowProps) {
-  const { guess, result: attributesResults } = game1guess;
-
-  const {
-    account_creation: accountCreation,
-    age,
-    country,
-    ecosystem,
-    followers,
-    name,
-    pfpType,
-  } = attributesResults;
+function TableRow({ guess }: TableRowProps) {
+  const attributes = guess.attributes as KOL;
+  const feedback = guess.feedback as {
+    pfpType: string;
+    age: string;
+    country: string;
+    twitterAccountCreationYear: string;
+    followers: string;
+    ecosystem: string;
+  };
 
   return (
     <>
       <Cell
-        attributeResult={pfpType}
+        feedback={feedback.pfpType}
         className="bg-transparent p-0 m-0"
         isPfp={true}
       >
         <Image
           unoptimized
-          src={guess?.pfp || "/user-icon.svg"}
+          src={attributes.pfp || "/images/user-icon.svg"}
           className="rounded-full"
           alt="user"
           width={40}
@@ -179,34 +153,34 @@ function TableRow({ game1guess }: TableRowProps) {
         />
       </Cell>
 
-      <Cell attributeResult={age}>
+      <Cell feedback={feedback.age}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guess.ageDisplay}
+          {attributes.age}
         </span>
       </Cell>
-      <Cell attributeResult={country}>
+      <Cell feedback={feedback.country}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guess.country}
+          {attributes.country}
         </span>
       </Cell>
-      <Cell attributeResult={name}>
+      <Cell feedback={feedback.pfpType}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guess.pfpType}
+          {attributes.pfpType}
         </span>
       </Cell>
-      <Cell attributeResult={accountCreation}>
+      <Cell feedback={feedback.twitterAccountCreationYear}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guess.accountCreation}
+          {attributes.accountCreation}
         </span>
       </Cell>
-      <Cell attributeResult={followers}>
+      <Cell feedback={feedback.followers}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guess.followersDisplay}
+          {attributes.followers}
         </span>
       </Cell>
-      <Cell attributeResult={ecosystem}>
+      <Cell feedback={feedback.ecosystem}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {guess.ecosystem}
+          {attributes.ecosystem}
         </span>
       </Cell>
     </>

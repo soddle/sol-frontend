@@ -30,7 +30,6 @@ export class ChainManager {
           break;
       }
     });
-    console.log(this.adapters);
   }
 
   // getIdl(chain: string): any {

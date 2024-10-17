@@ -16,6 +16,7 @@ import {
 } from "@/lib/errors";
 import { Container } from "@/components/layout/mainLayoutClient";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
 const GAME_TYPES = [
   {
@@ -60,11 +61,24 @@ export default function GamePlayPageClient() {
         anchorWallet
       );
 
-      if (gameSession) {
-        gameStore.setGameSession(gameSession);
+      console.log("gameSession", gameSession);
 
+      if (gameSession) {
+        const serializableGameSession = {
+          ...gameSession,
+          id: gameSession.id.toString(),
+          score: Number(gameSession.score),
+          createdAt: new Date(gameSession.createdAt),
+          updatedAt: new Date(gameSession.updatedAt),
+          competitionId: gameSession.competitionId.toString(),
+          user: null,
+        };
+
+        // gameStore.setGameSession(serializableGameSession);
         router.push(`/attributes-game`);
-      } else throw new Error("Unable to start game.");
+      } else {
+        throw new Error("Unable to start game.");
+      }
     } catch (error) {
       console.error(error);
       if (
@@ -74,6 +88,13 @@ export default function GamePlayPageClient() {
         error instanceof InternalServerError
       ) {
         toast.error(error.message);
+      } else if (error instanceof WalletSignTransactionError) {
+        toast.error("You need to sign transaction to proceed");
+      } else if (
+        error instanceof Error &&
+        error.message === "No active competition found"
+      ) {
+        toast.error("No active competition found. Please try again later.");
       } else {
         toast.error("An unknown error occurred");
       }

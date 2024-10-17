@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { persist, createJSONStorage } from "zustand/middleware";
 import { PublicKey } from "@solana/web3.js";
 import { KOL } from "@prisma/client";
 
@@ -41,92 +40,86 @@ interface PlayerActions {
 
 export const createPlayerStore = () =>
   create(
-    persist(
-      immer<PlayerState & PlayerActions>((set) => ({
-        walletPublicKey: null,
-        balance: 0,
-        game1Completed: false,
-        game2Completed: false,
-        game3Completed: false,
-        game1Score: 0,
-        game2Score: 0,
-        game3Score: 0,
-        totalScore: 0,
-        game1GuessesCount: 0,
-        game2GuessesCount: 0,
-        game3GuessesCount: 0,
-        currentGameType: null,
-        startTime: null,
-        deposit: null,
-        competitionId: null,
-        currentKOL: null,
+    immer<PlayerState & PlayerActions>((set) => ({
+      walletPublicKey: null,
+      balance: 0,
+      game1Completed: false,
+      game2Completed: false,
+      game3Completed: false,
+      game1Score: 0,
+      game2Score: 0,
+      game3Score: 0,
+      totalScore: 0,
+      game1GuessesCount: 0,
+      game2GuessesCount: 0,
+      game3GuessesCount: 0,
+      currentGameType: null,
+      startTime: null,
+      deposit: null,
+      competitionId: null,
+      currentKOL: null,
 
-        setWalletPublicKey: (publicKey) =>
-          set((state) => {
-            state.walletPublicKey = publicKey;
-          }),
-        setBalance: (balance) =>
-          set((state) => {
-            state.balance = balance;
-          }),
-        setGameCompletion: (gameNumber, completed) =>
-          set((state) => {
-            state[`game${gameNumber}Completed`] = completed;
-          }),
-        setGameScore: (gameNumber, score) =>
-          set((state) => {
-            state[`game${gameNumber}Score`] = score;
-          }),
-        setTotalScore: (score) =>
-          set((state) => {
-            state.totalScore = score;
-          }),
-        incrementGuessCount: (gameNumber) =>
-          set((state) => {
-            state[`game${gameNumber}GuessesCount`] += 1;
-          }),
-        setCurrentGameType: (gameType) =>
-          set((state) => {
-            state.currentGameType = gameType;
-          }),
-        setStartTime: (startTime) =>
-          set((state) => {
-            state.startTime = startTime;
-          }),
-        setDeposit: (deposit) =>
-          set((state) => {
-            state.deposit = deposit;
-          }),
-        setCompetitionId: (competitionId) =>
-          set((state) => {
-            state.competitionId = competitionId;
-          }),
-        setCurrentKOL: (kol) =>
-          set((state) => {
-            state.currentKOL = kol;
-          }),
-        resetPlayerState: () =>
-          set((state) => {
-            state.game1Completed = false;
-            state.game2Completed = false;
-            state.game3Completed = false;
-            state.game1Score = 0;
-            state.game2Score = 0;
-            state.game3Score = 0;
-            state.totalScore = 0;
-            state.game1GuessesCount = 0;
-            state.game2GuessesCount = 0;
-            state.game3GuessesCount = 0;
-            state.currentGameType = null;
-            state.startTime = null;
-            state.deposit = null;
-            state.competitionId = null;
-            state.currentKOL = null;
-          }),
-      })),
-      {
-        name: "player-storage",
-        storage: createJSONStorage(() => localStorage),
-      }
-    )
+      setWalletPublicKey: (publicKey) =>
+        set((state) => {
+          state.walletPublicKey = publicKey;
+        }),
+      setBalance: (balance) =>
+        set((state) => {
+          state.balance = balance;
+        }),
+      setGameCompletion: (gameNumber, completed) =>
+        set((state) => {
+          state[`game${gameNumber}Completed`] = completed;
+        }),
+      setGameScore: (gameNumber, score) =>
+        set((state) => {
+          state[`game${gameNumber}Score`] = score;
+        }),
+      setTotalScore: (score) =>
+        set((state) => {
+          state.totalScore = score;
+        }),
+      incrementGuessCount: (gameNumber) =>
+        set((state) => {
+          state[`game${gameNumber}GuessesCount`] += 1;
+        }),
+      setCurrentGameType: (gameType) =>
+        set((state) => {
+          state.currentGameType = gameType;
+        }),
+      setStartTime: (startTime) =>
+        set((state) => {
+          state.startTime = startTime;
+        }),
+      setDeposit: (deposit) =>
+        set((state) => {
+          state.deposit = deposit;
+        }),
+      setCompetitionId: (competitionId) =>
+        set((state) => {
+          state.competitionId = competitionId;
+        }),
+      setCurrentKOL: (kol) =>
+        set((state) => {
+          state.currentKOL = kol;
+        }),
+      resetPlayerState: () =>
+        set((state) => {
+          state.game1Completed = false;
+          state.game2Completed = false;
+          state.game3Completed = false;
+          state.game1Score = 0;
+          state.game2Score = 0;
+          state.game3Score = 0;
+          state.totalScore = 0;
+          state.game1GuessesCount = 0;
+          state.game2GuessesCount = 0;
+          state.game3GuessesCount = 0;
+          state.currentGameType = null;
+          state.startTime = null;
+          state.deposit = null;
+          state.competitionId = null;
+          state.currentKOL = null;
+        }),
+    }))
   );

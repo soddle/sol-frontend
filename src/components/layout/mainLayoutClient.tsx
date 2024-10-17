@@ -12,9 +12,9 @@ export function MainLayoutClient({ children }: { children: ReactNode }) {
   const chainAdapter = useChainAdapter();
   const { ui, game } = useRootStore();
   const isLoading = ui((state) => state.isLoading);
-  const { setGameState } = game((state) => ({
-    setGameState: state.setGameState,
-    gameState: state.gameState,
+  const { setCurrentCompetition } = game((state) => ({
+    setCurrentCompetition: state.setCurrentCompetition,
+    currentCompetition: state.currentCompetition,
     gameSession: state.gameSession,
     setGameSession: state.setGameSession,
   }));
@@ -27,17 +27,17 @@ export function MainLayoutClient({ children }: { children: ReactNode }) {
   }));
 
   React.useEffect(() => {
-    const fetchGState = async () => {
+    const grabCurrentCompetition = async () => {
       // 🔥TODO: fix this type error
       // @ts-expect-error type error
       chainAdapter.connect();
-      const gameState = await chainAdapter.fetchGameState();
-      if (gameState) {
-        setGameState(gameState);
+      const currentCompetition = await chainAdapter.fetchCurrentCompetition();
+      if (currentCompetition) {
+        setCurrentCompetition(currentCompetition);
       }
     };
-    fetchGState();
-  }, [chainAdapter.fetchGameState, setGameState]);
+    grabCurrentCompetition();
+  }, [chainAdapter.fetchCurrentCompetition, setCurrentCompetition]);
 
   return (
     <>
