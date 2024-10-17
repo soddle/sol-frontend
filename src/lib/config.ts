@@ -115,10 +115,10 @@ const chainConfigs: ChainConfigs = {
   },
   BLAST: {
     networks: {
-      // mainnet: {
-      //   rpcEndpoint: "https://rpc.blast.io",
-      //   chainId: 168587773,
-      // },
+      mainnet: {
+        rpcEndpoint: "https://rpc.blast.io",
+        chainId: 168587773,
+      },
     },
     defaultNetwork: "testnet",
     abi: blastAbi,
