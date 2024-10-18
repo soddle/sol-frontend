@@ -11,11 +11,11 @@ import { getSecureKeypair } from "@/lib/keyManagement";
 import { logger } from "@/lib/logger";
 import { solanaIdl } from "@/lib/constants";
 import { chainConfigs } from "@/lib/config";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
+// import { useAnchorWallet } from "@solana/wallet-adapter-react";
 
-export const runtime = "edge";
+export const runtime = "dynamic";
 
-useAnchorWallet;
+// useAnchorWallet;
 export async function GET(request: Request) {
   try {
     // Verify authentication token
