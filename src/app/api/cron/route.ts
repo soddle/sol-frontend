@@ -13,7 +13,7 @@ import { solanaIdl } from "@/lib/constants";
 import { chainConfigs } from "@/lib/config";
 // import { useAnchorWallet } from "@solana/wallet-adapter-react";
 
-export const runtime = "dynamic";
+export const runtime = "nodejs";
 
 // useAnchorWallet;
 export async function GET(request: Request) {

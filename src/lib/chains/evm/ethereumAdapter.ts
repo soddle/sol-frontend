@@ -11,9 +11,10 @@ import {
   SupportedNetwork,
   OnchainGameState,
   OnchainGameSession,
+  GameSessionWithGuesses,
 } from "../types";
 import { KOL } from "@/types";
-import { GameSession } from "@prisma/client";
+import { Competition, GameSession, Guess } from "@prisma/client";
 
 export class EthereumAdapter implements EVMChainAdapter {
   protected currentNetwork: SupportedNetwork;
@@ -93,7 +94,9 @@ export class EthereumAdapter implements EVMChainAdapter {
     return gameState;
   }
 
-  async fetchGameSession(playerAddress: string): Promise<OnchainGameSession> {
+  async fetchGameSession(
+    playerAddress: string
+  ): Promise<GameSessionWithGuesses | null> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
@@ -107,9 +110,70 @@ export class EthereumAdapter implements EVMChainAdapter {
     return {} as GameSession;
   }
 
-  async makeGuess(gameType: number, guess: KOL): Promise<boolean> {
-    const result = await this.makeEVMGuess(gameType, guess);
+  async makeGuess(sessionId: string, guessedKOLId: string): Promise<boolean> {
+    const result = await this.makeEVMGuess(sessionId, guessedKOLId);
     return true;
+  }
+  async fetchCurrentCompetition(): Promise<Competition | null> {
+    if (!this.gameContract) {
+      throw new Error("Game contract not initialized");
+    }
+
+    const currentCompetition = await this.gameContract.getCurrentCompetition();
+    if (!currentCompetition) {
+      return null;
+    }
+
+    return currentCompetition;
+  }
+
+  async fetchUserGuesses(sessionId: string): Promise<Guess[]> {
+    if (!this.gameContract) {
+      throw new Error("Game contract not initialized");
+    }
+
+    const guesses = await this.gameContract.getUserGuesses(sessionId);
+    return guesses.map((guess: any) => ({
+      id: guess.id.toString(),
+      sessionId: sessionId,
+      guessedKOLId: guess.guessedKOLId,
+      isCorrect: guess.isCorrect,
+      score: guess.score.toNumber(),
+      createdAt: new Date(guess.timestamp.toNumber() * 1000),
+      updatedAt: new Date(guess.timestamp.toNumber() * 1000),
+    }));
+  }
+
+  async fetchOnchainGameSession(
+    playerAddress: string
+  ): Promise<OnchainGameSession | null> {
+    if (!this.gameContract) {
+      throw new Error("Game contract not initialized");
+    }
+
+    const session = await this.gameContract.getPlayerGameSession(playerAddress);
+    if (!session) {
+      return null;
+    }
+
+    return {
+      player: playerAddress,
+      gameType: session.gameType,
+      startTime: new Date(session.startTime.toNumber() * 1000).toISOString(),
+      game1Completed: session.game1Completed,
+      game2Completed: session.game2Completed,
+      game1Score: session.game1Score.toNumber(),
+      game2Score: session.game2Score.toNumber(),
+      game1GuessesCount: session.game1GuessesCount.toNumber(),
+      game2GuessesCount: session.game2GuessesCount.toNumber(),
+      totalScore: session.totalScore.toNumber(),
+      targetIndex: session.targetIndex.toNumber(),
+      completed: session.completed,
+      score: session.score.toNumber(),
+      deposit: session.deposit.toString(),
+      kol: session.kol,
+      competitionId: session.competitionId.toString(),
+    };
   }
 
   async signAndSendEVMTransaction(
@@ -151,15 +215,15 @@ export class EthereumAdapter implements EVMChainAdapter {
     return this.fetchGameSession(playerAddress) as EVMGameSession;
   }
 
-  async makeEVMGuess(gameType: number, guess: any): Promise<EVMGuessResult> {
+  async makeEVMGuess(
+    sessionId: string,
+    guessedKOLId: string
+  ): Promise<EVMGuessResult> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
 
-    const tx = await this.gameContract.makeGuess(
-      gameType,
-      JSON.stringify(guess)
-    );
+    const tx = await this.gameContract.makeGuess(sessionId, guessedKOLId);
     const receipt = await tx.wait();
 
     return { success: receipt.status === 1 };

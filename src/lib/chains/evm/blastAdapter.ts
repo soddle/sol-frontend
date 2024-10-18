@@ -4,6 +4,7 @@ import {
   SupportedNetwork,
   OnchainGameState,
   OnchainGameSession,
+  GameSessionWithGuesses,
 } from "../types";
 import { EthereumAdapter } from "./ethereumAdapter";
 import { ethers } from "ethers";
@@ -73,7 +74,9 @@ export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
     return gameState;
   }
 
-  async fetchGameSession(playerAddress: string): Promise<OnchainGameSession> {
+  async fetchGameSession(
+    playerAddress: string
+  ): Promise<GameSessionWithGuesses> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
@@ -103,15 +106,12 @@ export class BlastAdapter extends EthereumAdapter implements EVMChainAdapter {
   //   return this.fetchGameSession(await this.blastSigner!.getAddress());
   // }
 
-  async makeGuess(gameType: number, guess: KOL): Promise<boolean> {
+  async makeGuess(sessionId: string, guessedKOLId: string): Promise<boolean> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }
 
-    const tx = await this.gameContract.makeGuess(
-      gameType,
-      JSON.stringify(guess)
-    );
+    const tx = await this.gameContract.makeGuess(sessionId, guessedKOLId);
     const receipt = await tx.wait();
 
     const event = receipt.events?.find((e: any) => e.event === "GuessMade");
