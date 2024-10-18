@@ -35,20 +35,20 @@ const Legend: React.FC<LegendProps> = () => {
   const setIsLegendOpen = ui((state) => state.setIsLegendOpen);
 
   const items: LegendItemProps[] = [
-    { type: LEGEND_BOX_TYPES.Correct, color: LEGEND_BOX_COLORS.Correct },
-    // {
-    //   type: LEGEND_BOX_TYPES.PartiallyCorrect,
-    //   color: LEGEND_BOX_COLORS.PartiallyCorrect,
-    // },
-    { type: LEGEND_BOX_TYPES.Incorrect, color: LEGEND_BOX_COLORS.Incorrect },
+    { type: LEGEND_BOX_TYPES.correct, color: LEGEND_BOX_COLORS.correct },
     {
-      type: LEGEND_BOX_TYPES.Higher,
-      color: LEGEND_BOX_COLORS.Higher,
+      type: LEGEND_BOX_TYPES.partially_correct,
+      color: LEGEND_BOX_COLORS.partially_correct,
+    },
+    { type: LEGEND_BOX_TYPES.incorrect, color: LEGEND_BOX_COLORS.incorrect },
+    {
+      type: LEGEND_BOX_TYPES.higher,
+      color: LEGEND_BOX_COLORS.higher,
       icon: "/images/legend-up.png",
     },
     {
-      type: LEGEND_BOX_TYPES.Lower,
-      color: LEGEND_BOX_COLORS.Lower,
+      type: LEGEND_BOX_TYPES.lower,
+      color: LEGEND_BOX_COLORS.lower,
       icon: "/images/legend-down.png",
     },
   ];

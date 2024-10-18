@@ -108,9 +108,10 @@ export default function GamePlayPageClient() {
       <div className="flex flex-col gap-4">
         <UserInfoCard />
         <TimeSection />
-        {GAME_TYPES.map((type) => (
+        {GAME_TYPES.map((type, index) => (
           <GameButton
             key={type.type}
+            disabled={index !== 0}
             description={type.description}
             type={type.type}
             title={type.title}
