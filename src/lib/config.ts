@@ -120,7 +120,7 @@ const chainConfigs: ChainConfigs = {
         chainId: 168587773,
       },
     },
-    defaultNetwork: "testnet",
+    defaultNetwork: "sepolia",
     abi: blastAbi,
     contractAddresses: {
       game: "0xBlastGameAddress...",

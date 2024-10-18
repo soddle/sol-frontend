@@ -1,10 +1,9 @@
-import { KOL } from "@/types";
 import { Idl } from "@coral-xyz/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Cluster as SolanaCluster } from "@solana/web3.js";
+import { Cluster as SolanaCluster } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
-import { GameSession } from "@prisma/client";
+import { Competition, GameSession, Guess, KOL, Prisma } from "@prisma/client";
 
 // Define supported chains
 export type SupportedChain = "SOLANA" | "ETHEREUM" | "ECLIPSE" | "BLAST";
@@ -30,24 +29,34 @@ export interface ChainConfig {
 }
 export interface BaseChainAdapter {
   chainConfig: ChainConfig;
+  fetchCurrentCompetition(): Promise<Competition | null>;
 
   getProvider(): any;
   signAndSendTransaction(transaction: any): Promise<string>;
   setNetwork(network: SupportedNetwork): void;
-  fetchGameState(): Promise<OnchainGameState>;
-  fetchGameSession(playerAddress: string): Promise<OnchainGameSession>;
-  startGameSession(gameType: number): Promise<GameSession>;
-  makeGuess(gameType: number, guess: KOL): Promise<any>;
+  fetchUserGuesses(sessionId: string): Promise<Guess[]>;
+  fetchGameSession(
+    playerAddress: string
+  ): Promise<GameSessionWithGuesses | null>;
+  fetchOnchainGameSession(
+    playerAddress: string
+  ): Promise<OnchainGameSession | null>;
+  startGameSession(
+    gameType: number,
+    wallet: AnchorWallet
+  ): Promise<GameSession>;
+  makeGuess(sessionId: string, guessedKOLId: string): Promise<any>;
 }
 
 export interface SVMChainAdapter extends BaseChainAdapter {
   connect(wallet: AnchorWallet): Promise<anchor.Program>;
   disconnect(): Promise<void>;
-  getSVMProvider(): SVMProvider;
   signAndSendSVMTransaction(transaction: SVMTransaction): Promise<string>;
   startSVMGameSession(gameType: number): Promise<SVMGameSession>;
-  makeSVMGuess(gameType: number, guess: any): Promise<SVMGuessResult>;
-  getSVMPlayerGameState(address: string): Promise<SVMGameState>;
+  makeSVMGuess(
+    sessionId: string,
+    guessedKOLId: string
+  ): Promise<SVMGuessResult>;
   claimSVMRewards(gameSessionId: string): Promise<SVMClaimResult>;
 }
 
@@ -56,7 +65,10 @@ export interface EVMChainAdapter extends BaseChainAdapter {
 
   signAndSendEVMTransaction(transaction: EVMTransaction): Promise<string>;
   startEVMGameSession(gameType: number, kol: any): Promise<EVMGameSession>;
-  makeEVMGuess(gameType: number, guess: any): Promise<EVMGuessResult>;
+  makeEVMGuess(
+    sessionId: string,
+    guessedKOLId: string
+  ): Promise<EVMGuessResult>;
   getEVMPlayerGameState(address: string): Promise<EVMGameState>;
   claimEVMRewards(gameSessionId: string): Promise<EVMClaimResult>;
 }
@@ -78,9 +90,9 @@ export interface OnchainKOL {
 }
 
 export interface OnchainGameSession {
-  player: PublicKey;
+  player: anchor.Address;
   gameType: number;
-  startTime: BN;
+  startTime: string;
   game1Completed: boolean;
   game2Completed: boolean;
   game1Score: number;
@@ -91,7 +103,7 @@ export interface OnchainGameSession {
   targetIndex: number;
   completed: boolean;
   score: number;
-  deposit: BN;
+  deposit: string;
   kol: OnchainKOL;
   competitionId: string;
 }
@@ -106,6 +118,33 @@ export interface OnchainGameState {
   currentCompetition: OnchainCompetition;
   lastUpdateTime: BN;
 }
+
+// GameSession without user
+export type GameSessionWithGuesses = Prisma.GameSessionGetPayload<{
+  include: { guesses: true };
+}>;
+
+// GameSession with user
+export type GameSessionWithUser = Prisma.GameSessionGetPayload<{
+  include: { guesses: true; competition: true; user: true };
+}>;
+
+// GameSession with partial user info
+export type GameSessionWithPartialUser = Prisma.GameSessionGetPayload<{
+  include: {
+    guesses: true;
+    competition: true;
+    user: { select: { id: true; address: true } };
+  };
+}>;
+
+export type GuessWithFeedbackAndGussedKOL = Prisma.GuessGetPayload<{
+  include: {
+    attributes: true;
+    feedback: true;
+    guessedKOL: true;
+  };
+}>;
 
 export interface SVMProvider {}
 export interface EVMProvider {}

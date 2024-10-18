@@ -5,7 +5,7 @@ import LeaderboardTable from "./leaderboardTable";
 import PaginationIndicator from "./paginationIndicator";
 import TimerDisplay from "@/components/ui/timeDisplay";
 import { LeaderboardEntry } from "@/types";
-import { fetchLeaderboard } from "@/lib/api";
+// import { fetchLeaderboard } from "@/lib/api";
 
 const LeaderboardContainer: React.FC = () => {
   const [selectedLeaderboardType, setSelectedLeaderboardType] = useState<
@@ -24,25 +24,25 @@ const LeaderboardContainer: React.FC = () => {
       try {
         const gameType = selectedGameType === "Attributes" ? 2 : 1;
         // const leaderboardType = getLeaderboardType(selectedLeaderboardType);
-        const response = await fetchLeaderboard(
-          gameType,
-          selectedLeaderboardType
-        );
-        console.log("leaderboard response: ", response);
+        // const response = await fetchLeaderboard(
+        //   gameType,
+        //   selectedLeaderboardType
+        // );
+        // console.log("leaderboard response: ", response);
 
-        if (response.success) {
-          const formattedData = response.data.map((entry, index) => ({
-            rank: index + 1,
-            reward: calculateReward(index + 1),
-            name: entry.player,
-            points: entry.totalScore,
-          }));
+        // if (response.success) {
+        //   const formattedData = response.data.map((entry, index) => ({
+        //     rank: index + 1,
+        //     reward: calculateReward(index + 1),
+        //     name: entry.player,
+        //     points: entry.totalScore,
+        //   }));
 
-          setLeaderboardData(formattedData);
-          setTotalEntries(formattedData.length);
-        } else {
-          console.error("Failed to fetch leaderboard:", response.message);
-        }
+        //   setLeaderboardData(formattedData);
+        //   setTotalEntries(formattedData.length);
+        // } else {
+        //   console.error("Failed to fetch leaderboard:", response.message);
+        // }
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       }

@@ -1,10 +1,7 @@
 "use client";
-import { useChainAdapter } from "@/hooks/useChainAdapter";
 import { DynamicGlowingTime } from "./glowingTime";
 
 export default function TimeSection() {
-  const adapter = useChainAdapter();
-  const gameState = adapter.fetchGameState();
   return (
     <section
       className="bg-[#111411] border-[#03B500] border p-4"
@@ -15,7 +12,7 @@ export default function TimeSection() {
       <p className="text-white text-center text-2xl mb-2">
         Guess the correct crypto personality and win rewards!
       </p>
-      <DynamicGlowingTime />
+      {<DynamicGlowingTime />}
     </section>
   );
 }

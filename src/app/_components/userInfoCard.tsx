@@ -20,11 +20,11 @@ const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function UserInfoCard() {
   const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
+
   const { setVisible } = useWalletModal();
   const chainAdapter = useChainAdapter();
-  const { currentChain } = useChain();
-  const chainConfig = chainAdapter.getChainConfig();
-  const currentNetwork = chainAdapter.getCurrentNetwork();
+  const { currentChain, currentNetwork } = useChain();
+  const chainConfig = chainAdapter.chainConfig;
 
   const [balance, setBalance] = useState<number | null>(null);
   const [solPrice, setSolPrice] = useState<number | null>(null);
@@ -103,7 +103,7 @@ export default function UserInfoCard() {
       <div className="flex items-center">
         <Link href={"/profile"}>
           <Image
-            src="/user-icon.svg"
+            src="/icons/user-icon.svg"
             width={25}
             height={25}
             alt="user"
@@ -124,12 +124,12 @@ export default function UserInfoCard() {
             <p>{publicKey?.toBase58()}</p>
           </TooltipContent>
         </Tooltip>
-        <p className="ml-2 text-sm">
-          ({currentChain}) ({chainAdapter.getCurrentNetwork()})
+        <p className="ml-2 text-xs">
+          ({currentChain}) ({currentNetwork})
         </p>
 
         <Image
-          src={"/logout.svg"}
+          src={"/icons/logout.svg"}
           width={30}
           height={30}
           alt="Logout"
@@ -140,7 +140,7 @@ export default function UserInfoCard() {
       <div className="flex gap-3 items-center">
         <div className="flex items-center justify-center">
           <Image
-            src={"/solana.svg"}
+            src={"/icons/solana.svg"}
             width={25}
             height={25}
             alt="ETH icon"
@@ -198,7 +198,7 @@ function NoWallet({
   );
 }
 
-function Skeleton() {
+export function Skeleton() {
   return (
     <div
       className="p-5 grid gap-5 border-[#03B500] border bg-[#111411] relative overflow-hidden animate-pulse"

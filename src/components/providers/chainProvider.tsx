@@ -17,7 +17,7 @@ const ChainContext = createContext<
 >(undefined);
 
 export function ChainProvider({ children }: { children: React.ReactNode }) {
-  const [currentChain, setCurrentChain] = useState<SupportedChain>("ECLIPSE");
+  const [currentChain, setCurrentChain] = useState<SupportedChain>("SOLANA");
   const [currentNetwork, setCurrentNetwork] = useState<Cluster>("devnet");
   const chainManager = new ChainManager();
 

@@ -1,56 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
 import Image from "next/image";
-import { KolWithTweets } from "@/types";
-import { fetchGameSessionFromApi } from "@/lib/api";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
+import { KOL } from "@prisma/client";
 
 interface KOLSearchProps {
-  kols: KolWithTweets[];
-  handleGuess: (kol: KolWithTweets) => void;
+  kols: KOL[];
+  handleGuess: (kol: KOL) => void;
 }
 
 const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [availableKols, setAvailableKols] = useState<KolWithTweets[]>([]);
-  const [suggestions, setSuggestions] = useState<KolWithTweets[]>([]);
+  const [suggestions, setSuggestions] = useState<KOL[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const wallet = useWallet();
-
-  useEffect(() => {
-    async function initializeAvailableKols() {
-      setIsLoading(true);
-      setError(null);
-      if (wallet.publicKey) {
-        try {
-          const gameSession = await fetchGameSessionFromApi({
-            publicKey: wallet.publicKey.toString(),
-          });
-          const guessedKolIds = new Set(
-            gameSession.game1Guesses.map((guess) => guess.guess.id)
-          );
-          const filteredKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
-          setAvailableKols(filteredKols);
-          if (filteredKols.length === 0) {
-            setError("You've guessed all available KOLs!");
-          }
-        } catch (error) {
-          console.error("Error fetching game session:", error);
-          setError("Unable to fetch game session. Using all KOLs.");
-          setAvailableKols(kols);
-        }
-      } else {
-        setAvailableKols(kols);
-      }
-      setIsLoading(false);
-    }
-
-    initializeAvailableKols();
-  }, [kols, wallet.publicKey]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -70,7 +34,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
 
   useEffect(() => {
     if (searchTerm.length > 0) {
-      const filteredKOLs = availableKols.filter((kol) =>
+      const filteredKOLs = kols.filter((kol) =>
         kol.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setSuggestions(filteredKOLs);
@@ -79,40 +43,17 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
       setSuggestions([]);
       setIsDropdownOpen(false);
     }
-  }, [searchTerm, availableKols]);
+  }, [searchTerm, kols]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setIsDropdownOpen(true);
   };
 
-  const handleSelectKOL = async (kol: KolWithTweets) => {
+  const handleSelectKOL = (kol: KOL) => {
     setSearchTerm("");
     setIsDropdownOpen(false);
     handleGuess(kol);
-
-    if (wallet.publicKey) {
-      setIsLoading(true);
-      try {
-        const gameSess = await fetchGameSessionFromApi({
-          publicKey: wallet.publicKey.toString(),
-        });
-        const guessedKolIds = new Set(
-          gameSess.game1Guesses.map((guess) => guess.guess.id)
-        );
-        const updatedKols = availableKols.filter(
-          (k) => !guessedKolIds.has(k.id)
-        );
-        setAvailableKols(updatedKols);
-        if (updatedKols.length === 0) {
-          setError("You've guessed all available KOLs!");
-        }
-      } catch (error) {
-        console.error("Error updating available KOLs:", error);
-        setError("Unable to update KOL list. Some KOLs may not be available.");
-      }
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -126,27 +67,7 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
       />
       {isDropdownOpen && (
         <ul className="absolute z-20 w-full mt-1 bg-[#111411] border border-[#2FFF2B] rounded-md shadow-lg max-h-[40vh] overflow-auto no-scrollbar">
-          {isLoading ? (
-            <li className="flex justify-center items-center h-20">
-              <motion.div
-                className="w-8 h-8 border-2 border-[#2FFF2B] rounded-full"
-                animate={{
-                  rotate: 360,
-                  borderTopColor: "#2FFF2B",
-                  borderRightColor: "#2FFF2B80",
-                  borderBottomColor: "#2FFF2B40",
-                  borderLeftColor: "#2FFF2B20",
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-            </li>
-          ) : error ? (
-            <li className="py-4 px-4 text-[#2FFF2B] text-center">{error}</li>
-          ) : suggestions.length > 0 ? (
+          {suggestions.length > 0 ? (
             suggestions.map((kol) => (
               <ListItem kol={kol} key={kol.id} handleSelect={handleSelectKOL} />
             ))
@@ -165,8 +86,8 @@ function ListItem({
   kol,
   handleSelect,
 }: {
-  kol: KolWithTweets;
-  handleSelect: (kol: KolWithTweets) => void;
+  kol: KOL;
+  handleSelect: (kol: KOL) => void;
 }) {
   return (
     <li

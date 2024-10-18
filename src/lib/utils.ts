@@ -68,3 +68,26 @@ export function shortenAddress(
 
   return `${start}...${end}`;
 }
+
+/**
+ * Safely stringify an object, removing any non-JSON-serializable properties.
+ * @template T The type of the input object
+ * @param {T} obj The object to stringify
+ * @returns {Partial<T>} A new object with only JSON-serializable properties
+ */
+export const safeStringify = <T>(obj: T): Partial<T> => {
+  return JSON.parse(JSON.stringify(obj)) as Partial<T>;
+};
+
+export function safeHexToDate(hexTimestamp: string): Date | null {
+  try {
+    const milliseconds = parseInt(hexTimestamp, 16);
+    if (isNaN(milliseconds)) {
+      return null;
+    }
+    return new Date(milliseconds);
+  } catch (error) {
+    console.error("Error converting hex to date:", error);
+    return null;
+  }
+}

@@ -48,7 +48,7 @@ export class ChainManager {
   // }
 
   getAdapter = (chain: SupportedChain): ChainAdapter => {
-    const adapter = this.adapters.get(chain.toLowerCase() as SupportedChain);
+    const adapter = this.adapters.get(chain);
     if (!adapter) {
       throw new Error(`Unsupported chain: ${chain}`);
     }
