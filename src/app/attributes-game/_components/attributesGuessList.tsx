@@ -8,7 +8,7 @@ import { KOL } from "@/types";
 import { Guess } from "@prisma/client";
 
 interface AttributesGuessListProps {
-  guesses: Guess[];
+  guesses: GuessWithFeedbackAndGussedKOL[];
   loadingGuesses: boolean;
 }
 
@@ -120,12 +120,12 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   );
 };
 interface TableRowProps {
-  guess: Guess;
+  guess: GuessWithFeedbackAndGussedKOL;
   index: number;
 }
 
 function TableRow({ guess }: TableRowProps) {
-  const attributes = guess.attributes as KOL;
+  const attributes = guess.guessedKOL;
   const feedback = guess.feedback as {
     pfpType: string;
     age: string;
@@ -170,7 +170,7 @@ function TableRow({ guess }: TableRowProps) {
       </Cell>
       <Cell feedback={feedback.twitterAccountCreationYear}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.accountCreation}
+          {attributes.twitterAccountCreationYear}
         </span>
       </Cell>
       <Cell feedback={feedback.followers}>

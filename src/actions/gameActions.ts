@@ -250,7 +250,6 @@ export async function makeGuess(
         sessionId: sessionId,
         guessedKOLId: guessedKOLId,
         isCorrect,
-        attributes: guessedKOL,
         feedback: comparisonResult,
         score,
         attemptNumber: gameSession.guesses.length + 1,

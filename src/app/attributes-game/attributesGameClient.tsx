@@ -13,7 +13,10 @@ import { Competition, KOL } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
-import { GameSessionWithGuesses } from "@/lib/chains/types";
+import {
+  GameSessionWithGuesses,
+  GuessWithFeedbackAndGussedKOL,
+} from "@/lib/chains/types";
 
 export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
   const [currentCompetition, setCurrentCompetition] =
@@ -187,7 +190,7 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
 
         <Container>
           <AttributesGuessListTable
-            guesses={gameSession?.guesses || []}
+            guesses={gameSession?.guesses as GuessWithFeedbackAndGussedKOL[]}
             loadingGuesses={false}
           />
         </Container>
