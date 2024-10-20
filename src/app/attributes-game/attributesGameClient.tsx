@@ -9,7 +9,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
 import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
-import { Competition, KOL } from "@prisma/client";
+import { KOL } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
@@ -19,8 +19,6 @@ import {
 } from "@/lib/chains/types";
 
 export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
-  const [currentCompetition, setCurrentCompetition] =
-    useState<Competition | null>(null);
   const [gameSession, setGameSession] = useState<GameSessionWithGuesses | null>(
     null
   );
@@ -54,8 +52,6 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
           router.push("/");
           return;
         }
-        setCurrentCompetition(competition);
-
         const session = await fetchGameSession(publicKey.toString());
         if (!session) {
           toast.error("No active game session!");

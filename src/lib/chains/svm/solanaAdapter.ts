@@ -160,20 +160,7 @@ export class SolanaAdapter implements SVMChainAdapter {
 
   fetchCurrentCompetition = async (): Promise<Competition | null> => {
     try {
-      // if (!this.program) throw new Error("Program not initialized");
-
-      // Fetch on-chain game state
-      const [gameStatePDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("game_state")],
-        //@ts-expect-error we don't really need programId to fetchState
-        this.program.programId
-      );
-      // @ts-expect-error types
-      const gameState = (await this.program.account.gameState.fetch(
-        gameStatePDA
-      )) as OnchainGameState;
-
-      console.log("On-chain game state:", gameState);
+      const gameState = await this.fetchOnChainGameState();
 
       // Use the upsertCurrentCompetition server action
       const competition = await upsertCurrentCompetition({
@@ -237,6 +224,24 @@ export class SolanaAdapter implements SVMChainAdapter {
     );
 
     return gameSessionAccount as OnchainGameSession;
+  };
+
+  fetchOnChainGameState = async (): Promise<OnchainGameState> => {
+    const program = await this.connect(this.wallet!);
+    if (!program) throw new Error("Program not initialized");
+
+    // Fetch on-chain game state
+    const [gameStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("game_state")],
+      program.programId
+    );
+    // @ts-expect-error types
+    const gameState = (await program.account.gameState.fetch(
+      gameStatePDA
+    )) as OnchainGameState;
+
+    console.log("On-chain game state:", gameState);
+    return gameState;
   };
 
   fetchGameSession = async (

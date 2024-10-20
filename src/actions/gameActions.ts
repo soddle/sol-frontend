@@ -1,10 +1,14 @@
 "use server";
 import { calculateScore } from "@/lib/chains/svm/solanaAdapter";
-import { GameSessionWithGuesses, OnchainGameSession } from "@/lib/chains/types";
+import {
+  GameSessionWithGuesses,
+  GuessWithSessionAndGuessedKol,
+  OnchainGameSession,
+} from "@/lib/chains/types";
 import { compareKOLs } from "@/lib/cmp";
 import { prisma } from "@/lib/prisma";
 import { rawKOL } from "@/types/kol";
-import { Competition, GameSession, Guess } from "@prisma/client";
+import { Competition, GameSession, Guess, Prisma } from "@prisma/client";
 
 const onChainId = "COMP23201";
 
@@ -262,7 +266,7 @@ export async function fetchUserGuesses(sessionId: string): Promise<Guess[]> {
 export async function makeGuess(
   sessionId: string,
   guessedKOLId: string
-): Promise<Guess> {
+): Promise<GuessWithSessionAndGuessedKol> {
   try {
     const gameSession = await prisma.gameSession.findUnique({
       where: { id: sessionId },
@@ -305,7 +309,7 @@ export async function makeGuess(
         score,
         attemptNumber: gameSession.guesses.length + 1,
       },
-      include: { guessedKOL: true },
+      include: { guessedKOL: true, session: true },
     });
 
     if (isCorrect) {

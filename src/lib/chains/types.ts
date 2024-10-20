@@ -119,6 +119,13 @@ export interface OnchainGameState {
   lastUpdateTime: BN;
 }
 
+export type GuessWithSessionAndGuessedKol = Prisma.GuessGetPayload<{
+  include: {
+    session: true;
+    guessedKOL: true;
+  };
+}>;
+
 // GameSession without user
 export type GameSessionWithGuesses = Prisma.GameSessionGetPayload<{
   include: { guesses: true };
