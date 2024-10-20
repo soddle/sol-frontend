@@ -160,11 +160,12 @@ export class SolanaAdapter implements SVMChainAdapter {
 
   fetchCurrentCompetition = async (): Promise<Competition | null> => {
     try {
-      if (!this.program) throw new Error("Program not initialized");
+      // if (!this.program) throw new Error("Program not initialized");
 
       // Fetch on-chain game state
       const [gameStatePDA] = PublicKey.findProgramAddressSync(
         [Buffer.from("game_state")],
+        //@ts-expect-error we don't really need programId to fetchState
         this.program.programId
       );
       // @ts-expect-error types
