@@ -11,6 +11,7 @@ import {
   SupportedNetwork,
   OnchainGameSession,
   GameSessionWithGuesses,
+  OnchainGameState,
 } from "../types";
 import {
   createGameSession,
@@ -18,6 +19,7 @@ import {
   fetchLatestCompetition,
   fetchUserGuesses,
   makeGuess,
+  upsertCurrentCompetition,
 } from "@/actions/gameActions";
 import { fetchRandomKOL } from "@/actions/kolActions";
 import { Competition, GameSession, Guess, KOL } from "@prisma/client";
@@ -158,12 +160,28 @@ export class SolanaAdapter implements SVMChainAdapter {
 
   fetchCurrentCompetition = async (): Promise<Competition | null> => {
     try {
-      await this.connect(this.wallet!);
-      const competition = await fetchLatestCompetition();
-      if (!competition) {
-        console.log("No current competition found");
-        return null;
-      }
+      if (!this.program) throw new Error("Program not initialized");
+
+      // Fetch on-chain game state
+      const [gameStatePDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("game_state")],
+        this.program.programId
+      );
+      // @ts-expect-error types
+      const gameState = (await this.program.account.gameState.fetch(
+        gameStatePDA
+      )) as OnchainGameState;
+
+      console.log("On-chain game state:", gameState);
+
+      // Use the upsertCurrentCompetition server action
+      const competition = await upsertCurrentCompetition({
+        onChainId: gameState.currentCompetition.id,
+        startTime: gameState.currentCompetition.startTime.toNumber(),
+        endTime: gameState.currentCompetition.endTime.toNumber(),
+        prize: 10000,
+      });
+
       return competition;
     } catch (error) {
       console.error("Error fetching current competition:", error);
@@ -312,7 +330,7 @@ export class SolanaAdapter implements SVMChainAdapter {
     if (!program) throw new Error("🚫 Program not initialized");
     const playerPublicKey = program.provider.publicKey;
 
-    console.log("🕵️ Checking if an active session is available...");
+    // console.log("🕵️ Checking if an active session is available...");
     // const activeSession = await fetchCurrentActiveSession(
     //   playerPublicKey?.toString()!
     // );

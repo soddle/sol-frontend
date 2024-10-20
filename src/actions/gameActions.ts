@@ -4,7 +4,7 @@ import { GameSessionWithGuesses, OnchainGameSession } from "@/lib/chains/types";
 import { compareKOLs } from "@/lib/cmp";
 import { prisma } from "@/lib/prisma";
 import { rawKOL } from "@/types/kol";
-import { Competition, GameSession, Guess, Prisma } from "@prisma/client";
+import { Competition, GameSession, Guess } from "@prisma/client";
 
 const onChainId = "COMP23201";
 
@@ -15,8 +15,59 @@ function generateObjectId(): string {
   return new ObjectId().toHexString();
 }
 
+export async function upsertCurrentCompetition(onChainData: {
+  onChainId: string;
+  startTime: number;
+  endTime: number;
+  prize: number;
+}): Promise<Competition> {
+  // Check if the competition already exists in the database
+  let competition = await prisma.competition.findUnique({
+    where: { onChainId: onChainData.onChainId },
+  });
+
+  if (!competition) {
+    // If the competition doesn't exist, create a new one
+    competition = await prisma.competition.create({
+      data: {
+        id: generateObjectId(),
+        onChainId: onChainData.onChainId,
+        startTime: new Date(onChainData.startTime * 1000),
+        endTime: new Date(onChainData.endTime * 1000),
+        prize: onChainData.prize,
+        isActive: true,
+      },
+    });
+
+    console.log("New competition created:", competition);
+  } else {
+    // If the competition exists, update it
+    competition = await prisma.competition.update({
+      where: { id: competition.id },
+      data: {
+        startTime: new Date(onChainData.startTime * 1000),
+        endTime: new Date(onChainData.endTime * 1000),
+        prize: onChainData.prize,
+        isActive: true,
+      },
+    });
+
+    console.log("Existing competition updated:", competition);
+  }
+
+  // Mark all other competitions as inactive
+  await prisma.competition.updateMany({
+    where: {
+      id: { not: competition.id },
+      isActive: true,
+    },
+    data: { isActive: false },
+  });
+
+  return competition;
+}
+
 export async function fetchLatestCompetition(): Promise<Competition | null> {
-  // createDummyCompetition();
   try {
     const competition = await prisma.competition.findFirst({
       where: { isActive: true },
@@ -272,39 +323,5 @@ export async function makeGuess(
   } catch (error) {
     console.error("Error making guess:", error);
     throw new Error("Failed to make guess");
-  }
-}
-
-/**
- * mkdir -p ~/data/rs0-0 ~/data/rs0-1 ~/data/rs0-2
- * mongod --replSet rs0 --port 27017 --dbpath ~/data/rs0-0 --oplogSize 128
-mongod --replSet rs0 --port 27018 --dbpath ~/data/rs0-1 --oplogSize 128
-mongod --replSet rs0 --port 27019 --dbpath ~/data/rs0-2 --oplogSize 128
- */
-
-export async function createDummyCompetition(): Promise<Competition> {
-  try {
-    // Set all existing competitions to inactive
-    await prisma.competition.updateMany({
-      where: { isActive: true },
-      data: { isActive: false },
-    });
-
-    // Create a dummy competition
-    const dummyCompetition = await prisma.competition.create({
-      data: {
-        id: generateObjectId(),
-        startTime: new Date(),
-        endTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
-        prize: 1000000, // 1 million (adjust as needed)
-        isActive: true,
-        onChainId,
-      },
-    });
-
-    return dummyCompetition;
-  } catch (error) {
-    console.error("Error creating dummy competition:", error);
-    throw error;
   }
 }
