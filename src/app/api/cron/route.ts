@@ -9,13 +9,13 @@ import {
 import { rateLimit } from "@/lib/rateLimit";
 import { getSecureKeypair } from "@/lib/keyManagement";
 import { logger } from "@/lib/logger";
-import { solanaIdl } from "@/lib/constants";
+import * as anchor from "@coral-xyz/anchor";
+// import { solanaIdl } from "@/lib/constants";
 import { chainConfigs } from "@/lib/config";
-// import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { SoddleGame } from "@/lib/constants/soddle_game";
 
-export const runtime = "nodejs";
+// export const runtime = "nodejs";
 
-// useAnchorWallet;
 export async function GET(request: Request) {
   try {
     // Verify authentication token
@@ -49,40 +49,22 @@ export async function GET(request: Request) {
     const cronKeypair = await getSecureKeypair();
     const programId = new PublicKey(chainConfigs.SOLANA.contractAddresses.game);
 
+    const wallet = new anchor.Wallet(cronKeypair);
+
+    const anchorProvider = new anchor.AnchorProvider(connection, wallet);
+
+    anchor.setProvider(anchorProvider);
+
     const [gameStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("game_state")],
       programId
     );
+    const program = anchor.workspace.Game as anchor.Program<SoddleGame>;
+    const gameAccount = program.account.gameState.fetch(gameStatePDA);
 
-    // creating tx here manually (with coral-xyz) cuz anchor.Wallet refused to work
-    const instruction = new TransactionInstruction({
-      keys: [
-        { pubkey: gameStatePDA, isSigner: false, isWritable: true },
-        { pubkey: cronKeypair.publicKey, isSigner: true, isWritable: true },
-        {
-          pubkey: SystemProgram.programId,
-          isSigner: false,
-          isWritable: false,
-        },
-      ],
-      programId,
-      data: Buffer.from([0]), // Assuming 0 is the instruction index for initializeGame
-    });
+    console.log(gameAccount);
 
-    const transaction = new Transaction().add(instruction);
-    transaction.feePayer = cronKeypair.publicKey;
-
-    const { blockhash } = await connection.getLatestBlockhash();
-    transaction.recentBlockhash = blockhash;
-
-    transaction.sign(cronKeypair);
-    const txId = await connection.sendRawTransaction(transaction.serialize());
-
-    await connection.confirmTransaction(txId);
-
-    logger.info(`Game initialized with transaction: ${txId}`);
-
-    return NextResponse.json({ success: true, transaction: txId });
+    return NextResponse.json({ success: true });
   } catch (error) {
     logger.error("Failed to initialize game:", error);
     return NextResponse.json(

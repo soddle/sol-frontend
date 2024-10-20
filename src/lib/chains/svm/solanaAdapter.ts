@@ -313,13 +313,13 @@ export class SolanaAdapter implements SVMChainAdapter {
     const playerPublicKey = program.provider.publicKey;
 
     console.log("🕵️ Checking if an active session is available...");
-    const activeSession = await fetchCurrentActiveSession(
-      playerPublicKey?.toString()!
-    );
-    if (activeSession) {
-      console.log("🎉 Active session found! Returning existing session.");
-      return activeSession;
-    }
+    // const activeSession = await fetchCurrentActiveSession(
+    //   playerPublicKey?.toString()!
+    // );
+    // if (activeSession) {
+    //   console.log("🎉 Active session found! Returning existing session.");
+    //   return activeSession;
+    // }
 
     console.log("🆕 No active session found. Starting a new game session...");
     const competition = await this.fetchCurrentCompetition();
