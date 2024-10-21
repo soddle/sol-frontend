@@ -24,6 +24,7 @@ import {
 import { fetchRandomKOL } from "@/actions/kolActions";
 import { Competition, GameSession, Guess } from "@prisma/client";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { fetchLeaderboard } from "@/actions/leaderboardActions";
 
 export class SolanaAdapter implements SVMChainAdapter {
   private connection: Connection;
@@ -393,6 +394,26 @@ export class SolanaAdapter implements SVMChainAdapter {
 
   makeGuess = async (sessionId: string, guessedKOLId: string): Promise<any> => {
     return makeGuess(sessionId, guessedKOLId);
+  };
+
+  // Leaderboard functions
+  fetchLeaderboard = async (
+    gameType: number,
+    leaderboardType: "today" | "yesterday" | "alltime"
+  ): Promise<any> => {
+    return fetchLeaderboard(gameType, leaderboardType);
+  };
+
+  getUserRank = async (
+    walletAddress: string,
+    gameType: number,
+    leaderboardType: "today" | "yesterday" | "alltime"
+  ): Promise<number | null> => {
+    const leaderboard = await this.fetchLeaderboard(gameType, leaderboardType);
+    const userEntry = leaderboard.find(
+      (entry: any) => entry.player === walletAddress
+    );
+    return userEntry ? userEntry.rank : null;
   };
 }
 

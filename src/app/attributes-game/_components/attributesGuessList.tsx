@@ -154,7 +154,7 @@ function TableRow({ guess }: TableRowProps) {
 
       <Cell feedback={feedback.age}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.age}
+          {attributes.ageRange}
         </span>
       </Cell>
       <Cell feedback={feedback.country}>
@@ -169,7 +169,7 @@ function TableRow({ guess }: TableRowProps) {
       </Cell>
       <Cell feedback={feedback.twitterAccountCreationYear}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.twitterAccountCreationYear}
+          {attributes.twitterFollowersRange}
         </span>
       </Cell>
       <Cell feedback={feedback.followers}>

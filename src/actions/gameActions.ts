@@ -1,14 +1,9 @@
 "use server";
 import { calculateScore } from "@/lib/chains/svm/solanaAdapter";
-import {
-  GameSessionWithGuesses,
-  GuessWithSessionAndGuessedKol,
-  OnchainGameSession,
-} from "@/lib/chains/types";
+import { GameSessionWithGuesses, OnchainGameSession } from "@/lib/chains/types";
 import { compareKOLs } from "@/lib/cmp";
 import { prisma } from "@/lib/prisma";
-import { rawKOL } from "@/types/kol";
-import { Competition, GameSession, Guess, Prisma } from "@prisma/client";
+import { Competition, GameSession, Guess } from "@prisma/client";
 
 const onChainId = "COMP23201";
 
@@ -260,12 +255,16 @@ export async function makeGuess(
     });
 
     if (isCorrect) {
+      const playDuration = Math.round(
+        (newGuess.createdAt.getTime() - gameSession.startTime.getTime()) / 1000
+      );
       await prisma.gameSession.update({
         where: { id: sessionId },
         data: {
           completed: true,
-          endTime: new Date(),
+          endTime: newGuess.createdAt,
           score: score,
+          playDuration: playDuration,
         },
       });
     }

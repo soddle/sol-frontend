@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 
 interface DateSelectorProps {
-  selectedDate: "weekly" | "monthly" | "alltime";
-  onDateChange: (date: "weekly" | "monthly" | "alltime") => void;
+  selectedDate: "today" | "yesterday" | "alltime";
+  onDateChange: (date: "today" | "yesterday" | "alltime") => void;
 }
 
 const DateSelector: React.FC<DateSelectorProps> = ({
@@ -13,24 +13,19 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const dateOptions = [
-    { label: "Today", value: "monthly" },
-    { label: "Yesterday", value: "weekly" },
-    // { label: "This Month", value: "monthly" },
+  const dateOptions: {
+    label: string;
+    value: "today" | "yesterday" | "alltime";
+  }[] = [
+    { label: "Today", value: "today" },
+    { label: "Yesterday", value: "yesterday" },
+    { label: "All Time", value: "alltime" },
   ];
 
-  const handleDateChange = (date: "weekly" | "monthly" | "alltime") => {
+  const handleDateChange = (date: "today" | "yesterday" | "alltime") => {
     onDateChange(date);
     setIsOpen(false);
   };
-
-  // const formatDate = (date: Date) => {
-  //   return date.toLocaleDateString("en-US", {
-  //     month: "short",
-  //     day: "numeric",
-  //     year: "numeric",
-  //   });
-  // };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -68,11 +63,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           {dateOptions.map((option, index) => (
             <button
               key={option.label}
-              onClick={() =>
-                handleDateChange(
-                  option.value as "weekly" | "monthly" | "alltime"
-                )
-              }
+              onClick={() => handleDateChange(option.value)}
               className={`block w-full px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base text-left text-white hover:bg-green-600 hover:text-white transition-all duration-300 ease-in-out ${
                 index === 0
                   ? "rounded-t-lg"

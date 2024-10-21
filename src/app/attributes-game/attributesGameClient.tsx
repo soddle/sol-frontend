@@ -104,10 +104,9 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
       uiStore.setLoading(true);
       console.log("gameSession", gameSession);
       const guess = await makeGuess(gameSession.id, kol.id);
-      setGuesses((prevGuesses) => [
-        ...prevGuesses,
-        guess as GuessWithGuessedKol,
-      ]);
+      setGuesses((prevGuesses) =>
+        [...prevGuesses, guess as GuessWithGuessedKol].reverse()
+      );
       setRemainingGuesses((prevGuesses) =>
         prevGuesses.filter((g) => g.id !== kol.id)
       );

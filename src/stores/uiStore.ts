@@ -21,16 +21,21 @@ interface UIActions {
   toggleSidebar: () => void;
 }
 
+export type UiStore = UIState & UIActions;
+const initialState: UIState = {
+  isLoading: false,
+  error: null,
+  isModalOpen: false,
+  modalContent: null,
+  theme: "light",
+  sidebarOpen: false,
+  isLegendOpen: true,
+};
+
 export const createUIStore = () =>
   create<UIState & UIActions>()(
     immer((set) => ({
-      isLoading: false,
-      error: null,
-      isModalOpen: false,
-      modalContent: null,
-      theme: "light",
-      sidebarOpen: false,
-      isLegendOpen: true,
+      ...initialState,
       setLoading: (isLoading) =>
         set((state) => {
           state.isLoading = isLoading;

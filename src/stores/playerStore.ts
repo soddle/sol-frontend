@@ -38,27 +38,32 @@ interface PlayerActions {
   resetPlayerState: () => void;
 }
 
+export type PlayerStore = PlayerState & PlayerActions;
+
+const initialState = {
+  walletPublicKey: null,
+  balance: 0,
+  game1Completed: false,
+  game2Completed: false,
+  game3Completed: false,
+  game1Score: 0,
+  game2Score: 0,
+  game3Score: 0,
+  totalScore: 0,
+  game1GuessesCount: 0,
+  game2GuessesCount: 0,
+  game3GuessesCount: 0,
+  currentGameType: null,
+  startTime: null,
+  deposit: null,
+  competitionId: null,
+  currentKOL: null,
+};
+
 export const createPlayerStore = () =>
   create(
     immer<PlayerState & PlayerActions>((set) => ({
-      walletPublicKey: null,
-      balance: 0,
-      game1Completed: false,
-      game2Completed: false,
-      game3Completed: false,
-      game1Score: 0,
-      game2Score: 0,
-      game3Score: 0,
-      totalScore: 0,
-      game1GuessesCount: 0,
-      game2GuessesCount: 0,
-      game3GuessesCount: 0,
-      currentGameType: null,
-      startTime: null,
-      deposit: null,
-      competitionId: null,
-      currentKOL: null,
-
+      ...initialState,
       setWalletPublicKey: (publicKey) =>
         set((state) => {
           state.walletPublicKey = publicKey;

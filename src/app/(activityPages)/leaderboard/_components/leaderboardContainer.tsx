@@ -5,44 +5,52 @@ import LeaderboardTable from "./leaderboardTable";
 import PaginationIndicator from "./paginationIndicator";
 import TimerDisplay from "@/components/ui/timeDisplay";
 import { LeaderboardEntry } from "@/types";
-// import { fetchLeaderboard } from "@/lib/api";
+import {
+  fetchLeaderboard,
+  getUserRankAndScore,
+} from "@/actions/leaderboardActions";
 
 const LeaderboardContainer: React.FC = () => {
   const [selectedLeaderboardType, setSelectedLeaderboardType] = useState<
-    "weekly" | "monthly" | "alltime"
-  >("weekly");
+    "today" | "yesterday" | "alltime"
+  >("today");
   const [selectedGameType, setSelectedGameType] =
     useState<string>("Attributes");
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
     []
   );
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalEntries, setTotalEntries] = useState<number>(0);
+  const [userRankAndScore, setUserRankAndScore] = useState<{
+    rank: number | null;
+    score: number;
+    totalPlayers: number;
+  } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalEntries, setTotalEntries] = useState(0);
+  const entriesPerPage = 10;
 
   useEffect(() => {
     const fetchLeaderboardData = async () => {
       try {
         const gameType = selectedGameType === "Attributes" ? 2 : 1;
-        // const leaderboardType = getLeaderboardType(selectedLeaderboardType);
-        // const response = await fetchLeaderboard(
-        //   gameType,
-        //   selectedLeaderboardType
-        // );
-        // console.log("leaderboard response: ", response);
+        const response = await fetchLeaderboard(
+          gameType,
+          selectedLeaderboardType,
+          currentPage,
+          entriesPerPage
+        );
+        setLeaderboardData(response.entries);
+        setTotalEntries(response.totalEntries);
+        console.log(response);
 
-        // if (response.success) {
-        //   const formattedData = response.data.map((entry, index) => ({
-        //     rank: index + 1,
-        //     reward: calculateReward(index + 1),
-        //     name: entry.player,
-        //     points: entry.totalScore,
-        //   }));
-
-        //   setLeaderboardData(formattedData);
-        //   setTotalEntries(formattedData.length);
-        // } else {
-        //   console.error("Failed to fetch leaderboard:", response.message);
-        // }
+        // Fetch user rank and score
+        const userWallet = "USER_WALLET_ADDRESS"; // Replace with actual user wallet address
+        const userRankAndScore = await getUserRankAndScore(
+          userWallet,
+          gameType,
+          selectedLeaderboardType
+        );
+        console.log(userRankAndScore);
+        setUserRankAndScore(userRankAndScore);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       }
@@ -64,7 +72,10 @@ const LeaderboardContainer: React.FC = () => {
         selectedType={selectedGameType}
         onTypeChange={setSelectedGameType}
       />
-      <LeaderboardTable data={leaderboardData} />
+      <LeaderboardTable
+        data={leaderboardData}
+        userWallet="USER_WALLET_ADDRESS"
+      />
       <PaginationIndicator
         currentPage={currentPage}
         totalEntries={totalEntries}
@@ -75,22 +86,3 @@ const LeaderboardContainer: React.FC = () => {
 };
 
 export default LeaderboardContainer;
-
-// function getLeaderboardType(date: Date): string {
-//   // return "weekly";
-//   const today = new Date();
-//   if (
-//     date.getFullYear() === today.getFullYear() &&
-//     date.getMonth() === today.getMonth()
-//   ) {
-//     return "monthly";
-//   } else {
-//     return "alltime";
-//   }
-// }
-
-function calculateReward(rank: number): string {
-  const percentage = Math.min(5 + Math.floor(rank / 20), 20);
-  const multiplier = Math.max(6 - Math.floor(rank / 20), 1);
-  return `${percentage}% (${multiplier}x)`;
-}
