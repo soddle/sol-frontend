@@ -3,12 +3,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
 import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
-import { GuessWithFeedbackAndGussedKOL } from "@/lib/chains/types";
+import { GuessWithGuessedKol } from "@/lib/chains/types";
 import { KOL } from "@/types";
-import { Guess } from "@prisma/client";
 
 interface AttributesGuessListProps {
-  guesses: GuessWithFeedbackAndGussedKOL[];
+  guesses: GuessWithGuessedKol[];
   loadingGuesses: boolean;
 }
 
@@ -120,7 +119,7 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   );
 };
 interface TableRowProps {
-  guess: GuessWithFeedbackAndGussedKOL;
+  guess: GuessWithGuessedKol;
   index: number;
 }
 

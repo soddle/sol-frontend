@@ -153,6 +153,10 @@ export type GuessWithFeedbackAndGussedKOL = Prisma.GuessGetPayload<{
   };
 }>;
 
+export type GuessWithGuessedKol = Prisma.GuessGetPayload<{
+  include: { guessedKOL: true };
+}>;
+
 export interface SVMProvider {}
 export interface EVMProvider {}
 export interface SVMTransaction {}

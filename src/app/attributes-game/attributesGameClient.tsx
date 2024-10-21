@@ -9,19 +9,24 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
 import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
-import { KOL } from "@prisma/client";
+import { Guess, KOL } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
 import {
   GameSessionWithGuesses,
-  GuessWithFeedbackAndGussedKOL,
+  GuessWithGuessedKol,
 } from "@/lib/chains/types";
 
 export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
   const [gameSession, setGameSession] = useState<GameSessionWithGuesses | null>(
     null
   );
+  console.log("gameSession ", gameSession);
+  const [guesses, setGuesses] = useState<GuessWithGuessedKol[]>(
+    (gameSession?.guesses as GuessWithGuessedKol[]) || []
+  );
+
   const [remainingGuesses, setRemainingGuesses] = useState<KOL[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -53,6 +58,8 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
           return;
         }
         const session = await fetchGameSession(publicKey.toString());
+        console.log(session);
+
         if (!session) {
           toast.error("No active game session!");
           router.push("/");
@@ -92,6 +99,10 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
       uiStore.setLoading(true);
       console.log("gameSession", gameSession);
       const guess = await makeGuess(gameSession.id, kol.id);
+      setGuesses((prevGuesses) => [
+        ...prevGuesses,
+        guess as GuessWithGuessedKol,
+      ]);
       setRemainingGuesses((prevGuesses) =>
         prevGuesses.filter((g) => g.id !== kol.id)
       );
@@ -185,10 +196,7 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
         </Container>
 
         <Container>
-          <AttributesGuessListTable
-            guesses={gameSession?.guesses as GuessWithFeedbackAndGussedKOL[]}
-            loadingGuesses={false}
-          />
+          <AttributesGuessListTable guesses={guesses} loadingGuesses={false} />
         </Container>
 
         {uiStore.isLegendOpen && (

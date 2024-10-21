@@ -22,7 +22,7 @@ import {
   upsertCurrentCompetition,
 } from "@/actions/gameActions";
 import { fetchRandomKOL } from "@/actions/kolActions";
-import { Competition, GameSession, Guess, KOL } from "@prisma/client";
+import { Competition, GameSession, Guess } from "@prisma/client";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 
 export class SolanaAdapter implements SVMChainAdapter {

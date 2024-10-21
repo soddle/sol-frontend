@@ -266,7 +266,7 @@ export async function fetchUserGuesses(sessionId: string): Promise<Guess[]> {
 export async function makeGuess(
   sessionId: string,
   guessedKOLId: string
-): Promise<GuessWithSessionAndGuessedKol> {
+): Promise<Guess> {
   try {
     const gameSession = await prisma.gameSession.findUnique({
       where: { id: sessionId },
