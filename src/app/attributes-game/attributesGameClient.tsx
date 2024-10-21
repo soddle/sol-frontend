@@ -6,34 +6,35 @@ import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useRootStore } from "@/stores/storeProvider";
 import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
 import { KOL } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
-import {
-  GameSessionWithGuesses,
-  GuessWithGuessedKol,
-} from "@/lib/chains/types";
-import { GameResultPopup } from "@/components/modals/GameResultPopup";
+import { GuessWithGuessedKol } from "@/lib/chains/types";
+import GameResultPopup from "@/components/modals/gameResultPopup";
+import { useUiStore } from "@/stores/uiStore";
+import { useGameStore } from "@/stores/gameStore";
+import Announcement from "@/components/announcement";
 
 export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const { setLoading, isLegendOpen, openModal, closeModal, isPopupOpen } =
+    useUiStore((state) => state);
+
+  const {
+    setPlaySession,
+    currentPlaySession,
+    remainingGuessKOLs,
+    playerGuesses,
+    setRemainingGuessKOLs,
+    updatePlaySessionGuesses,
+    updateRemainingGuessKOLs,
+  } = useGameStore((state) => state);
+
   const [gameResult, setGameResult] = useState<GuessWithGuessedKol | null>(
     null
   );
-
-  const [gameSession, setGameSession] = useState<GameSessionWithGuesses | null>(
-    null
-  );
-  const [guesses, setGuesses] = useState<GuessWithGuessedKol[]>(
-    (gameSession?.guesses as GuessWithGuessedKol[]) || []
-  );
-
-  const [remainingGuesses, setRemainingGuesses] = useState<KOL[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { publicKey } = useWallet();
   const {
@@ -42,9 +43,6 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
     fetchCurrentCompetition,
     fetchGameSession,
   } = useGame();
-
-  const { ui } = useRootStore();
-  const uiStore = ui((state) => state);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,7 +53,7 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
       }
 
       try {
-        setIsLoading(true);
+        setLoading(true);
         const competition = await fetchCurrentCompetition();
         if (!competition) {
           toast.error("No active competition found.");
@@ -70,20 +68,20 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
           router.push("/");
           return;
         }
-        setGameSession(session);
+        setPlaySession(session);
 
         const userGuesses = await fetchUserGuesses(session.id);
         const guessedKolIds = new Set(
           userGuesses.map((guess) => guess.guessedKOLId)
         );
         const remainingKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
-        setRemainingGuesses(remainingKols);
+        setRemainingGuessKOLs(remainingKols);
       } catch (error) {
         console.error("Error fetching game data:", error);
         toast.error("Failed to load game data");
         router.push("/");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
@@ -98,46 +96,42 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
   ]);
 
   const handleGuess = async (kol: KOL) => {
-    if (!gameSession) return;
+    if (!currentPlaySession) return;
 
     try {
-      uiStore.setLoading(true);
-      console.log("gameSession", gameSession);
-      const guess = await makeGuess(gameSession.id, kol.id);
-      setGuesses((prevGuesses) =>
-        [...prevGuesses, guess as GuessWithGuessedKol].reverse()
-      );
-      setRemainingGuesses((prevGuesses) =>
-        prevGuesses.filter((g) => g.id !== kol.id)
-      );
-      toast.success("Guess submitted successfully!");
+      setLoading(true);
+      console.log("currentSession", currentPlaySession);
+      const guess = await makeGuess(currentPlaySession.id, kol.id);
+
+      updatePlaySessionGuesses([guess as GuessWithGuessedKol]);
+
+      updateRemainingGuessKOLs(guess.guessedKOLId);
+
       if (guess.isCorrect) {
         toast.success("Congratulations! You've guessed correctly!");
         setGameResult(guess as GuessWithGuessedKol);
-        setIsPopupOpen(true);
-        // Handle game completion (e.g., show results, update UI)
+
+        openModal(
+          <GameResultPopup
+            correctKOL={gameResult?.guessedKOL as KOL}
+            playerStats={{
+              rank: 1,
+              score: 100,
+              totalPlayers: 100,
+              attempts: 1,
+              duration: 100,
+            }}
+            playerAddress={publicKey?.toString() || ""}
+          />
+        );
       }
     } catch (error) {
       console.error("Error making guess:", error);
       toast.error("Error making guess");
     } finally {
-      uiStore.setLoading(false);
+      setLoading(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <Container>
-        <div className="flex justify-center items-center h-screen">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-[#2FFF2B] border-t-transparent rounded-full"
-          />
-        </div>
-      </Container>
-    );
-  }
 
   return (
     <AnimatePresence>
@@ -152,16 +146,7 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
             <TimerDisplay />
           </section>
         </Container>
-        <GameResultPopup
-          isOpen={isPopupOpen}
-          onClose={() => setIsPopupOpen(false)}
-          correctKOL={gameResult?.guessedKOL as KOL}
-          playerData={{
-            placement: 1,
-            score: 100,
-            totalPlayers: 100,
-          }}
-        />
+
         <Container>
           <QuestionBox>
             <section className="text-white flex flex-col justify-between items-center">
@@ -183,36 +168,29 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
                 </motion.div>
                 <motion.span
                   className="ml-2 text-xl font-bold text-[#2FFF2B]"
-                  key={remainingGuesses.length}
+                  key={remainingGuessKOLs.length}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {remainingGuesses.length}
+                  {remainingGuessKOLs.length}
                 </motion.span>
               </div>
             </section>
           </QuestionBox>
         </Container>
-
+        <Announcement />
         <Container>
-          {remainingGuesses.length > 0 ? (
-            <SearchBar kols={remainingGuesses} handleGuess={handleGuess} />
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center text-[#2FFF2B] p-4 bg-[#111411] rounded-md"
-            >
-              You've used all your guesses! Check your results below.
-            </motion.div>
-          )}
+          <SearchBar kols={remainingGuessKOLs} handleGuess={handleGuess} />
         </Container>
 
-        <AttributesGuessListTable guesses={guesses} loadingGuesses={false} />
+        <AttributesGuessListTable
+          guesses={playerGuesses}
+          loadingGuesses={false}
+        />
 
-        {uiStore.isLegendOpen && (
+        {isLegendOpen && (
           <Container>
             <Legend />
           </Container>

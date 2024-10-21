@@ -2,7 +2,6 @@
 import UserInfoCard from "./_components/userInfoCard";
 import TimeSection from "./_components/timeSection";
 import { useRouter } from "next/navigation";
-import { useRootStore } from "@/stores/storeProvider";
 import { toast } from "sonner";
 import { useChainAdapter } from "@/hooks/useChainAdapter";
 import {
@@ -16,12 +15,14 @@ import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 import { GameSelection } from "./_components/gameSelection";
 import { GameType } from "@/lib/constants";
+import { useUiStore } from "@/stores/uiStore";
+import { useGameStore } from "@/stores/gameStore";
+import { CyberButton } from "@/components/ui/cyberButton";
 
 export default function GamePlayPageClient() {
-  const { ui, game } = useRootStore();
   const anchorWallet = useAnchorWallet();
-  const uiStore = ui((state) => state);
-  const gameStore = game((state) => state);
+  const uiStore = useUiStore((state) => state);
+  const gameStore = useGameStore((state) => state);
 
   const chainAdapter = useChainAdapter();
   const router = useRouter();

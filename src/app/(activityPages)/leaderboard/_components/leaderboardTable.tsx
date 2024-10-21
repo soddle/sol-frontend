@@ -45,7 +45,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                 className={`
                   ${index % 2 === 0 ? "bg-[#1c1b1a]" : "bg-[#181716]"}
                   ${
-                    entry.address === userWallet
+                    entry.player === userWallet
                       ? "bg-green-900 bg-opacity-50"
                       : ""
                   }
@@ -62,13 +62,13 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                 </td>
                 <td className="px-2 py-4 whitespace-nowrap text-sm">
                   <div className="text-white font-medium truncate max-w-[120px] sm:max-w-none">
-                    {entry.address === userWallet
-                      ? `${entry.address} (You)`
-                      : entry.address}
+                    {entry.player === userWallet
+                      ? `${entry.player} (You)`
+                      : entry.player}
                   </div>
                 </td>
                 <td className="px-2 py-4 whitespace-nowrap text-sm text-right text-white">
-                  {entry.points}
+                  {entry.totalScore}
                 </td>
               </tr>
             ))}

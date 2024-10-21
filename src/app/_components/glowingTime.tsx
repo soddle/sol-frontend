@@ -1,5 +1,6 @@
 "use client";
-import { useRootStore } from "@/stores/storeProvider";
+
+import { useGameStore } from "@/stores/gameStore";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
@@ -86,8 +87,8 @@ export const GlowingTime: React.FC<TimeProps> = ({ time }) => {
 GlowingTime.displayName = "GlowingTime";
 
 export const DynamicGlowingTime = () => {
-  const { game } = useRootStore();
-  const currentCompetition = game((state) => state.currentCompetition);
+  const currentCompetition = useGameStore((state) => state.currentCompetition);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const [timeLeft, setTimeLeft] = useState({
