@@ -5,6 +5,7 @@ import React from "react";
 import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
 import { GuessWithGuessedKol } from "@/lib/chains/types";
 import { KOL } from "@/types";
+import { Container } from "@/components/layout/mainLayoutClient";
 
 interface AttributesGuessListProps {
   guesses: GuessWithGuessedKol[];
@@ -83,13 +84,15 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
 
   if (guesses.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center text-green-500 p-4 bg-[#111411] rounded-md"
-      >
-        You have no guesses yet. Try making some guesses!
-      </motion.div>
+      <Container>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center text-green-500 p-4 bg-[#111411] rounded-md"
+        >
+          You have no guesses yet. Try making some guesses!
+        </motion.div>
+      </Container>
     );
   }
 
