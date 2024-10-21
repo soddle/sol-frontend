@@ -9,7 +9,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useRootStore } from "@/stores/storeProvider";
 import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
-import { Guess, KOL } from "@prisma/client";
+import { KOL } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
@@ -17,12 +17,17 @@ import {
   GameSessionWithGuesses,
   GuessWithGuessedKol,
 } from "@/lib/chains/types";
+import { GameResultPopup } from "@/components/modals/GameResultPopup";
 
 export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [gameResult, setGameResult] = useState<GuessWithGuessedKol | null>(
+    null
+  );
+
   const [gameSession, setGameSession] = useState<GameSessionWithGuesses | null>(
     null
   );
-  console.log("gameSession ", gameSession);
   const [guesses, setGuesses] = useState<GuessWithGuessedKol[]>(
     (gameSession?.guesses as GuessWithGuessedKol[]) || []
   );
@@ -107,8 +112,10 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
         prevGuesses.filter((g) => g.id !== kol.id)
       );
       toast.success("Guess submitted successfully!");
-      if (guess.isCorrect && gameSession.completed) {
+      if (guess.isCorrect) {
         toast.success("Congratulations! You've guessed correctly!");
+        setGameResult(guess as GuessWithGuessedKol);
+        setIsPopupOpen(true);
         // Handle game completion (e.g., show results, update UI)
       }
     } catch (error) {
@@ -146,7 +153,16 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
             <TimerDisplay />
           </section>
         </Container>
-
+        <GameResultPopup
+          isOpen={isPopupOpen}
+          onClose={() => setIsPopupOpen(false)}
+          correctKOL={gameResult?.guessedKOL as KOL}
+          playerData={{
+            placement: 1,
+            score: 100,
+            totalPlayers: 100,
+          }}
+        />
         <Container>
           <QuestionBox>
             <section className="text-white flex flex-col justify-between items-center">
@@ -195,9 +211,7 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
           )}
         </Container>
 
-        <Container>
-          <AttributesGuessListTable guesses={guesses} loadingGuesses={false} />
-        </Container>
+        <AttributesGuessListTable guesses={guesses} loadingGuesses={false} />
 
         {uiStore.isLegendOpen && (
           <Container>

@@ -334,56 +334,61 @@ export class SolanaAdapter implements SVMChainAdapter {
   ): Promise<GameSession> => {
     const program = await this.connect(wallet);
     if (!program) throw new Error("🚫 Program not initialized");
-    const playerPublicKey = program.provider.publicKey;
+    try {
+      const playerPublicKey = program.provider.publicKey;
 
-    // console.log("🕵️ Checking if an active session is available...");
-    // const activeSession = await fetchCurrentActiveSession(
-    //   playerPublicKey?.toString()!
-    // );
-    // if (activeSession) {
-    //   console.log("🎉 Active session found! Returning existing session.");
-    //   return activeSession;
-    // }
+      // console.log("🕵️ Checking if an active session is available...");
+      // const activeSession = await fetchCurrentActiveSession(
+      //   playerPublicKey?.toString()!
+      // );
+      // if (activeSession) {
+      //   console.log("🎉 Active session found! Returning existing session.");
+      //   return activeSession;
+      // }
 
-    console.log("🆕 No active session found. Starting a new game session...");
-    const competition = await this.fetchCurrentCompetition();
-    if (!competition) {
-      throw new Error("No active competition found");
+      console.log("🆕 No active session found. Starting a new game session...");
+      const competition = await this.fetchCurrentCompetition();
+      if (!competition) {
+        throw new Error("No active competition found");
+      }
+      console.log("🌍 Current competition fetched successfully.");
+
+      const newOnchainGameSession = await this._startOnChainGameSession(
+        program,
+        playerPublicKey!,
+        competition,
+        gameType
+      );
+
+      console.log("💾 Creating off-chain game session record...");
+      console.log("New onchain Game Session: ", newOnchainGameSession);
+      const newSession: Partial<OnchainGameSession> = {
+        competitionId: competition.id,
+        completed: newOnchainGameSession.completed,
+        deposit: (newOnchainGameSession.deposit as anchor.BN).toString(),
+        game1Completed: newOnchainGameSession.game1Completed,
+        game1GuessesCount: newOnchainGameSession.game1GuessesCount,
+        game1Score: newOnchainGameSession.game1Score,
+        game2Completed: newOnchainGameSession.game2Completed,
+        game2GuessesCount: newOnchainGameSession.game2GuessesCount,
+        game2Score: newOnchainGameSession.game2Score,
+        gameType: newOnchainGameSession.gameType,
+        kol: newOnchainGameSession.kol,
+        player: newOnchainGameSession.player.toString(),
+        score: newOnchainGameSession.score,
+        startTime: (newOnchainGameSession.startTime as anchor.BN).toString(),
+        targetIndex: newOnchainGameSession.targetIndex,
+        totalScore: newOnchainGameSession.totalScore,
+      };
+      const newGameSession = await createGameSession(newSession);
+      console.log("🎮 New game session created and ready to play!");
+      console.log("New game session: ", newGameSession);
+
+      return newGameSession;
+    } catch (error) {
+      console.error("Error fetching player public key:", error);
+      throw error;
     }
-    console.log("🌍 Current competition fetched successfully.");
-
-    const newOnchainGameSession = await this._startOnChainGameSession(
-      program,
-      playerPublicKey!,
-      competition,
-      gameType
-    );
-
-    console.log("💾 Creating off-chain game session record...");
-    console.log("New onchain Game Session: ", newOnchainGameSession);
-    const newSession: Partial<OnchainGameSession> = {
-      competitionId: competition.id,
-      completed: newOnchainGameSession.completed,
-      deposit: (newOnchainGameSession.deposit as anchor.BN).toString(),
-      game1Completed: newOnchainGameSession.game1Completed,
-      game1GuessesCount: newOnchainGameSession.game1GuessesCount,
-      game1Score: newOnchainGameSession.game1Score,
-      game2Completed: newOnchainGameSession.game2Completed,
-      game2GuessesCount: newOnchainGameSession.game2GuessesCount,
-      game2Score: newOnchainGameSession.game2Score,
-      gameType: newOnchainGameSession.gameType,
-      kol: newOnchainGameSession.kol,
-      player: newOnchainGameSession.player.toString(),
-      score: newOnchainGameSession.score,
-      startTime: (newOnchainGameSession.startTime as anchor.BN).toString(),
-      targetIndex: newOnchainGameSession.targetIndex,
-      totalScore: newOnchainGameSession.totalScore,
-    };
-    const newGameSession = await createGameSession(newSession);
-    console.log("🎮 New game session created and ready to play!");
-    console.log("New game session: ", newGameSession);
-
-    return newGameSession;
   };
 
   makeGuess = async (sessionId: string, guessedKOLId: string): Promise<any> => {

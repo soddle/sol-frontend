@@ -1,9 +1,6 @@
 "use client";
 import UserInfoCard from "./_components/userInfoCard";
 import TimeSection from "./_components/timeSection";
-import { GameType } from "@/lib/constants";
-import { GameButton } from "./_components/gameTypeButton";
-import { HashtagIcon, LaughingEmojiIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useRootStore } from "@/stores/storeProvider";
 import { toast } from "sonner";
@@ -17,27 +14,8 @@ import {
 import { Container } from "@/components/layout/mainLayoutClient";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
-
-const GAME_TYPES = [
-  {
-    title: "Attributes Game",
-    description: "Find the daily KOL through clues on every try",
-    type: GameType.Attributes,
-    icon: "A",
-  },
-  {
-    title: "Tweets Game",
-    description: "Match an infamous tweet to its publisher",
-    type: GameType.Tweets,
-    icon: <HashtagIcon className="size-6" />,
-  },
-  {
-    title: "Emoji's Game",
-    description: "Guess the right KOL using emojis",
-    type: GameType.Emojis,
-    icon: <LaughingEmojiIcon className="size-6" />,
-  },
-];
+import { GameSelection } from "./_components/gameSelection";
+import { GameType } from "@/lib/constants";
 
 export default function GamePlayPageClient() {
   const { ui, game } = useRootStore();
@@ -61,20 +39,7 @@ export default function GamePlayPageClient() {
         anchorWallet
       );
 
-      console.log("gameSession", gameSession);
-
       if (gameSession) {
-        const serializableGameSession = {
-          ...gameSession,
-          id: gameSession.id.toString(),
-          score: Number(gameSession.score),
-          createdAt: new Date(gameSession.createdAt),
-          updatedAt: new Date(gameSession.updatedAt),
-          competitionId: gameSession.competitionId.toString(),
-          user: null,
-        };
-
-        // gameStore.setGameSession(serializableGameSession);
         router.push(`/attributes-game`);
       } else {
         throw new Error("Unable to start game.");
@@ -82,6 +47,11 @@ export default function GamePlayPageClient() {
     } catch (error) {
       console.error(error);
       if (
+        error instanceof Error &&
+        error.message === "You can only play once per day"
+      ) {
+        toast.error(error.message);
+      } else if (
         error instanceof GameSessionNotFoundError ||
         error instanceof GameAlreadyCompletedError ||
         error instanceof ApiRequestError ||
@@ -108,17 +78,7 @@ export default function GamePlayPageClient() {
       <div className="flex flex-col gap-4">
         <UserInfoCard />
         <TimeSection />
-        {GAME_TYPES.map((type, index) => (
-          <GameButton
-            key={type.type}
-            disabled={index !== 0}
-            description={type.description}
-            type={type.type}
-            title={type.title}
-            icon={type.icon}
-            onClick={() => handleStartGameSession(type.type)}
-          />
-        ))}
+        <GameSelection handleStartGameSession={handleStartGameSession} />
       </div>
     </Container>
   );

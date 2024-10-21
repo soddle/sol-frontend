@@ -7,6 +7,7 @@ interface GameButtonType {
   description: string;
   onClick: () => void;
   disabled?: boolean;
+  buyIn?: string; // New prop for buy-in amount
 }
 
 export const GameButton = ({
@@ -15,6 +16,7 @@ export const GameButton = ({
   icon,
   description,
   disabled = false,
+  buyIn = "0.02 SOL", // Default buy-in amount
 }: GameButtonType) => {
   const linkStyle =
     "bg-[#111411] border border-[#03B500] border-opacity-50 p-4 text-white text-lg transition-all duration-300 ease-in-out";
@@ -35,6 +37,7 @@ export const GameButton = ({
         <span>{icon}</span>
       </div>
       <p className="text-center text-white/70">{description}</p>
+      <p className="text-center text-white/50 text-sm mt-2">Buy-in: {buyIn}</p>
     </button>
   );
 };

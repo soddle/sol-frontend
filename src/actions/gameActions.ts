@@ -173,59 +173,6 @@ export async function fetchCurrentActiveSession(
   return existingSession;
 }
 
-export async function createGameSession(
-  onchainSession: Partial<OnchainGameSession>
-): Promise<GameSession> {
-  if (
-    !onchainSession.player ||
-    !onchainSession.competitionId ||
-    !onchainSession.gameType ||
-    !onchainSession.startTime ||
-    !onchainSession.kol
-  ) {
-    throw new Error("Missing required fields for game onchainSession creation");
-  }
-
-  try {
-    const user = await prisma.user.upsert({
-      where: { address: onchainSession.player.toString() },
-      update: {},
-      create: {
-        id: generateObjectId(),
-        address: onchainSession.player.toString(),
-      },
-    });
-
-    const startTime = new Date(
-      parseInt(onchainSession.startTime.toString(), 16) * 1000
-    );
-
-    const newSession = await prisma.gameSession.create({
-      data: {
-        id: generateObjectId(),
-        competitionId: onchainSession.competitionId,
-        targetKOLId: onchainSession.kol.id,
-        gameType: onchainSession.gameType,
-        startTime: startTime,
-        completed: false,
-        userAddress: user.address,
-        score: onchainSession.score || 1000,
-      },
-      include: {
-        guesses: true,
-        user: true,
-        competition: true,
-      },
-    });
-
-    console.log("Game onchainSession created successfully:", newSession.id);
-    return newSession;
-  } catch (error) {
-    console.error("Error creating game onchainSession:", error);
-    throw new Error("Failed to create game onchainSession");
-  }
-}
-
 export async function fetchAllActiveSessions(
   walletAddress: string
 ): Promise<GameSession[]> {
@@ -327,5 +274,76 @@ export async function makeGuess(
   } catch (error) {
     console.error("Error making guess:", error);
     throw new Error("Failed to make guess");
+  }
+}
+
+export async function createGameSession(
+  onchainSession: Partial<OnchainGameSession>
+): Promise<GameSession> {
+  if (
+    !onchainSession.player ||
+    !onchainSession.competitionId ||
+    !onchainSession.gameType ||
+    !onchainSession.startTime ||
+    !onchainSession.kol
+  ) {
+    throw new Error("Missing required fields for game session creation");
+  }
+
+  try {
+    const user = await prisma.user.upsert({
+      where: { address: onchainSession.player.toString() },
+      update: {},
+      create: {
+        id: generateObjectId(),
+        address: onchainSession.player.toString(),
+      },
+    });
+
+    // Check if the user has already played today
+    const lastSession = await prisma.gameSession.findFirst({
+      where: {
+        userAddress: user.address,
+        startTime: {
+          gte: new Date(new Date().setUTCHours(0, 0, 0, 0)), // Start of today (UTC)
+        },
+      },
+      orderBy: {
+        startTime: "desc",
+      },
+    });
+
+    // If the user has already played today, throw an error
+    if (!lastSession) {
+      throw new Error("You can only play once per day");
+    }
+
+    const startTime = new Date(
+      parseInt(onchainSession.startTime.toString(), 16) * 1000
+    );
+
+    const newSession = await prisma.gameSession.create({
+      data: {
+        id: generateObjectId(),
+        competitionId: onchainSession.competitionId,
+        targetKOLId: onchainSession.kol.id,
+        gameType: onchainSession.gameType,
+        startTime: startTime,
+        completed: false,
+        userAddress: user.address,
+        score: onchainSession.score || 1000,
+      },
+      include: {
+        guesses: true,
+        user: true,
+        competition: true,
+      },
+    });
+
+    console.log("Game session created successfully:", newSession.id);
+    return newSession;
+  } catch (error) {
+    console.error("Error creating game session:", error);
+    throw error; // Throw the original error to preserve the message
   }
 }
