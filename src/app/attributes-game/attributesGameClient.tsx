@@ -13,7 +13,7 @@ import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
 import { GuessWithGuessedKol } from "@/lib/chains/types";
-import GameResultPopup from "@/components/modals/gameResultPopup";
+import GameResultPopup from "@/components/gameResultPopup";
 import { useUiStore } from "@/stores/uiStore";
 import { useGameStore } from "@/stores/gameStore";
 import Announcement from "@/components/announcement";

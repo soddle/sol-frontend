@@ -3,15 +3,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { KOL } from "@prisma/client";
 import { useUiStore } from "@/stores/uiStore";
-import {
-  Share2,
-  Trophy,
-  ChevronRight,
-  Zap,
-  Target,
-  Crown,
-  Swords,
-} from "lucide-react";
+import { Share2, Trophy, Zap, Target, Crown, Swords } from "lucide-react";
 
 // Glitch text effect component
 const GlitchText = ({
@@ -96,9 +88,7 @@ const CyberButton = React.forwardRef<
     );
   }
 );
-
 CyberButton.displayName = "CyberButton";
-
 export type PlayerStats = {
   rank: number;
   score: number;
