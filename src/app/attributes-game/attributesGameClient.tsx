@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import SearchBar from "./_components/searchBar";
 import TimerDisplay from "../../components/ui/timeDisplay";
 import Legend from "./_components/legends";
@@ -15,7 +15,6 @@ import { AttributesGuessListTable } from "./_components/attributesGuessList";
 import { GuessWithGuessedKol } from "@/lib/chains/types";
 import GameResultPopup from "@/components/modals/gameResultPopup";
 import { useUiStore } from "@/stores/uiStore";
-import { useGameStore } from "@/stores/gameStore";
 import Announcement from "@/components/announcement";
 import {
   GameSessionNotFoundError,
@@ -25,8 +24,8 @@ import {
 
 export default function AttributesGameClient({
   kols,
-  todaySession,
-  userGuesses,
+  todaySession: initialTodaySession,
+  userGuesses: initialUserGuesses,
   currentCompetition,
 }: {
   kols: KOL[];
@@ -34,27 +33,23 @@ export default function AttributesGameClient({
   userGuesses: GuessWithGuessedKol[];
   currentCompetition: Competition | null;
 }) {
-  const { setLoading, isLegendOpen, openModal } = useUiStore((state) => state);
+  const [todaySession, setTodaySession] = useState<GameSession | null>(
+    initialTodaySession
+  );
+  const [userGuesses, setUserGuesses] =
+    useState<GuessWithGuessedKol[]>(initialUserGuesses);
+  const [remainingGuessKOLs, setRemainingGuessKOLs] = useState<KOL[]>(
+    kols.filter(
+      (kol) =>
+        !initialUserGuesses.map((guess) => guess.guessedKOLId).includes(kol.id)
+    )
+  );
 
-  const {
-    setPlaySession,
-    currentPlaySession,
-    remainingGuessKOLs,
-    playerGuesses,
-    setPlaySessionGuesses,
-    setRemainingGuessKOLs,
-    updatePlaySessionGuesses,
-    updateRemainingGuessKOLs,
-  } = useGameStore((state) => state);
+  const { setLoading, isLegendOpen, openModal } = useUiStore((state) => state);
 
   const router = useRouter();
   const { publicKey } = useWallet();
-  const {
-    fetchUserGuesses,
-    makeGuess,
-    fetchCurrentCompetition,
-    fetchTodaySession,
-  } = useGame();
+  const { makeGuess } = useGame();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,21 +58,16 @@ export default function AttributesGameClient({
         if (!currentCompetition) {
           throw new NoActiveCompetitionError();
         }
-
         if (!todaySession) {
           throw new GameSessionNotFoundError();
         }
-
-        setPlaySessionGuesses(userGuesses);
-        setPlaySession(todaySession);
-
         const guessedKolIds = new Set(
           userGuesses.map((guess) => guess.guessedKOLId)
         );
-
         const remainingKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
         setRemainingGuessKOLs(remainingKols);
       } catch (error) {
+        console.log("error", error);
         if (error instanceof SoddleError) {
           toast.error(error.message);
         }
@@ -88,29 +78,24 @@ export default function AttributesGameClient({
     };
 
     fetchData();
-  }, [
-    publicKey,
-    router,
-    fetchCurrentCompetition,
-    fetchTodaySession,
-    fetchUserGuesses,
-    kols,
-  ]);
+  }, [publicKey, router, kols]);
 
   const handleGuess = async (kol: KOL) => {
-    if (!currentPlaySession) return;
+    if (!todaySession) return;
 
     try {
       setLoading(true);
-      console.log("currentSession", currentPlaySession);
+      console.log("currentSession", todaySession);
       const guess = (await makeGuess(
-        currentPlaySession.id,
+        todaySession.id,
         kol.id
       )) as GuessWithGuessedKol;
 
-      updatePlaySessionGuesses([guess]);
+      setUserGuesses([guess, ...userGuesses]);
 
-      updateRemainingGuessKOLs(guess.guessedKOLId);
+      setRemainingGuessKOLs(
+        remainingGuessKOLs.filter((kol) => kol.id !== guess.guessedKOLId)
+      );
 
       if (guess.isCorrect) {
         toast.success("Congratulations! You've guessed correctly!");
@@ -191,7 +176,7 @@ export default function AttributesGameClient({
         </Container>
 
         <AttributesGuessListTable
-          guesses={playerGuesses}
+          guesses={userGuesses}
           loadingGuesses={false}
         />
 

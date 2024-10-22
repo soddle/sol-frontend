@@ -2,32 +2,34 @@ import AttributesGamePageClient from "./attributesGameClient";
 import { prisma } from "@/lib/prisma";
 import {
   fetchTodaySession,
-  fetchUserGuessesByAddress,
   fetchLatestCompetition,
 } from "@/actions/gameActions";
+import { GuessWithGuessedKol } from "@/lib/chains/types";
+
+export const revalidate = 0; // Disable caching
 
 async function AttributesGamePage({
-  params,
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { address } = await searchParams;
+  const { adr } = await searchParams;
 
-  const [todaySession, userGuesses, currentCompetition, kols] =
-    await Promise.all([
-      fetchTodaySession(address as string),
-      fetchUserGuessesByAddress(address as string),
-      fetchLatestCompetition(),
-      prisma.kOL.findMany(),
-    ]);
+  const [todaySession, currentCompetition, kols] = await Promise.all([
+    fetchTodaySession(adr as string),
+    fetchLatestCompetition(),
+    prisma.kOL.findMany(),
+  ]);
+
+  const userGuesses = todaySession?.guesses || [];
+
   return (
     <AttributesGamePageClient
       kols={kols}
       todaySession={todaySession}
       currentCompetition={currentCompetition}
-      userGuesses={userGuesses}
+      userGuesses={userGuesses as GuessWithGuessedKol[]}
     />
   );
 }

@@ -17,7 +17,6 @@ import { GameType } from "@/lib/constants";
 import { useUiStore } from "@/stores/uiStore";
 
 import { useGame } from "@/hooks/useGame";
-import { useGameStore } from "@/stores/gameStore";
 
 export default function GamePlayPageClient() {
   const anchorWallet = useAnchorWallet();
@@ -36,7 +35,9 @@ export default function GamePlayPageClient() {
 
       if (todaySession) {
         router.push(
-          `/attributes-game?adr=${anchorWallet.publicKey?.toBase58()}`
+          `/attributes-game?adr=${anchorWallet.publicKey
+            ?.toBase58()
+            .slice(0, 6)}`
         );
       } else {
         throw new GameSessionCreationError();

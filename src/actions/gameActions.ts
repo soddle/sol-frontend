@@ -14,16 +14,16 @@ const onChainId = "COMP23201";
 import { ObjectId } from "mongodb";
 
 // Function to generate a new ObjectId
-function generateObjectId(): string {
+const generateObjectId = (): string => {
   return new ObjectId().toHexString();
-}
+};
 
-export async function upsertCurrentCompetition(onChainData: {
+export const upsertCurrentCompetition = async (onChainData: {
   onChainId: string;
   startTime: number;
   endTime: number;
   prize: number;
-}): Promise<Competition> {
+}): Promise<Competition> => {
   return prisma.$transaction(async (prisma) => {
     const competition = await prisma.competition.upsert({
       where: { onChainId: onChainData.onChainId },
@@ -53,9 +53,9 @@ export async function upsertCurrentCompetition(onChainData: {
 
     return competition;
   });
-}
+};
 
-export async function fetchLatestCompetition(): Promise<Competition | null> {
+export const fetchLatestCompetition = async (): Promise<Competition | null> => {
   try {
     const competition = await prisma.competition.findFirst({
       where: { isActive: true },
@@ -72,22 +72,20 @@ export async function fetchLatestCompetition(): Promise<Competition | null> {
     console.error("Error fetching latest competition:", error);
     throw error;
   }
-}
+};
 
-export async function createCompetition(
+export const createCompetition = async (
   startTime: Date,
   endTime: Date,
   prize: number
-): Promise<Competition> {
-  try {
-    // Set all existing competitions to inactive
+): Promise<Competition> => {
+  return prisma.$transaction(async (prisma) => {
     await prisma.competition.updateMany({
       where: { isActive: true },
       data: { isActive: false },
     });
 
-    // Create a new active competition
-    const newCompetition = await prisma.competition.create({
+    return prisma.competition.create({
       data: {
         id: generateObjectId(),
         startTime,
@@ -97,47 +95,73 @@ export async function createCompetition(
         onChainId,
       },
     });
-
-    return newCompetition;
-  } catch (error) {
-    console.error("Error creating competition:", error);
-    throw error;
-  }
-}
-
-export const fetchTodaySession = async (
-  walletAddress: string
-): Promise<GameSessionWithGuesses | null> => {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-
-  return prisma.gameSession.findFirst({
-    where: {
-      userAddress: walletAddress,
-      startTime: { gte: today },
-    },
-    orderBy: { startTime: "desc" },
-    include: { guesses: true, user: true },
   });
 };
 
-export async function fetchGameSessionsByAddress(
-  walletAddress: string
-): Promise<GameSession[]> {
-  const sessions = await prisma.gameSession.findMany({
-    where: { userAddress: walletAddress },
-    include: {
-      guesses: true,
-      user: true,
-    },
-  });
+export const fetchTodaySession = async (
+  abbrWalletAddress: string
+): Promise<GameSessionWithGuesses | null> => {
+  if (!abbrWalletAddress) {
+    throw new Error("Wallet address is required");
+  }
 
-  return sessions;
-}
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
 
-export async function fetchAllActiveSessions(
+  try {
+    return await prisma.gameSession.findFirst({
+      where: {
+        userAddress: {
+          startsWith: abbrWalletAddress,
+        },
+        startTime: { gte: today },
+      },
+      orderBy: { startTime: "desc" },
+      include: {
+        guesses: {
+          include: { guessedKOL: true },
+          orderBy: { createdAt: "desc" },
+        },
+        user: true,
+        competition: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching today's session:", error);
+    throw new Error("Failed to fetch today's session");
+  }
+};
+
+export const fetchGameSessionsByAddress = async (
   walletAddress: string
-): Promise<GameSession[]> {
+): Promise<GameSession[]> => {
+  if (!walletAddress) {
+    throw new Error("Wallet address is required");
+  }
+
+  try {
+    return await prisma.gameSession.findMany({
+      where: { userAddress: { startsWith: walletAddress } },
+      include: {
+        guesses: true,
+        user: true,
+        competition: true,
+      },
+      orderBy: { startTime: "desc" },
+    });
+  } catch (error) {
+    console.error("Error fetching game sessions:", error);
+    throw new Error("Failed to fetch game sessions");
+  }
+};
+
+export const fetchAllActiveSessions = async (
+  walletAddress: string
+): Promise<GameSession[]> => {
+  if (!walletAddress) {
+    throw new Error("Wallet address is required");
+  }
+
   const sessions = await prisma.gameSession.findMany({
     where: {
       userAddress: walletAddress,
@@ -150,11 +174,11 @@ export async function fetchAllActiveSessions(
   });
 
   return sessions;
-}
+};
 
-export async function createGameSession(
+export const createGameSession = async (
   onchainSession: Partial<OnchainGameSession>
-): Promise<GameSession> {
+): Promise<GameSession> => {
   if (
     !onchainSession.player ||
     !onchainSession.competitionId ||
@@ -196,11 +220,11 @@ export async function createGameSession(
       competition: true,
     },
   });
-}
+};
 
-export async function fetchUserGuesses(
+export const fetchUserGuesses = async (
   sessionId: string
-): Promise<GuessWithGuessedKol[]> {
+): Promise<GuessWithGuessedKol[]> => {
   console.log("onchainSession id: ", sessionId);
   try {
     const guesses = await prisma.guess.findMany({
@@ -218,15 +242,15 @@ export async function fetchUserGuesses(
       throw new Error("Failed to fetch user guesses: Unknown error");
     }
   }
-}
+};
 
-export async function fetchUserGuessesByAddress(
-  walletAddress: string
-): Promise<GuessWithGuessedKol[]> {
-  console.log("walletAddress: ", walletAddress);
+export const fetchUserGuessesByAddress = async (
+  abbrWalletAddress: string
+): Promise<GuessWithGuessedKol[]> => {
+  console.log("abbrWalletAddress: ", abbrWalletAddress);
   try {
     const guesses = await prisma.guess.findMany({
-      where: { session: { userAddress: walletAddress } },
+      where: { session: { userAddress: abbrWalletAddress } },
       include: { guessedKOL: true },
       orderBy: { createdAt: "asc" },
     });
@@ -240,12 +264,12 @@ export async function fetchUserGuessesByAddress(
       throw new Error("Failed to fetch user guesses: Unknown error");
     }
   }
-}
+};
 
-export async function makeGuess(
+export const makeGuess = async (
   sessionId: string,
   guessedKOLId: string
-): Promise<Guess> {
+): Promise<Guess> => {
   try {
     const gameSession = await prisma.gameSession.findUnique({
       where: { id: sessionId },
@@ -321,4 +345,4 @@ export async function makeGuess(
     console.error("Error making guess:", error);
     throw new Error("Failed to make guess");
   }
-}
+};
