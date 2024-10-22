@@ -1,5 +1,11 @@
 "use server";
 
+import {
+  DailyChallenge,
+  DailyChallengeStrategy,
+  PlayerStats,
+  PointCalculator,
+} from "@/lib/pointSystem";
 import { prisma } from "@/lib/prisma";
 import { LeaderboardEntry } from "@/types";
 
@@ -9,6 +15,7 @@ export async function fetchLeaderboard(
   page: number = 1,
   entriesPerPage: number = 10
 ): Promise<{ entries: LeaderboardEntry[]; totalEntries: number }> {
+  console.log("fetching leaderboard in actions", gameType, leaderboardType);
   const now = new Date();
   let startDate: Date;
 
@@ -48,9 +55,14 @@ export async function fetchLeaderboard(
     },
     _sum: {
       score: true,
-    },
-    _min: {
       playDuration: true,
+      mistakes: true,
+    },
+    _avg: {
+      difficulty: true,
+    },
+    _count: {
+      _all: true,
     },
     orderBy: [
       {
@@ -58,22 +70,43 @@ export async function fetchLeaderboard(
           score: "desc",
         },
       },
-      {
-        _min: {
-          playDuration: "asc",
-        },
-      },
     ],
     skip: (page - 1) * entriesPerPage,
     take: entriesPerPage,
   });
 
-  const leaderboardWithRanks = leaderboard.map((entry, index) => ({
-    rank: (page - 1) * entriesPerPage + index + 1,
-    player: entry.userAddress,
-    totalScore: entry._sum.score || 0,
-    bestTime: entry._min.playDuration || 0,
-  }));
+  const dailyChallenge: DailyChallenge = {
+    description: "Complete the game in under 2 minutes",
+    condition: (stats: PlayerStats) => stats.time < 120,
+  };
+
+  const pointCalculator = new PointCalculator(
+    new DailyChallengeStrategy(dailyChallenge)
+  );
+
+  const leaderboardWithRanks = leaderboard.map((entry, index) => {
+    const stats: PlayerStats = {
+      score: entry._sum.score || 0,
+      time: entry._sum.playDuration || 0,
+      mistakes: entry._sum.mistakes || 0,
+      difficulty: entry._avg.difficulty || 1,
+    };
+
+    const totalPoints = pointCalculator.calculatePoints(
+      stats,
+      index + 1,
+      leaderboard.length
+    );
+
+    return {
+      rank: (page - 1) * entriesPerPage + index + 1,
+      player: entry.userAddress,
+      totalScore: totalPoints,
+      bestTime: entry._sum.playDuration || 0,
+      gamesPlayed: entry._count._all,
+      averageDifficulty: entry._avg.difficulty || 1,
+    };
+  });
 
   return {
     entries: leaderboardWithRanks,

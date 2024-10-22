@@ -35,6 +35,9 @@ export interface LeaderboardEntry {
   player: string;
   totalScore: number;
   bestTime: number;
+  gamesPlayed: number;
+  averageDifficulty: number;
+  // mistakes: number;
 }
 
 // generated types

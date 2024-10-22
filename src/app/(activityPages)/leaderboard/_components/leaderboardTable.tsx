@@ -2,21 +2,21 @@ import { LeaderboardEntry } from "@/types";
 import React from "react";
 
 interface LeaderboardTableProps {
-  data: LeaderboardEntry[];
+  entries: LeaderboardEntry[];
   userWallet?: string;
 }
 
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
-  data,
+  entries,
   userWallet,
 }) => {
-  const calculateReward = (rank: number, totalEntries: number) => {
-    const percentile = (rank / totalEntries) * 100;
-    if (percentile <= 50) {
-      return `Top ${Math.round(percentile)}% (2x)`;
-    }
-    return "-";
-  };
+  // const calculateReward = (rank: number, totalEntries: number) => {
+  //   const percentile = (rank / totalEntries) * 100;
+  //   if (percentile <= 50) {
+  //     return `Top ${Math.round(percentile)}% (2x)`;
+  //   }
+  //   return "-";
+  // };
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#181716] rounded-lg overflow-hidden">
@@ -39,7 +39,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
             </tr>
           </thead>
           <tbody>
-            {data.map((entry, index) => (
+            {entries.map((entry, index) => (
               <tr
                 key={entry.rank}
                 className={`
@@ -58,7 +58,7 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                   </div>
                 </td>
                 <td className="px-2 py-4 whitespace-nowrap text-sm text-green-400 hidden sm:table-cell">
-                  {calculateReward(entry.rank, data.length)}
+                  {/* {calculateReward(entry.rank, entries.length)} */}
                 </td>
                 <td className="px-2 py-4 whitespace-nowrap text-sm">
                   <div className="text-white font-medium truncate max-w-[120px] sm:max-w-none">

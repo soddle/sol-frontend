@@ -1,15 +1,15 @@
 import React from "react";
 
 interface GameTypeSelectorProps {
-  selectedType: string;
-  onTypeChange: (type: string) => void;
+  selectedType: number;
+  onTypeChange: (type: number) => void;
 }
 
 const GameTypeSelector: React.FC<GameTypeSelectorProps> = ({
   selectedType,
   onTypeChange,
 }) => {
-  const gameTypes = ["Attributes", "Tweets", "Emojis"];
+  const gameTypes = [1, 2, 3];
 
   return (
     <div className="flex justify-center space-x-2 my-4 px-2 overflow-x-auto">
@@ -29,8 +29,9 @@ const GameTypeSelector: React.FC<GameTypeSelectorProps> = ({
             }
             focus:outline-none
           `}
+          disabled={type !== 1}
         >
-          <span className="relative z-10 whitespace-nowrap">{type}</span>
+          <span className="relative z-10 whitespace-nowrap">Game {type}</span>
           <span
             className={`
               absolute inset-0 bg-[#181716] transform skew-x-[-10deg]

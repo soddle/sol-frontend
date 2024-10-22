@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import DateSelector from "./dateSelector";
 import GameTypeSelector from "./gameTypeSelector";
@@ -9,16 +11,17 @@ import {
   fetchLeaderboard,
   getUserRankAndScore,
 } from "@/actions/leaderboardActions";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const LeaderboardContainer: React.FC = () => {
+  const wallet = useWallet();
   const [selectedLeaderboardType, setSelectedLeaderboardType] = useState<
     "today" | "yesterday" | "alltime"
   >("today");
-  const [selectedGameType, setSelectedGameType] =
-    useState<string>("Attributes");
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
-    []
-  );
+  const [selectedGameType, setSelectedGameType] = useState<number>(1);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<
+    LeaderboardEntry[]
+  >([]);
   const [userRankAndScore, setUserRankAndScore] = useState<{
     rank: number | null;
     score: number;
@@ -31,25 +34,26 @@ const LeaderboardContainer: React.FC = () => {
   useEffect(() => {
     const fetchLeaderboardData = async () => {
       try {
-        const gameType = selectedGameType === "Attributes" ? 2 : 1;
         const response = await fetchLeaderboard(
-          gameType,
+          selectedGameType,
           selectedLeaderboardType,
           currentPage,
           entriesPerPage
         );
-        setLeaderboardData(response.entries);
+        setLeaderboardEntries(response.entries);
         setTotalEntries(response.totalEntries);
-        console.log(response);
+        console.log("fetched leaderboard in container", response);
 
         // Fetch user rank and score
-        const userWallet = "USER_WALLET_ADDRESS"; // Replace with actual user wallet address
+        const userWallet =
+          wallet.publicKey?.toBase58() ||
+          "D9iqMouX8SxW8LaxA9PPoKHn87R33b6yvSnRtBAVJeys";
         const userRankAndScore = await getUserRankAndScore(
           userWallet,
-          gameType,
+          selectedGameType,
           selectedLeaderboardType
         );
-        console.log(userRankAndScore);
+        console.log("user rank and score in container", userRankAndScore);
         setUserRankAndScore(userRankAndScore);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
@@ -73,8 +77,8 @@ const LeaderboardContainer: React.FC = () => {
         onTypeChange={setSelectedGameType}
       />
       <LeaderboardTable
-        data={leaderboardData}
-        userWallet="USER_WALLET_ADDRESS"
+        entries={leaderboardEntries}
+        userWallet={wallet.publicKey?.toString()}
       />
       <PaginationIndicator
         currentPage={currentPage}

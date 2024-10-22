@@ -35,6 +35,8 @@ model GameSession {
   completed     Boolean     @default(false)
   score         Int         @default(0)
   playDuration  Int         @default(0)
+  mistakes      Int         @default(0)
+  difficulty    Int         @default(1)
   guesses       Guess[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
