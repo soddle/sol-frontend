@@ -1,6 +1,10 @@
 "use server";
 import { calculateScore } from "@/lib/chains/svm/solanaAdapter";
-import { GameSessionWithGuesses, OnchainGameSession } from "@/lib/chains/types";
+import {
+  GameSessionWithGuesses,
+  GuessWithGuessedKol,
+  OnchainGameSession,
+} from "@/lib/chains/types";
 import { compareKOLs } from "@/lib/cmp";
 import { prisma } from "@/lib/prisma";
 import { Competition, GameSession, Guess } from "@prisma/client";
@@ -20,15 +24,16 @@ export async function upsertCurrentCompetition(onChainData: {
   endTime: number;
   prize: number;
 }): Promise<Competition> {
-  // Check if the competition already exists in the database
-  let competition = await prisma.competition.findUnique({
-    where: { onChainId: onChainData.onChainId },
-  });
-
-  if (!competition) {
-    // If the competition doesn't exist, create a new one
-    competition = await prisma.competition.create({
-      data: {
+  return prisma.$transaction(async (prisma) => {
+    const competition = await prisma.competition.upsert({
+      where: { onChainId: onChainData.onChainId },
+      update: {
+        startTime: new Date(onChainData.startTime * 1000),
+        endTime: new Date(onChainData.endTime * 1000),
+        prize: onChainData.prize,
+        isActive: true,
+      },
+      create: {
         id: generateObjectId(),
         onChainId: onChainData.onChainId,
         startTime: new Date(onChainData.startTime * 1000),
@@ -38,32 +43,16 @@ export async function upsertCurrentCompetition(onChainData: {
       },
     });
 
-    console.log("New competition created:", competition);
-  } else {
-    // If the competition exists, update it
-    competition = await prisma.competition.update({
-      where: { id: competition.id },
-      data: {
-        startTime: new Date(onChainData.startTime * 1000),
-        endTime: new Date(onChainData.endTime * 1000),
-        prize: onChainData.prize,
+    await prisma.competition.updateMany({
+      where: {
+        id: { not: competition.id },
         isActive: true,
       },
+      data: { isActive: false },
     });
 
-    console.log("Existing competition updated:", competition);
-  }
-
-  // Mark all other competitions as inactive
-  await prisma.competition.updateMany({
-    where: {
-      id: { not: competition.id },
-      isActive: true,
-    },
-    data: { isActive: false },
+    return competition;
   });
-
-  return competition;
 }
 
 export async function fetchLatestCompetition(): Promise<Competition | null> {
@@ -116,6 +105,22 @@ export async function createCompetition(
   }
 }
 
+export const fetchTodaySession = async (
+  walletAddress: string
+): Promise<GameSessionWithGuesses | null> => {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  return prisma.gameSession.findFirst({
+    where: {
+      userAddress: walletAddress,
+      startTime: { gte: today },
+    },
+    orderBy: { startTime: "desc" },
+    include: { guesses: true, user: true },
+  });
+};
+
 export async function fetchGameSessionsByAddress(
   walletAddress: string
 ): Promise<GameSession[]> {
@@ -128,44 +133,6 @@ export async function fetchGameSessionsByAddress(
   });
 
   return sessions;
-}
-
-export async function fetchCurrentActiveSession(
-  walletAddress: string
-): Promise<GameSessionWithGuesses | null> {
-  // const createdKOLs = await prisma.kOL.createMany({
-  //   data: rawKOL,
-  //   // skipDuplicates: true,
-  // });
-
-  // Fetch the user by wallet address
-
-  const user = await prisma.user.findUnique({
-    where: { address: walletAddress },
-  });
-
-  // If the user does not exist, return null
-  if (!user) {
-    return null;
-  }
-
-  // Fetch the most recent active game session for the user
-  const existingSession = await prisma.gameSession.findFirst({
-    where: {
-      userAddress: walletAddress,
-      completed: false, // Only fetch active sessions
-    },
-    orderBy: {
-      startTime: "desc", // Get the most recent existingSession
-    },
-    include: {
-      guesses: true, // Include guesses if needed
-      user: true,
-    },
-  });
-
-  // Return the existingSession or null if not found
-  return existingSession;
 }
 
 export async function fetchAllActiveSessions(
@@ -185,11 +152,81 @@ export async function fetchAllActiveSessions(
   return sessions;
 }
 
-export async function fetchUserGuesses(sessionId: string): Promise<Guess[]> {
+export async function createGameSession(
+  onchainSession: Partial<OnchainGameSession>
+): Promise<GameSession> {
+  if (
+    !onchainSession.player ||
+    !onchainSession.competitionId ||
+    !onchainSession.gameType ||
+    !onchainSession.startTime ||
+    !onchainSession.kol
+  ) {
+    throw new Error("Missing required fields for game session creation");
+  }
+
+  const user = await prisma.user.upsert({
+    where: { address: onchainSession.player.toString() },
+    update: {},
+    create: {
+      id: generateObjectId(),
+      address: onchainSession.player.toString(),
+    },
+  });
+
+  const startTime = new Date(parseInt(onchainSession.startTime) * 1000);
+
+  return prisma.gameSession.create({
+    data: {
+      id: generateObjectId(),
+      competitionId: onchainSession.competitionId,
+      targetKOLId: onchainSession.kol.id,
+      gameType: onchainSession.gameType,
+      startTime: startTime,
+      completed: false,
+      userAddress: user.address,
+      score: 0,
+      playDuration: 0,
+      mistakes: 0,
+      difficulty: 1,
+    },
+    include: {
+      guesses: true,
+      user: true,
+      competition: true,
+    },
+  });
+}
+
+export async function fetchUserGuesses(
+  sessionId: string
+): Promise<GuessWithGuessedKol[]> {
   console.log("onchainSession id: ", sessionId);
   try {
     const guesses = await prisma.guess.findMany({
       where: { sessionId },
+      include: { guessedKOL: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return guesses;
+  } catch (error) {
+    console.error("Error fetching user guesses:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to fetch user guesses: ${error.message}`);
+    } else {
+      throw new Error("Failed to fetch user guesses: Unknown error");
+    }
+  }
+}
+
+export async function fetchUserGuessesByAddress(
+  walletAddress: string
+): Promise<GuessWithGuessedKol[]> {
+  console.log("walletAddress: ", walletAddress);
+  try {
+    const guesses = await prisma.guess.findMany({
+      where: { session: { userAddress: walletAddress } },
       include: { guessedKOL: true },
       orderBy: { createdAt: "asc" },
     });
@@ -265,6 +302,16 @@ export async function makeGuess(
           endTime: newGuess.createdAt,
           score: score,
           playDuration: playDuration,
+          mistakes: gameSession.guesses.length,
+        },
+      });
+    } else {
+      await prisma.gameSession.update({
+        where: { id: sessionId },
+        data: {
+          mistakes: {
+            increment: 1,
+          },
         },
       });
     }
@@ -273,76 +320,5 @@ export async function makeGuess(
   } catch (error) {
     console.error("Error making guess:", error);
     throw new Error("Failed to make guess");
-  }
-}
-
-export async function createGameSession(
-  onchainSession: Partial<OnchainGameSession>
-): Promise<GameSession> {
-  if (
-    !onchainSession.player ||
-    !onchainSession.competitionId ||
-    !onchainSession.gameType ||
-    !onchainSession.startTime ||
-    !onchainSession.kol
-  ) {
-    throw new Error("Missing required fields for game session creation");
-  }
-
-  try {
-    const user = await prisma.user.upsert({
-      where: { address: onchainSession.player.toString() },
-      update: {},
-      create: {
-        id: generateObjectId(),
-        address: onchainSession.player.toString(),
-      },
-    });
-
-    // Check if the user has already played today
-    const lastSession = await prisma.gameSession.findFirst({
-      where: {
-        userAddress: user.address,
-        startTime: {
-          gte: new Date(new Date().setUTCHours(0, 0, 0, 0)), // Start of today (UTC)
-        },
-      },
-      orderBy: {
-        startTime: "desc",
-      },
-    });
-
-    // If the user has already played today, throw an error
-    if (!lastSession) {
-      throw new Error("You can only play once per day");
-    }
-
-    const startTime = new Date(
-      parseInt(onchainSession.startTime.toString(), 16) * 1000
-    );
-
-    const newSession = await prisma.gameSession.create({
-      data: {
-        id: generateObjectId(),
-        competitionId: onchainSession.competitionId,
-        targetKOLId: onchainSession.kol.id,
-        gameType: onchainSession.gameType,
-        startTime: startTime,
-        completed: false,
-        userAddress: user.address,
-        score: onchainSession.score || 1000,
-      },
-      include: {
-        guesses: true,
-        user: true,
-        competition: true,
-      },
-    });
-
-    console.log("Game session created successfully:", newSession.id);
-    return newSession;
-  } catch (error) {
-    console.error("Error creating game session:", error);
-    throw error; // Throw the original error to preserve the message
   }
 }

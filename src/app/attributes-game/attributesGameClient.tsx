@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import SearchBar from "./_components/searchBar";
 import TimerDisplay from "../../components/ui/timeDisplay";
 import Legend from "./_components/legends";
@@ -8,77 +8,79 @@ import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
-import { KOL } from "@prisma/client";
+import { GameSession, KOL, Competition } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
 import { GuessWithGuessedKol } from "@/lib/chains/types";
-import GameResultPopup from "@/components/gameResultPopup";
+import GameResultPopup from "@/components/modals/gameResultPopup";
 import { useUiStore } from "@/stores/uiStore";
 import { useGameStore } from "@/stores/gameStore";
 import Announcement from "@/components/announcement";
+import {
+  GameSessionNotFoundError,
+  NoActiveCompetitionError,
+  SoddleError,
+} from "@/lib/errors";
 
-export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
-  const { setLoading, isLegendOpen, openModal, closeModal, isPopupOpen } =
-    useUiStore((state) => state);
+export default function AttributesGameClient({
+  kols,
+  todaySession,
+  userGuesses,
+  currentCompetition,
+}: {
+  kols: KOL[];
+  todaySession: GameSession | null;
+  userGuesses: GuessWithGuessedKol[];
+  currentCompetition: Competition | null;
+}) {
+  const { setLoading, isLegendOpen, openModal } = useUiStore((state) => state);
 
   const {
     setPlaySession,
     currentPlaySession,
     remainingGuessKOLs,
     playerGuesses,
+    setPlaySessionGuesses,
     setRemainingGuessKOLs,
     updatePlaySessionGuesses,
     updateRemainingGuessKOLs,
   } = useGameStore((state) => state);
 
-  const [gameResult, setGameResult] = useState<GuessWithGuessedKol | null>(
-    null
-  );
   const router = useRouter();
   const { publicKey } = useWallet();
   const {
     fetchUserGuesses,
     makeGuess,
     fetchCurrentCompetition,
-    fetchGameSession,
+    fetchTodaySession,
   } = useGame();
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!publicKey) {
-        toast.error("Please connect your wallet to play.");
-        router.push("/");
-        return;
-      }
-
       try {
         setLoading(true);
-        const competition = await fetchCurrentCompetition();
-        if (!competition) {
-          toast.error("No active competition found.");
-          router.push("/");
-          return;
+        if (!currentCompetition) {
+          throw new NoActiveCompetitionError();
         }
-        const session = await fetchGameSession(publicKey.toString());
-        console.log(session);
 
-        if (!session) {
-          toast.error("No active game session!");
-          router.push("/");
-          return;
+        if (!todaySession) {
+          throw new GameSessionNotFoundError();
         }
-        setPlaySession(session);
 
-        const userGuesses = await fetchUserGuesses(session.id);
+        setPlaySessionGuesses(userGuesses);
+        setPlaySession(todaySession);
+
         const guessedKolIds = new Set(
           userGuesses.map((guess) => guess.guessedKOLId)
         );
+
         const remainingKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
         setRemainingGuessKOLs(remainingKols);
       } catch (error) {
-        console.error("Error fetching game data:", error);
-        toast.error("Failed to load game data");
+        if (error instanceof SoddleError) {
+          toast.error(error.message);
+        }
         router.push("/");
       } finally {
         setLoading(false);
@@ -90,7 +92,7 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
     publicKey,
     router,
     fetchCurrentCompetition,
-    fetchGameSession,
+    fetchTodaySession,
     fetchUserGuesses,
     kols,
   ]);
@@ -101,19 +103,22 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
     try {
       setLoading(true);
       console.log("currentSession", currentPlaySession);
-      const guess = await makeGuess(currentPlaySession.id, kol.id);
+      const guess = (await makeGuess(
+        currentPlaySession.id,
+        kol.id
+      )) as GuessWithGuessedKol;
 
-      updatePlaySessionGuesses([guess as GuessWithGuessedKol]);
+      updatePlaySessionGuesses([guess]);
 
       updateRemainingGuessKOLs(guess.guessedKOLId);
 
       if (guess.isCorrect) {
         toast.success("Congratulations! You've guessed correctly!");
-        setGameResult(guess as GuessWithGuessedKol);
 
+        console.log("gameResult", guess);
         openModal(
           <GameResultPopup
-            correctKOL={gameResult?.guessedKOL as KOL}
+            correctKOL={guess.guessedKOL as KOL}
             playerStats={{
               rank: 1,
               score: 100,

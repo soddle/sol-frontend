@@ -3,71 +3,49 @@ import UserInfoCard from "./_components/userInfoCard";
 import TimeSection from "./_components/timeSection";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useChainAdapter } from "@/hooks/useChainAdapter";
+
 import {
-  ApiRequestError,
-  GameAlreadyCompletedError,
-  GameSessionNotFoundError,
-  InternalServerError,
+  GameSessionCreationError,
+  SoddleError,
+  WalletNotConnectedError,
 } from "@/lib/errors";
 import { Container } from "@/components/layout/mainLayoutClient";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
-import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
+
 import { GameSelection } from "./_components/gameSelection";
 import { GameType } from "@/lib/constants";
 import { useUiStore } from "@/stores/uiStore";
+
+import { useGame } from "@/hooks/useGame";
 import { useGameStore } from "@/stores/gameStore";
-import { CyberButton } from "@/components/ui/cyberButton";
 
 export default function GamePlayPageClient() {
   const anchorWallet = useAnchorWallet();
   const uiStore = useUiStore((state) => state);
-  const gameStore = useGameStore((state) => state);
-
-  const chainAdapter = useChainAdapter();
+  const { startGameSession } = useGame();
   const router = useRouter();
 
   const handleStartGameSession = async (gameType: GameType) => {
     try {
-      if (!anchorWallet || !anchorWallet.publicKey) {
-        toast.error("Please connect your wallet first");
-        return;
+      if (!anchorWallet) {
+        throw new WalletNotConnectedError();
       }
 
       uiStore.setLoading(true);
-      const gameSession = await chainAdapter.startGameSession(
-        gameType,
-        anchorWallet
-      );
+      const todaySession = await startGameSession(gameType, anchorWallet);
 
-      if (gameSession) {
-        router.push(`/attributes-game`);
+      if (todaySession) {
+        router.push(
+          `/attributes-game?adr=${anchorWallet.publicKey?.toBase58()}`
+        );
       } else {
-        throw new Error("Unable to start game.");
+        throw new GameSessionCreationError();
       }
     } catch (error) {
       console.error(error);
-      if (
-        error instanceof Error &&
-        error.message === "You can only play once per day"
-      ) {
+      if (error instanceof SoddleError) {
         toast.error(error.message);
-      } else if (
-        error instanceof GameSessionNotFoundError ||
-        error instanceof GameAlreadyCompletedError ||
-        error instanceof ApiRequestError ||
-        error instanceof InternalServerError
-      ) {
-        toast.error(error.message);
-      } else if (error instanceof WalletSignTransactionError) {
-        toast.error("You need to sign transaction to proceed");
-      } else if (
-        error instanceof Error &&
-        error.message === "No active competition found"
-      ) {
-        toast.error("No active competition found. Please try again later.");
-      } else {
-        toast.error("An unknown error occurred");
+        console.log(error);
       }
     } finally {
       uiStore.setLoading(false);

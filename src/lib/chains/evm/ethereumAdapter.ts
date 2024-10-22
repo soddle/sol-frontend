@@ -12,6 +12,7 @@ import {
   OnchainGameState,
   OnchainGameSession,
   GameSessionWithGuesses,
+  GuessWithGuessedKol,
 } from "../types";
 import { KOL } from "@/types";
 import { Competition, GameSession, Guess } from "@prisma/client";
@@ -94,6 +95,12 @@ export class EthereumAdapter implements EVMChainAdapter {
     return gameState;
   }
 
+  async fetchTodaySession(
+    playerAddress: string
+  ): Promise<GameSessionWithGuesses | null> {
+    return this.fetchGameSession(playerAddress);
+  }
+
   async fetchGameSession(
     playerAddress: string
   ): Promise<GameSessionWithGuesses | null> {
@@ -127,7 +134,7 @@ export class EthereumAdapter implements EVMChainAdapter {
     return currentCompetition;
   }
 
-  async fetchUserGuesses(sessionId: string): Promise<Guess[]> {
+  async fetchUserGuesses(sessionId: string): Promise<GuessWithGuessedKol[]> {
     if (!this.gameContract) {
       throw new Error("Game contract not initialized");
     }

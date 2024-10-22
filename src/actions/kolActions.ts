@@ -22,7 +22,6 @@ export async function fetchRandomKOL(): Promise<KOL | null> {
   });
 
   if (randomKOL.length === 0) {
-    console.log("No KOL found at the random index");
     return null;
   }
 

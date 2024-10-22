@@ -10,14 +10,6 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
   entries,
   userWallet,
 }) => {
-  // const calculateReward = (rank: number, totalEntries: number) => {
-  //   const percentile = (rank / totalEntries) * 100;
-  //   if (percentile <= 50) {
-  //     return `Top ${Math.round(percentile)}% (2x)`;
-  //   }
-  //   return "-";
-  // };
-
   return (
     <div className="w-full max-w-4xl mx-auto bg-[#181716] rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -27,14 +19,20 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Rank
               </th>
-              <th className="px-2 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider hidden sm:table-cell">
-                Top% (Reward)
-              </th>
               <th className="px-2 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Name
               </th>
               <th className="px-2 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Points
+              </th>
+              <th className="px-2 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Best Time
+              </th>
+              <th className="px-2 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Games Played
+              </th>
+              <th className="px-2 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                Avg Difficulty
               </th>
             </tr>
           </thead>
@@ -57,9 +55,6 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                     <div className="text-white">{entry.rank}</div>
                   </div>
                 </td>
-                <td className="px-2 py-4 whitespace-nowrap text-sm text-green-400 hidden sm:table-cell">
-                  {/* {calculateReward(entry.rank, entries.length)} */}
-                </td>
                 <td className="px-2 py-4 whitespace-nowrap text-sm">
                   <div className="text-white font-medium truncate max-w-[120px] sm:max-w-none">
                     {entry.player === userWallet
@@ -69,6 +64,15 @@ const LeaderboardTable: React.FC<LeaderboardTableProps> = ({
                 </td>
                 <td className="px-2 py-4 whitespace-nowrap text-sm text-right text-white">
                   {entry.totalScore}
+                </td>
+                <td className="px-2 py-4 whitespace-nowrap text-sm text-right text-white">
+                  {entry.bestTime}s
+                </td>
+                <td className="px-2 py-4 whitespace-nowrap text-sm text-right text-white">
+                  {entry.gamesPlayed}
+                </td>
+                <td className="px-2 py-4 whitespace-nowrap text-sm text-right text-white">
+                  {entry.averageDifficulty.toFixed(1)}
                 </td>
               </tr>
             ))}

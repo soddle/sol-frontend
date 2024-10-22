@@ -1,9 +1,9 @@
 import { Idl } from "@coral-xyz/anchor";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 import * as anchor from "@coral-xyz/anchor";
-import { Cluster as SolanaCluster } from "@solana/web3.js";
+import { PublicKey, Cluster as SolanaCluster } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
-import { Competition, GameSession, Guess, KOL, Prisma } from "@prisma/client";
+import { Competition, GameSession, Prisma } from "@prisma/client";
 
 // Define supported chains
 export type SupportedChain = "SOLANA" | "ETHEREUM" | "ECLIPSE" | "BLAST";
@@ -12,6 +12,10 @@ export type SupportedChain = "SOLANA" | "ETHEREUM" | "ECLIPSE" | "BLAST";
 export type SupportedNetwork = SolanaCluster | "sepolia" | "mainnet";
 
 export type HexAddress = `0x${string}`;
+
+export type ChainType = "SVM" | "EVM";
+export type GameType = 1 | 2 | 3;
+
 export interface ChainConfig {
   networks: {
     [key in SupportedNetwork]?: {
@@ -34,13 +38,10 @@ export interface BaseChainAdapter {
   getProvider(): any;
   signAndSendTransaction(transaction: any): Promise<string>;
   setNetwork(network: SupportedNetwork): void;
-  fetchUserGuesses(sessionId: string): Promise<Guess[]>;
-  fetchGameSession(
+  fetchUserGuesses(sessionId: string): Promise<GuessWithGuessedKol[]>;
+  fetchTodaySession(
     playerAddress: string
   ): Promise<GameSessionWithGuesses | null>;
-  fetchOnchainGameSession(
-    playerAddress: string
-  ): Promise<OnchainGameSession | null>;
   startGameSession(
     gameType: number,
     wallet: AnchorWallet
@@ -57,6 +58,7 @@ export interface SVMChainAdapter extends BaseChainAdapter {
     sessionId: string,
     guessedKOLId: string
   ): Promise<SVMGuessResult>;
+
   claimSVMRewards(gameSessionId: string): Promise<SVMClaimResult>;
 }
 
