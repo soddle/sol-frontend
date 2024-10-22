@@ -17,8 +17,13 @@ import { GameType } from "@/lib/constants";
 import { useUiStore } from "@/stores/uiStore";
 
 import { useGame } from "@/hooks/useGame";
+import { Competition } from "@prisma/client";
 
-export default function GamePlayPageClient() {
+export default function GamePlayPageClient({
+  latestCompetition,
+}: {
+  latestCompetition: Competition | null;
+}) {
   const anchorWallet = useAnchorWallet();
   const uiStore = useUiStore((state) => state);
   const { startGameSession } = useGame();
@@ -57,7 +62,10 @@ export default function GamePlayPageClient() {
     <Container>
       <div className="flex flex-col gap-4">
         <UserInfoCard />
-        <TimeSection />
+
+        <Container>
+          <TimeSection latestCompetition={latestCompetition} />
+        </Container>
         <GameSelection handleStartGameSession={handleStartGameSession} />
       </div>
     </Container>

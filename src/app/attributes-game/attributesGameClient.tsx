@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import SearchBar from "./_components/searchBar";
-import TimerDisplay from "../../components/ui/timeDisplay";
 import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -21,6 +20,7 @@ import {
   NoActiveCompetitionError,
   SoddleError,
 } from "@/lib/errors";
+import CompetitionTimer from "@/components/competitionTimer";
 
 export default function AttributesGameClient({
   kols,
@@ -137,10 +137,9 @@ export default function AttributesGameClient({
       >
         <Container>
           <section className="flex justify-center mb-4">
-            <TimerDisplay />
+            <CompetitionTimer competition={currentCompetition} />
           </section>
         </Container>
-
         <Container>
           <QuestionBox>
             <section className="text-white flex flex-col justify-between items-center">
