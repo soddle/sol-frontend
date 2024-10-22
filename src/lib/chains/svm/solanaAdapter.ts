@@ -273,7 +273,6 @@ export class SolanaAdapter implements SVMChainAdapter {
       program.programId
     );
 
-    console.log("🚀 Initiating on-chain transaction to start game session...");
     await program.methods
       .startGameSession(gameType, targetKOL)
       .accounts({
@@ -285,9 +284,7 @@ export class SolanaAdapter implements SVMChainAdapter {
         systemProgram: SystemProgram.programId,
       })
       .rpc();
-    console.log("✅ On-chain transaction completed successfully!");
 
-    console.log("📡 Fetching newly created game session from chain...");
     const newOnchainGameSession = await this.fetchOnChainGameSession(
       program,
       playerPublicKey,

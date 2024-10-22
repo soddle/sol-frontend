@@ -117,7 +117,11 @@ export default function AttributesGameClient({
       }
     } catch (error) {
       console.error("Error making guess:", error);
-      toast.error("Error making guess");
+      if (error instanceof SoddleError) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error making guess");
+      }
     } finally {
       setLoading(false);
     }
@@ -172,7 +176,10 @@ export default function AttributesGameClient({
         </Container>
         <Announcement />
         <Container>
-          <SearchBar kols={remainingGuessKOLs} handleGuess={handleGuess} />
+          <SearchBar
+            remainingGuessKOLs={remainingGuessKOLs}
+            handleGuess={handleGuess}
+          />
         </Container>
 
         <AttributesGuessListTable

@@ -6,6 +6,7 @@ import {
   OnchainGameSession,
 } from "@/lib/chains/types";
 import { compareKOLs } from "@/lib/cmp";
+import { GameAlreadyCompletedError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { Competition, GameSession, Guess } from "@prisma/client";
 
@@ -281,7 +282,7 @@ export const makeGuess = async (
     }
 
     if (gameSession.completed) {
-      throw new Error("Game session is already completed");
+      throw new GameAlreadyCompletedError();
     }
 
     const guessedKOL = await prisma.kOL.findUnique({

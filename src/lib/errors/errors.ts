@@ -64,3 +64,9 @@ export class WalletSignTransactionError extends SoddleError {
     super("Failed to sign transaction");
   }
 }
+
+export class GuessAlreadyMadeError extends SoddleError {
+  constructor() {
+    super("Guess already made");
+  }
+}

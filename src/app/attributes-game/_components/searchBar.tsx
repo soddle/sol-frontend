@@ -1,20 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import TrapezoidInput from "./trapezoidInput";
-import Image from "next/image";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { motion } from "framer-motion";
 import { KOL } from "@prisma/client";
+import { useDebounce } from "@/hooks/useDebounce";
+import Dropdown from "./dropdown";
 
-interface KOLSearchProps {
-  kols: KOL[];
+interface SearchBarProps {
+  remainingGuessKOLs: KOL[];
   handleGuess: (kol: KOL) => void;
 }
 
-const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  remainingGuessKOLs,
+  handleGuess,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [suggestions, setSuggestions] = useState<KOL[]>([]);
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const suggestions = React.useMemo(() => {
+    if (debouncedSearchTerm.length === 0) return [];
+    return remainingGuessKOLs.filter((kol) =>
+      kol.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [debouncedSearchTerm, remainingGuessKOLs]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,83 +44,66 @@ const KolSearch: React.FC<KOLSearchProps> = ({ kols, handleGuess }) => {
   }, []);
 
   useEffect(() => {
-    if (searchTerm.length > 0) {
-      const filteredKOLs = kols.filter((kol) =>
-        kol.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setSuggestions(filteredKOLs);
-      setIsDropdownOpen(true);
-    } else {
-      setSuggestions([]);
-      setIsDropdownOpen(false);
-    }
-  }, [searchTerm, kols]);
+    setIsDropdownOpen(debouncedSearchTerm.length > 0);
+    setFocusedIndex(-1);
+  }, [debouncedSearchTerm]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setIsDropdownOpen(true);
   };
 
   const handleSelectKOL = (kol: KOL) => {
     setSearchTerm("");
     setIsDropdownOpen(false);
     handleGuess(kol);
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedIndex((prevIndex) =>
+        prevIndex < suggestions.length - 1 ? prevIndex + 1 : prevIndex
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : -1));
+    } else if (e.key === "Enter" && focusedIndex >= 0) {
+      e.preventDefault();
+      handleSelectKOL(suggestions[focusedIndex]);
+    } else if (e.key === "Escape") {
+      setIsDropdownOpen(false);
+      inputRef.current?.blur();
+    }
   };
 
   return (
     <div ref={searchRef} className="relative">
+      <label htmlFor="kol-search" className="sr-only">
+        Search KOLs
+      </label>
       <TrapezoidInput
+        id="kol-search"
+        ref={inputRef}
         type="text"
         value={searchTerm}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         placeholder="Search KOLs..."
         className="w-full focus:outline-none focus:ring-2 focus:ring-[#2FFF2B]"
+        aria-expanded={isDropdownOpen}
+        aria-autocomplete="list"
+        aria-controls="kol-search-results"
+        role="combobox"
       />
-      {isDropdownOpen && (
-        <ul className="absolute z-20 w-full mt-1 bg-[#111411] border border-[#2FFF2B] rounded-md shadow-lg max-h-[40vh] overflow-auto no-scrollbar">
-          {suggestions.length > 0 ? (
-            suggestions.map((kol) => (
-              <ListItem kol={kol} key={kol.id} handleSelect={handleSelectKOL} />
-            ))
-          ) : (
-            <li className="py-4 px-4 text-[#2FFF2B] text-center">
-              No matching KOLs found
-            </li>
-          )}
-        </ul>
-      )}
+      <Dropdown
+        isOpen={isDropdownOpen}
+        suggestions={suggestions}
+        focusedIndex={focusedIndex}
+        handleSelect={handleSelectKOL}
+      />
     </div>
   );
 };
 
-function ListItem({
-  kol,
-  handleSelect,
-}: {
-  kol: KOL;
-  handleSelect: (kol: KOL) => void;
-}) {
-  return (
-    <li
-      onClick={() => handleSelect(kol)}
-      className="hover:bg-[#2d3537] py-4 cursor-pointer flex items-center px-4 border-b border-[#2FFF2B30] last:border-b-0"
-    >
-      <div className="w-12 h-12 relative mr-3 flex-shrink-0 border border-[#2FFF2B80] rounded-full overflow-hidden">
-        <Image
-          src={kol.pfp || "/user-icon.svg"}
-          unoptimized
-          alt="user"
-          width={40}
-          height={40}
-          className="rounded-full object-cover"
-        />
-      </div>
-      <div className="flex flex-col">
-        <div className="text-sm text-[#2FFF2B]">{kol.name}</div>
-        <div className="text-xs text-[#2FFF2B80]">@{kol.twitterHandle}</div>
-      </div>
-    </li>
-  );
-}
-
-export default KolSearch;
+export default SearchBar;
