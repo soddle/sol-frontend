@@ -5,15 +5,22 @@ import DateSelector from "./dateSelector";
 import GameTypeSelector from "./gameTypeSelector";
 import LeaderboardTable from "./leaderboardTable";
 import PaginationIndicator from "./paginationIndicator";
-import TimerDisplay from "@/components/ui/timeDisplay";
+
 import { LeaderboardEntry } from "@/types";
 import {
   fetchLeaderboard,
   getUserRankAndScore,
 } from "@/actions/leaderboardActions";
+import Trapezoid from "@/components/ui/trapezoid";
+import { Container } from "@/components/layout/mainLayoutClient";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { Competition } from "@prisma/client";
+import CompetitionCountdown from "@/components/competitionCountdown";
+import CompetitionTimer from "@/components/competitionTimer";
 
-const LeaderboardContainer: React.FC = () => {
+const LeaderboardContainer: React.FC<{ competition: Competition | null }> = ({
+  competition,
+}) => {
   const wallet = useWallet();
   const [selectedLeaderboardType, setSelectedLeaderboardType] = useState<
     "today" | "yesterday" | "alltime"
@@ -70,7 +77,7 @@ const LeaderboardContainer: React.FC = () => {
           selectedDate={selectedLeaderboardType}
           onDateChange={setSelectedLeaderboardType}
         />
-        <TimerDisplay />
+        <CompetitionTimer competition={competition} />
       </div>
       <GameTypeSelector
         selectedType={selectedGameType}

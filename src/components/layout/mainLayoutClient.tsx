@@ -9,6 +9,7 @@ import Spinner from "../loadingUi";
 import { useChainAdapter } from "@/hooks/useChainAdapter";
 import { useUiStore } from "@/stores/uiStore";
 import { useGameStore } from "@/stores/gameStore";
+import CyberpunkLogo from "../cyberPunkLogo";
 
 export function MainLayoutClient({ children }: { children: ReactNode }) {
   const chainAdapter = useChainAdapter();
@@ -51,6 +52,8 @@ export function MainLayoutClient({ children }: { children: ReactNode }) {
       {isModalOpen && <ModalBackground>{ModalComponent}</ModalBackground>}
       <div className="min-h-screen flex flex-col text-white">
         <Header />
+
+       
         <main className="flex-1 flex flex-col">{children}</main>
         <Footer />
       </div>

@@ -2,6 +2,9 @@ import "./globals.css";
 import { MainLayoutClient } from "@/components/layout/mainLayoutClient";
 import Providers from "@/components/providers";
 import { satoshi } from "@/lib/fonts";
+import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import CyberpunkBackground from "./cyberpunkBackground";
 
 export const metadata = {
   title: "Soddle",
@@ -15,17 +18,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${satoshi.variable}`}>
-      <body
-        className={`
-          bg-[#181716] 
-          bg-[url('/backgrounds/background_darkened_2.png')] 
-          bg-cover 
-          bg-center 
-          bg-fixed 
-          bg-no-repeat
-          px-4
-        `}
-      >
+      <body className="bg-[#181716] px-4">
+        <CyberpunkBackground />
         <Providers>
           <MainLayoutClient>{children}</MainLayoutClient>
         </Providers>

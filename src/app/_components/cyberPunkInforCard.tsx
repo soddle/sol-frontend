@@ -17,7 +17,7 @@ import { useChain } from "@/components/providers/chainProvider";
 
 const REFRESH_INTERVAL = 5 * 60 * 1000;
 
-function UserInfoCard() {
+function CyberPunkInfoCard() {
   const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
 
   const { setVisible } = useWalletModal();
@@ -243,6 +243,56 @@ function UserInfoCard() {
   );
 }
 
+const NoWallet = ({
+  handleConnectWallet,
+}: {
+  handleConnectWallet: () => void;
+}) => {
+  return (
+    <div className="relative group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 via-emerald-300 to-green-500 opacity-50 blur group-hover:opacity-75 transition duration-1000 animate-gradient-xy"></div>
+
+      <div
+        className="relative p-5 grid gap-3 border-[#03B500] border text-white bg-[#111411] items-center overflow-hidden"
+        style={{
+          clipPath: "polygon(5% 0%, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%)",
+        }}
+      >
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage:
+                "linear-gradient(#03B500 1px, transparent 1px), linear-gradient(90deg, #03B500 1px, transparent 1px)",
+              backgroundSize: "20px 20px",
+            }}
+          ></div>
+        </div>
+
+        <motion.div
+          className="flex items-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <p className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider">
+            No wallet connected
+          </p>
+        </motion.div>
+
+        <motion.button
+          className="relative bg-[#111411] border border-[#03B500] border-opacity-50 p-2 text-white text-lg transition-all duration-300 ease-in-out overflow-hidden group"
+          onClick={handleConnectWallet}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/20 to-green-500/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+          <span className="relative z-10">Click to connect wallet</span>
+        </motion.button>
+      </div>
+    </div>
+  );
+};
+
 const Skeleton = () => {
   return (
     <div className="relative">
@@ -279,116 +329,4 @@ function shortenAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
-export default UserInfoCard;
-
-const NoWallet = ({
-  handleConnectWallet,
-}: {
-  handleConnectWallet: () => void;
-}) => {
-  return (
-    <div className="relative group">
-      {/* Enhanced animated gradient background */}
-      <motion.div
-        className="absolute -inset-0.5 bg-gradient-to-r from-green-500 via-emerald-300 to-green-500 opacity-50 blur group-hover:opacity-75 transition duration-1000"
-        animate={{
-          background: [
-            "linear-gradient(to right, #22c55e, #10b981, #22c55e)",
-            "linear-gradient(to left, #22c55e, #10b981, #22c55e)",
-          ],
-        }}
-        transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
-      />
-
-      <div
-        className="relative p-5 grid gap-3 border-[#03B500] border text-white bg-[#111411] items-center overflow-hidden"
-        style={{
-          clipPath: "polygon(5% 0%, 100% 0, 100% 80%, 95% 100%, 0 100%, 0 20%)",
-        }}
-      >
-        {/* Cyber grid background */}
-        <div className="absolute inset-0 opacity-5">
-          <motion.div
-            className="w-full h-full"
-            style={{
-              backgroundImage:
-                "linear-gradient(#03B500 1px, transparent 1px), linear-gradient(90deg, #03B500 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-            animate={{
-              backgroundPosition: ["0px 0px", "20px 20px"],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-        </div>
-
-        {/* Glitch effect on text */}
-        <motion.div
-          className="flex items-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <motion.p
-            className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider relative overflow-hidden"
-            whileHover={{ scale: 1.05 }}
-          >
-            <span className="relative z-10">No wallet connected</span>
-            <motion.span
-              className="absolute inset-0 bg-green-500/20"
-              animate={{
-                x: ["0%", "-100%", "100%", "0%"],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "linear",
-              }}
-            />
-          </motion.p>
-        </motion.div>
-
-        {/* Enhanced connect wallet button */}
-        <motion.button
-          className="relative bg-[#111411] border border-[#03B500] border-opacity-50 p-2 text-white text-lg transition-all duration-300 ease-in-out overflow-hidden group"
-          onClick={handleConnectWallet}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/20 to-green-500/0"
-            animate={{
-              x: ["-100%", "100%"],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "linear",
-            }}
-          />
-          <span className="relative z-10">Click to connect wallet</span>
-
-          {/* Cyberpunk-style corner accents */}
-          <div className="absolute top-0 left-0 w-2 h-2 border-l border-t border-green-500" />
-          <div className="absolute top-0 right-0 w-2 h-2 border-r border-t border-green-500" />
-          <div className="absolute bottom-0 left-0 w-2 h-2 border-l border-b border-green-500" />
-          <div className="absolute bottom-0 right-0 w-2 h-2 border-r border-b border-green-500" />
-        </motion.button>
-
-        {/* Scanning line effect */}
-        <motion.div
-          className="absolute top-0 left-0 w-full h-1 bg-green-500/30"
-          animate={{
-            y: ["0%", "100%", "0%"],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      </div>
-    </div>
-  );
-};
+export default CyberPunkInfoCard;
