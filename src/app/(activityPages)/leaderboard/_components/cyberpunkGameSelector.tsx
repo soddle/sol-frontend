@@ -1,12 +1,19 @@
 "use client";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { GamepadIcon, Swords, Brain } from "lucide-react";
+import {
+  GamepadIcon,
+  Swords,
+  Brain,
+  UserSearch,
+  Smile,
+  MessagesSquare,
+} from "lucide-react";
 
 interface Game {
   id: string;
   name: string;
-  icon: "gamepad" | "swords" | "brain" | string;
+  icon: "usersearch" | "messagesquare" | "emoji" | string;
   description: string;
 }
 
@@ -23,12 +30,12 @@ const GameSelector = ({
 }: GameSelectorProps) => {
   const getIcon = (iconName: string) => {
     switch (iconName) {
-      case "gamepad":
-        return <GamepadIcon className="w-6 h-6" />;
-      case "swords":
-        return <Swords className="w-6 h-6" />;
-      case "brain":
-        return <Brain className="w-6 h-6" />;
+      case "usersearch":
+        return <UserSearch className="w-6 h-6" />;
+      case "messagesquare":
+        return <MessagesSquare className="w-6 h-6" />;
+      case "emoji":
+        return <Smile className="w-6 h-6" />;
       default:
         return <GamepadIcon className="w-6 h-6" />;
     }

@@ -53,6 +53,18 @@ export class ApiRequestError extends SoddleError {
   }
 }
 
+export class GuessError extends SoddleError {
+  constructor() {
+    super("Failed to make guess");
+  }
+}
+
+export class KOLNotFoundError extends SoddleError {
+  constructor() {
+    super("KOL not found");
+  }
+}
+
 export class InternalServerError extends SoddleError {
   constructor() {
     super("An internal server error occurred");

@@ -32,12 +32,13 @@ export interface AttributeGuess {
 
 export interface LeaderboardEntry {
   rank: number;
-  player: string;
-  totalScore: number;
+  name: string;
+  points: number;
+  topPercent: number;
   bestTime: number;
   gamesPlayed: number;
   averageDifficulty: number;
-  // mistakes: number;
+  mistakes: number;
 }
 
 // generated types

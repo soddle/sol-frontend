@@ -2,8 +2,6 @@ import "./globals.css";
 import { MainLayoutClient } from "@/components/layout/mainLayoutClient";
 import Providers from "@/components/providers";
 import { satoshi } from "@/lib/fonts";
-import { motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
 import CyberpunkBackground from "./cyberpunkBackground";
 
 export const metadata = {
@@ -18,11 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${satoshi.variable}`}>
-      <body className="bg-[#181716] px-4">
+      <body className="min-h-screen relative bg-[#181716]">
         <CyberpunkBackground />
-        <Providers>
-          <MainLayoutClient>{children}</MainLayoutClient>
-        </Providers>
+        <div className="relative z-10 px-4">
+          <Providers>
+            <MainLayoutClient>{children}</MainLayoutClient>
+          </Providers>
+        </div>
       </body>
     </html>
   );

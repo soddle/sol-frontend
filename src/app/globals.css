@@ -219,3 +219,61 @@
   animation: gradient-xy 15s ease infinite;
   background-size: 400% 400%;
 }
+
+@layer utilities {
+  .bg-radial-gradient {
+    background: radial-gradient(
+      circle at center,
+      rgba(3, 181, 0, 0.1) 0%,
+      rgba(3, 181, 0, 0) 70%
+    );
+  }
+
+  .bg-radial-vignette {
+    background: radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+  }
+
+  .bg-noise {
+    background-image: url("data:image64,<encoded-noise-pattern>");
+    background-repeat: repeat;
+    animation: noise 8s steps(10) infinite;
+  }
+}
+
+@keyframes noise {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-5%, -5%);
+  }
+  20% {
+    transform: translate(-10%, 5%);
+  }
+  30% {
+    transform: translate(5%, -10%);
+  }
+  40% {
+    transform: translate(-5%, 15%);
+  }
+  50% {
+    transform: translate(-10%, 5%);
+  }
+  60% {
+    transform: translate(15%, 0);
+  }
+  70% {
+    transform: translate(0, 10%);
+  }
+  80% {
+    transform: translate(-15%, 0);
+  }
+  90% {
+    transform: translate(10%, 5%);
+  }
+}

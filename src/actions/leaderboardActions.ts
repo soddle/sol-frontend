@@ -10,8 +10,8 @@ import { prisma } from "@/lib/prisma";
 import { LeaderboardEntry } from "@/types";
 
 export async function fetchLeaderboard(
-  gameType: number,
-  leaderboardType: "today" | "yesterday" | "alltime",
+  gameType: number = 1,
+  leaderboardType: "today" | "yesterday" | "alltime" = "today",
   page: number = 1,
   entriesPerPage: number = 10
 ): Promise<{ entries: LeaderboardEntry[]; totalEntries: number }> {
@@ -31,6 +31,9 @@ export async function fetchLeaderboard(
       startDate = new Date(0); // Beginning of time
       break;
   }
+
+  console.log("startDate", startDate);
+  console.log("leaderboardType", leaderboardType);
 
   const totalEntries = await prisma.gameSession.groupBy({
     by: ["userAddress"],
@@ -75,6 +78,8 @@ export async function fetchLeaderboard(
     take: entriesPerPage,
   });
 
+  console.log("leaderboard", leaderboard);
+
   const dailyChallenge: DailyChallenge = {
     description: "Complete the game in under 2 minutes",
     condition: (stats: PlayerStats) => stats.time < 120,
@@ -100,11 +105,13 @@ export async function fetchLeaderboard(
 
     return {
       rank: (page - 1) * entriesPerPage + index + 1,
-      player: entry.userAddress,
-      totalScore: totalPoints,
+      topPercent: (index + 1) / leaderboard.length,
+      name: entry.userAddress,
+      points: totalPoints,
       bestTime: entry._sum.playDuration || 0,
       gamesPlayed: entry._count._all,
       averageDifficulty: entry._avg.difficulty || 1,
+      mistakes: entry._sum.mistakes || 0,
     };
   });
 
@@ -188,4 +195,24 @@ export async function getUserRankAndScore(
     score: userScore._sum.score || 0,
     totalPlayers: totalPlayers.length,
   };
+}
+
+export async function calculateUserStats(
+  walletAddress: string,
+  gameType: number
+) {
+  console.log("calculating user stats", walletAddress, gameType);
+  const userStats = await prisma.gameSession.groupBy({
+    by: ["userAddress"],
+    where: { userAddress: walletAddress, gameType: gameType },
+    _sum: {
+      score: true,
+      playDuration: true,
+      mistakes: true,
+      difficulty: true,
+    },
+    _count: true,
+  });
+
+  return userStats;
 }

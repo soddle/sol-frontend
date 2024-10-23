@@ -102,8 +102,6 @@ export default function AttributesGameClient({
       );
 
       if (guess.isCorrect) {
-        toast.success("Congratulations! You've guessed correctly!");
-
         console.log("gameResult", guess);
         openModal(
           <GameResultPopup

@@ -57,3 +57,82 @@ export function LaughingEmojiIcon({ className }: { className: string }) {
     </svg>
   );
 }
+
+export function MessagesSquareIcon({ className }: { className: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 800 200"
+      className={className}
+    >
+      {/* Attributes Game Icon */}
+      <g transform="translate(50, 50)">
+        <circle
+          cx="50"
+          cy="50"
+          r="40"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+        />
+        <path
+          d="M50 20 L50 80 M20 50 L80 50"
+          stroke="currentColor"
+          stroke-width="4"
+        />
+        <circle
+          cx="50"
+          cy="35"
+          r="15"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+        />
+        <path d="M35 65 L65 65" stroke="currentColor" stroke-width="3" />
+      </g>
+
+      {/* Tweets Game Icon */}
+      <g transform="translate(300, 50)">
+        <path
+          d="M10 40 L90 40 L90 90 L55 90 L50 100 L45 90 L10 90 Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+        />
+        <path
+          d="M30 60 L70 60 M30 70 L60 70"
+          stroke="currentColor"
+          stroke-width="3"
+        />
+        <path
+          d="M25 25 L35 15 L45 25"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+        />
+      </g>
+
+      {/* Mind Maze Icon */}
+      <g transform="translate(550, 50)">
+        <path
+          d="M20 20 L80 20 L80 80 L20 80 Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+        />
+        <path
+          d="M20 35 L65 35 L65 65 L35 65 L35 50 L50 50"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+        />
+        <circle cx="73" cy="73" r="4" fill="currentColor" />
+        <path
+          d="M30 27 L40 27 M60 73 L70 73"
+          stroke="currentColor"
+          stroke-width="3"
+        />
+      </g>
+    </svg>
+  );
+}

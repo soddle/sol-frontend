@@ -105,12 +105,12 @@ const CyberpunkLeaderboard: React.FC<CyberpunkLeaderboardProps> = ({
                       )}
                     </span>
                   </td>
-                  <td className="py-2 px-4">{entry.name}</td>
+                  {/* <td className="py-2 px-4">{entry.name}</td>
                   <td className="py-2 px-4 text-right">{entry.topPercent}%</td>
                   <td className="py-2 px-4 text-right">{entry.points}</td>
                   <td className="py-2 px-4 text-right">
                     {formatTime(entry.bestTime)}
-                  </td>
+                  </td> */}
                 </motion.tr>
               ))}
             </AnimatePresence>

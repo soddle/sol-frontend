@@ -6,7 +6,12 @@ import {
   OnchainGameSession,
 } from "@/lib/chains/types";
 import { compareKOLs } from "@/lib/cmp";
-import { GameAlreadyCompletedError } from "@/lib/errors";
+import {
+  GameAlreadyCompletedError,
+  GameSessionNotFoundError,
+  GuessError,
+  KOLNotFoundError,
+} from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 
 import { Competition, GameSession, Guess } from "@prisma/client";
@@ -279,7 +284,7 @@ export const makeGuess = async (
     });
 
     if (!gameSession) {
-      throw new Error("Game session not found");
+      throw new GameSessionNotFoundError();
     }
 
     if (gameSession.completed) {
@@ -295,7 +300,7 @@ export const makeGuess = async (
     });
 
     if (!guessedKOL || !targetKOL) {
-      throw new Error("KOL not found");
+      throw new KOLNotFoundError();
     }
 
     const comparisonResult = compareKOLs(guessedKOL, targetKOL);
@@ -346,7 +351,7 @@ export const makeGuess = async (
     return newGuess;
   } catch (error) {
     console.error("Error making guess:", error);
-    throw new Error("Failed to make guess");
+    throw error;
   }
 };
 

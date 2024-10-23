@@ -1,72 +1,59 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
+import { X, ChevronUp, ChevronDown } from "lucide-react";
 import { useUiStore } from "@/stores/uiStore";
 
-interface CyberPunkLegendProps {
-  type: LEGEND_BOX_TYPES;
-  color: string;
-  icon?: string;
-}
-
-const CyberPunkLegendItem: React.FC<CyberPunkLegendProps> = ({
+const CyberPunkLegendItem = ({
   type,
   color,
   icon,
+  description,
+}: {
+  type: string;
+  color: string;
+  icon?: string;
+  description: string;
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
   return (
     <motion.div
-      className="flex flex-col items-center relative group"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.05 }}
+      className="flex gap-3 items-center relative group p-2"
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      whileHover={{ x: 4 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <motion.span
-        className="text-green-400 text-sm font-medium mb-2 relative"
-        animate={
-          isHovered
-            ? {
-                textShadow: "0 0 8px rgba(47, 255, 43, 0.7)",
-                color: "#2FFF2B",
-              }
-            : {}
-        }
-      >
-        {type}
-        <motion.div
-          className="absolute bottom-0 left-0 w-full h-0.5 bg-green-500"
-          initial={{ scaleX: 0 }}
-          animate={{ scaleX: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-        />
-      </motion.span>
-
-      <motion.div
-        className="relative"
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-      >
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/30 via-emerald-300/30 to-green-500/30 opacity-0 group-hover:opacity-100 blur transition-opacity duration-500" />
+      <motion.div className="relative min-w-[60px]">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/30 via-emerald-300/30 to-green-500/30 opacity-0 group-hover:opacity-100 blur transition duration-500" />
 
         <motion.div
-          className="relative w-20 h-20 shadow-lg flex items-center justify-center overflow-hidden"
+          className="relative border border-green-500/20 p-2 m-px overflow-hidden"
           style={{ backgroundColor: color }}
           animate={
             isHovered
               ? {
-                  boxShadow: "0 0 20px rgba(47, 255, 43, 0.3)",
+                  boxShadow: "0 0 10px rgba(47, 255, 43, 0.3)",
                 }
               : {}
           }
         >
+          {/* Grid overlay matching table */}
+          <div
+            className="absolute inset-0 opacity-5"
+            style={{
+              backgroundImage:
+                "linear-gradient(#03B500 1px, transparent 1px), linear-gradient(90deg, #03B500 1px, transparent 1px)",
+              backgroundSize: "4px 4px",
+            }}
+          />
+
           {/* Scanline effect */}
           <motion.div
-            className="absolute top-0 left-0 w-full h-1 bg-green-500/20"
+            className="absolute top-0 left-0 w-full h-0.5 bg-green-500/20"
             animate={{
-              y: [0, 80, 0],
+              y: [0, 24, 0],
             }}
             transition={{
               duration: 2,
@@ -75,49 +62,44 @@ const CyberPunkLegendItem: React.FC<CyberPunkLegendProps> = ({
             }}
           />
 
-          {/* Grid overlay */}
-          <div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(47, 255, 43, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(47, 255, 43, 0.5) 1px, transparent 1px)",
-              backgroundSize: "10px 10px",
-            }}
-          />
-
-          {/* Corner decorations */}
-          <div className="absolute top-0 left-0 w-3 h-3 border-l border-t border-green-500/50" />
-          <div className="absolute top-0 right-0 w-3 h-3 border-r border-t border-green-500/50" />
-          <div className="absolute bottom-0 left-0 w-3 h-3 border-l border-b border-green-500/50" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 border-r border-b border-green-500/50" />
-
-          {icon ? (
-            <motion.img
-              src={icon}
-              alt={type}
-              className="max-w-[80%] max-h-[80%] object-contain relative z-10"
-              animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-              transition={{ duration: 0.3 }}
-            />
-          ) : (
-            <motion.div
-              className="w-full h-full"
-              animate={
-                isHovered
-                  ? {
-                      backgroundColor: `${color}cc`,
-                    }
-                  : {}
-              }
-            />
+          {icon && (
+            <div className="flex justify-center items-center h-6">
+              {icon === "up" ? (
+                <ChevronUp className="w-4 h-4 text-red-500" />
+              ) : icon === "down" ? (
+                <ChevronDown className="w-4 h-4 text-red-500" />
+              ) : null}
+            </div>
           )}
         </motion.div>
       </motion.div>
+
+      <div className="flex-1">
+        <motion.div
+          className="text-green-400 text-sm font-medium mb-1"
+          animate={
+            isHovered
+              ? {
+                  color: "#4ade80",
+                  textShadow: "0 0 8px rgba(74, 222, 128, 0.5)",
+                }
+              : {}
+          }
+        >
+          {type}
+        </motion.div>
+        <motion.div
+          className="text-white/70 text-xs"
+          animate={isHovered ? { color: "rgba(255, 255, 255, 0.9)" } : {}}
+        >
+          {description}
+        </motion.div>
+      </div>
     </motion.div>
   );
 };
 
-const CyberPunkLegend: React.FC = () => {
+const CyberPunkLegend = () => {
   const isLegendOpen = useUiStore((state) => state.isLegendOpen);
   const setIsLegendOpen = useUiStore((state) => state.setIsLegendOpen);
   const [scanLine, setScanLine] = React.useState(false);
@@ -130,22 +112,33 @@ const CyberPunkLegend: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const items: CyberPunkLegendProps[] = [
-    { type: LEGEND_BOX_TYPES.correct, color: LEGEND_BOX_COLORS.correct },
+  const items = [
     {
-      type: LEGEND_BOX_TYPES.partially_correct,
-      color: LEGEND_BOX_COLORS.partially_correct,
-    },
-    { type: LEGEND_BOX_TYPES.incorrect, color: LEGEND_BOX_COLORS.incorrect },
-    {
-      type: LEGEND_BOX_TYPES.higher,
-      color: LEGEND_BOX_COLORS.higher,
-      icon: "/images/legend-up.png",
+      type: "Correct Match",
+      color: "rgba(34, 197, 94, 0.2)",
+      description: "The guessed value exactly matches the target",
     },
     {
-      type: LEGEND_BOX_TYPES.lower,
-      color: LEGEND_BOX_COLORS.lower,
-      icon: "/images/legend-down.png",
+      type: "Partial Match",
+      color: "rgba(234, 179, 8, 0.2)",
+      description: "The guess is partially correct or in the right category",
+    },
+    {
+      type: "Incorrect",
+      color: "rgba(239, 68, 68, 0.2)",
+      description: "The guessed value does not match the target",
+    },
+    {
+      type: "Higher",
+      color: "rgba(239, 68, 68, 0.2)",
+      icon: "up",
+      description: "The target value is higher than your guess",
+    },
+    {
+      type: "Lower",
+      color: "rgba(239, 68, 68, 0.2)",
+      icon: "down",
+      description: "The target value is lower than your guess",
     },
   ];
 
@@ -153,21 +146,21 @@ const CyberPunkLegend: React.FC = () => {
     <AnimatePresence>
       {isLegendOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="relative group"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="relative group max-w-[600px] mx-auto"
         >
           <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/30 via-emerald-300/30 to-green-500/30 opacity-75 blur group-hover:opacity-100 transition duration-1000" />
 
-          <div className="relative border border-[#2FFF2B] bg-[#111411] p-8 overflow-hidden">
+          <div className="relative bg-[#111411] p-4 overflow-hidden">
             {/* Background grid */}
             <div className="absolute inset-0 opacity-5">
               <div
                 className="w-full h-full"
                 style={{
                   backgroundImage:
-                    "linear-gradient(#2FFF2B 1px, transparent 1px), linear-gradient(90deg, #2FFF2B 1px, transparent 1px)",
+                    "linear-gradient(#03B500 1px, transparent 1px), linear-gradient(90deg, #03B500 1px, transparent 1px)",
                   backgroundSize: "20px 20px",
                 }}
               />
@@ -192,26 +185,36 @@ const CyberPunkLegend: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-6 h-6 border-l-2 border-b-2 border-green-500/50" />
             <div className="absolute bottom-0 right-0 w-6 h-6 border-r-2 border-b-2 border-green-500/50" />
 
+            {/* Title */}
+            <div className="text-green-400 text-lg font-bold mb-4 relative">
+              Legend
+              <motion.div
+                className="absolute bottom-0 left-0 w-full h-0.5 bg-green-500"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              />
+            </div>
+
             {/* Close button */}
             <motion.button
               onClick={() => setIsLegendOpen(false)}
-              className="absolute -top-2 -right-2 text-green-500 hover:text-green-400 border border-[#2FFF2B] bg-[#111411] rounded-full p-1 z-30"
+              className="absolute -top-2 -right-2 text-green-500 hover:text-green-400 border border-green-500/50 bg-[#111411] rounded-full p-1 z-30"
               whileHover={{
                 scale: 1.1,
                 boxShadow: "0 0 10px rgba(47, 255, 43, 0.5)",
               }}
-              transition={{ duration: 0.2 }}
             >
               <X className="h-4 w-4" />
             </motion.button>
 
-            {/* CyberPunkLegend items */}
-            <div className="flex justify-between relative z-10">
+            {/* Legend items */}
+            <div className="space-y-2 relative z-10">
               {items.map((item, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   <CyberPunkLegendItem {...item} />

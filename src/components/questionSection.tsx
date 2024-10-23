@@ -141,7 +141,7 @@ const EnhancedQuestionSection = ({
           >
             Guess today's personality!
           </motion.h1>
-          <GuessCounter count={remainingGuessKOLs.length} />
+          {/* <GuessCounter count={remainingGuessKOLs.length} /> */}
         </section>
       </QuestionBox>
     </Container>

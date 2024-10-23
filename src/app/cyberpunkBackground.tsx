@@ -1,109 +1,145 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
-const CyberpunkBackground: React.FC = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+const CyberpunkBackground = () => {
+  const [particles, setParticles] = useState<any[]>([]);
+  const [scanLine, setScanLine] = useState(false);
+  const [glitchEffect, setGlitchEffect] = useState(false);
 
+  // Generate random particles
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+    const generateParticles = () => {
+      const newParticles = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 2 + 1,
+        duration: Math.random() * 3 + 2,
+        delay: Math.random() * 2,
+      }));
+      setParticles(newParticles as any);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    generateParticles();
+    const interval = setInterval(generateParticles, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Scanline effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScanLine(true);
+      setTimeout(() => setScanLine(false), 1000);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Random glitch effect
+  useEffect(() => {
+    const triggerGlitch = () => {
+      if (Math.random() > 0.7) {
+        setGlitchEffect(true);
+        setTimeout(() => setGlitchEffect(false), 200);
+      }
+    };
+
+    const interval = setInterval(triggerGlitch, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <>
-      {/* Original background image */}
-      <div
-        className="fixed inset-0 bg-cover bg-center bg-fixed bg-no-repeat z-0"
-        style={{
-          backgroundImage: "url('/backgrounds/background_darkened_2.png')",
-        }}
-      />
+    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* Base gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#181716] via-[#1c1b1a] to-[#181716] opacity-90" />
 
-      {/* Animated cyber grid overlay */}
-      {/* <motion.div
-        className="fixed inset-0 opacity-20 z-10 pointer-events-none"
+      {/* Grid pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(3, 181, 0, 0.1) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(3, 181, 0, 0.1) 1px, transparent 1px)
+            linear-gradient(to right, #03B500 1px, transparent 1px),
+            linear-gradient(to bottom, #03B500 1px, transparent 1px)
           `,
-          backgroundSize: "50px 50px",
+          backgroundSize: "40px 40px",
         }}
-        animate={{
-          backgroundPosition: ["0px 0px", "50px 50px"],
-        }}
-        transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-      /> */}
-
-      {/* Glowing particles effect */}
-      <motion.div
-        className="fixed inset-0 z-20 pointer-events-none"
-        animate={{
-          background: [
-            "radial-gradient(circle, rgba(3,181,0,0.2) 0%, rgba(3,181,0,0) 50%)",
-            "radial-gradient(circle, rgba(3,181,0,0.3) 0%, rgba(3,181,0,0) 40%)",
-            "radial-gradient(circle, rgba(3,181,0,0.2) 0%, rgba(3,181,0,0) 50%)",
-          ],
-        }}
-        transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
       />
 
-      {/* Interactive light beam */}
-      {/* <motion.div
-        className="fixed w-[200px] h-[200px] rounded-full z-30 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(3,181,0,0.2) 0%, rgba(3,181,0,0) 70%)",
-          boxShadow: "0 0 20px rgba(3,181,0,0.3)",
-        }}
-        animate={{
-          x: mousePosition.x - 100,
-          y: mousePosition.y - 100,
-        }}
-      /> */}
+      {/* Radial overlay */}
+      <div className="absolute inset-0 bg-radial-gradient opacity-20" />
 
-      {/* Scanning line effect */}
-      <motion.div
-        className="fixed inset-0 z-40 overflow-hidden pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <motion.div
-          className="w-full h-1 bg-gradient-to-r from-transparent via-[#03B500] to-transparent"
-          animate={{
-            y: ["0%", "100%", "0%"],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      </motion.div>
+      {/* Floating particles */}
+      <div className="absolute inset-0">
+        {particles.map((particle) => (
+          <motion.div
+            key={particle.id}
+            className="absolute w-1 h-1 bg-green-500 rounded-full"
+            initial={{
+              opacity: 0,
+              x: `${particle.x}vw`,
+              y: "100vh",
+            }}
+            animate={{
+              opacity: [0, 0.5, 0],
+              x: `${particle.x}vw`,
+              y: "-20vh",
+            }}
+            transition={{
+              duration: particle.duration,
+              delay: particle.delay,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            style={{
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+            }}
+          />
+        ))}
+      </div>
 
-      {/* Random glitch effects */}
-      {/* {[...Array(5)].map((_, index) => (
-        <motion.div
-          key={index}
-          className="fixed inset-0 bg-[#03B500] mix-blend-screen z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.1, 0] }}
-          transition={{
-            duration: 0.2,
-            repeat: Infinity,
-            repeatType: "reverse",
-            repeatDelay: Math.random() * 10,
-          }}
-        />
-      ))} */}
-    </>
+      {/* Scan line effect */}
+      <AnimatePresence>
+        {scanLine && (
+          <motion.div
+            className="absolute top-0 left-0 w-full h-1 bg-green-500/20"
+            initial={{ y: "-100%" }}
+            animate={{ y: "100vh" }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "linear" }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Vignette effect */}
+      <div className="absolute inset-0 bg-radial-vignette opacity-50" />
+
+      {/* Glitch effect */}
+      <AnimatePresence>
+        {glitchEffect && (
+          <>
+            <motion.div
+              className="absolute inset-0 bg-green-500/5"
+              initial={{ x: -10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 10, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+            <motion.div
+              className="absolute inset-0 bg-red-500/5"
+              initial={{ x: 10, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -10, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Noise overlay */}
+      <div className="absolute inset-0 bg-noise opacity-[0.015]" />
+    </div>
   );
 };
 

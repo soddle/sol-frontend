@@ -2,6 +2,7 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ZapOff, Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 import Image from "next/image";
+import CyberpunkEmptyState from "@/app/(activityPages)/leaderboard/_components/cyberpunkEmptyState";
 
 const CyberpunkTable = ({
   data,
@@ -16,11 +17,24 @@ const CyberpunkTable = ({
   const [scanLine, setScanLine] = React.useState(false);
   const [currentPage, setCurrentPage] = React.useState(0);
   const [isMobile, setIsMobile] = React.useState(false);
-  const itemsPerPage = isMobile ? 3 : 7;
+  const [showFullContent, setShowFullContent] = React.useState<string | null>(
+    null
+  );
 
-  // Check viewport width on mount and resize
+  // Adjusted items per page based on screen size
+  const itemsPerPage = React.useMemo(() => {
+    if (isMobile) return 5;
+    if (window.innerWidth < 1024) return 6;
+    return 7;
+  }, [isMobile]);
+
+  // Enhanced mobile detection
   React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      // Reset current page when screen size changes to prevent empty pages
+      setCurrentPage(0);
+    };
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -72,19 +86,7 @@ const CyberpunkTable = ({
   if (isLoading) return <TableLoader headers={headers} isMobile={isMobile} />;
 
   if (!processedData?.length) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative group w-full max-w-2xl mx-auto"
-      >
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/30 via-emerald-300/30 to-green-500/30 opacity-75 blur group-hover:opacity-100 transition duration-1000" />
-        <div className="relative p-8 bg-[#111411] flex flex-col items-center gap-4">
-          <ZapOff className="w-12 h-12 text-green-500 animate-pulse" />
-          <p className="text-green-500 text-lg">No data available</p>
-        </div>
-      </motion.div>
-    );
+    return <CyberpunkEmptyState />;
   }
 
   return (
@@ -120,16 +122,20 @@ const CyberpunkTable = ({
         <div className="absolute bottom-0 left-0 w-4 md:w-6 h-4 md:h-6 border-l-2 border-b-2 border-green-500/50" />
         <div className="absolute bottom-0 right-0 w-4 md:w-6 h-4 md:h-6 border-r-2 border-b-2 border-green-500/50" />
 
-        <div className="overflow-x-auto">
-          <div className="min-w-[640px]">
+        <div className="overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-green-500/20">
+          <div className="min-w-[320px] md:min-w-[640px]">
             <div
-              className="grid"
+              className="grid gap-px"
               style={{
-                gridTemplateColumns: `repeat(${headers.length}, minmax(80px, 1fr))`,
+                gridTemplateColumns: `repeat(${headers.length}, minmax(${
+                  isMobile ? "60px" : "80px"
+                }, 1fr))`,
               }}
             >
               {headers.map((header: any, idx: number) => (
-                <HeaderCell key={idx}>{header}</HeaderCell>
+                <HeaderCell key={idx} isMobile={isMobile}>
+                  {header}
+                </HeaderCell>
               ))}
 
               {currentData.map((row: any, rowIndex: number) => (
@@ -143,6 +149,17 @@ const CyberpunkTable = ({
                       onLeave={() => setHoveredCell(null)}
                       feedback={cell.feedback}
                       isPfp={cell.type === "pfp"}
+                      isMobile={isMobile}
+                      isExpanded={
+                        showFullContent === `${rowIndex}-${cellIndex}`
+                      }
+                      onToggleExpand={() => {
+                        setShowFullContent(
+                          showFullContent === `${rowIndex}-${cellIndex}`
+                            ? null
+                            : `${rowIndex}-${cellIndex}`
+                        );
+                      }}
                     />
                   ))}
                 </React.Fragment>
@@ -152,15 +169,15 @@ const CyberpunkTable = ({
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-4 text-green-500">
+          <div className="flex justify-center items-center gap-2 md:gap-4 mt-2 md:mt-4 text-green-500">
             <button
               onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
               disabled={currentPage === 0}
-              className="disabled:opacity-50 hover:text-green-400 transition-colors"
+              className="p-1 disabled:opacity-50 hover:text-green-400 transition-colors"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-4 h-4 md:w-6 md:h-6" />
             </button>
-            <span className="font-mono">
+            <span className="font-mono text-sm md:text-base">
               {currentPage + 1} / {totalPages}
             </span>
             <button
@@ -168,9 +185,9 @@ const CyberpunkTable = ({
                 setCurrentPage(Math.min(totalPages - 1, currentPage + 1))
               }
               disabled={currentPage === totalPages - 1}
-              className="disabled:opacity-50 hover:text-green-400 transition-colors"
+              className="p-1 disabled:opacity-50 hover:text-green-400 transition-colors"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-4 h-4 md:w-6 md:h-6" />
             </button>
           </div>
         )}
@@ -179,14 +196,21 @@ const CyberpunkTable = ({
   );
 };
 
-// HeaderCell and DataCell components remain the same
-const HeaderCell = ({ children }: { children: React.ReactNode }) => (
+const HeaderCell = ({
+  children,
+  isMobile,
+}: {
+  children: React.ReactNode;
+  isMobile: boolean;
+}) => (
   <motion.div
-    className="p-2 md:p-3 text-green-400 font-bold text-xs md:text-sm relative overflow-hidden"
+    className={`p-1 md:p-3 text-green-400 font-bold ${
+      isMobile ? "text-xs" : "text-sm"
+    } relative overflow-hidden`}
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
   >
-    {children}
+    <div className="truncate">{children}</div>
     <motion.div
       className="absolute bottom-0 left-0 w-full h-0.5 bg-green-500"
       initial={{ scaleX: 0 }}
@@ -203,6 +227,9 @@ const DataCell = ({
   onLeave,
   feedback,
   isPfp,
+  isMobile,
+  isExpanded,
+  onToggleExpand,
 }: {
   value: any;
   isHovered: boolean;
@@ -210,6 +237,9 @@ const DataCell = ({
   onLeave: () => void;
   feedback: any;
   isPfp: boolean;
+  isMobile: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }) => {
   const getBackgroundColor = () => {
     switch (feedback) {
@@ -231,9 +261,10 @@ const DataCell = ({
       className={`relative p-1 md:p-2 border border-green-500/20 m-px overflow-hidden group ${getBackgroundColor()}`}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.02, zIndex: 10 }}
+      whileHover={{ scale: isMobile ? 1 : 1.02, zIndex: 10 }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
+      onClick={!isPfp ? onToggleExpand : undefined}
     >
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-green-500/0 via-green-500/10 to-green-500/0"
@@ -244,7 +275,11 @@ const DataCell = ({
 
       <div className="relative z-10 flex items-center justify-center">
         {isPfp ? (
-          <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden group-hover:ring-2 ring-green-500 transition-all">
+          <div
+            className={`relative ${
+              isMobile ? "w-6 h-6" : "w-8 h-8 md:w-10 md:h-10"
+            } rounded-full overflow-hidden group-hover:ring-2 ring-green-500 transition-all`}
+          >
             <Image
               src={value}
               alt="Profile"
@@ -254,8 +289,10 @@ const DataCell = ({
             />
           </div>
         ) : (
-          <motion.span
-            className="text-white/90 text-xs md:text-sm truncate max-w-full px-1"
+          <motion.div
+            className={`text-white/90 ${isMobile ? "text-xs" : "text-sm"} ${
+              isExpanded ? "" : "truncate"
+            } max-w-full px-1`}
             animate={
               isHovered
                 ? {
@@ -266,7 +303,7 @@ const DataCell = ({
             }
           >
             {value}
-          </motion.span>
+          </motion.div>
         )}
       </div>
 
@@ -290,26 +327,28 @@ const TableLoader = ({
   <div className="w-full max-w-full lg:max-w-[900px] mx-auto relative group">
     <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500/20 via-emerald-300/20 to-green-500/20 opacity-75 blur animate-pulse" />
     <div className="relative bg-[#111411] p-2 md:p-4 overflow-x-auto">
-      <div className="min-w-[640px]">
+      <div className="min-w-[320px] md:min-w-[640px]">
         <div
-          className="grid"
+          className="grid gap-px"
           style={{
-            gridTemplateColumns: `repeat(${headers.length}, minmax(80px, 1fr))`,
+            gridTemplateColumns: `repeat(${headers.length}, minmax(${
+              isMobile ? "60px" : "80px"
+            }, 1fr))`,
           }}
         >
           {headers.map((_: any, idx: number) => (
             <motion.div
               key={idx}
-              className="p-2 md:p-3"
+              className="p-1 md:p-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: idx * 0.1 }}
             >
-              <div className="h-4 bg-green-500/20 rounded animate-pulse" />
+              <div className="h-3 md:h-4 bg-green-500/20 rounded animate-pulse" />
             </motion.div>
           ))}
 
-          {[...Array(isMobile ? 3 : 5)].map((_, rowIdx) =>
+          {[...Array(isMobile ? 5 : 7)].map((_, rowIdx) =>
             [...Array(headers.length)].map((_, cellIdx) => (
               <motion.div
                 key={`${rowIdx}-${cellIdx}`}
@@ -320,7 +359,7 @@ const TableLoader = ({
                   delay: (rowIdx * headers.length + cellIdx) * 0.03,
                 }}
               >
-                <div className="h-6 md:h-8 bg-green-500/10 rounded">
+                <div className="h-4 md:h-6 lg:h-8 bg-green-500/10 rounded">
                   <motion.div
                     className="h-full w-full bg-gradient-to-r from-green-500/0 via-green-500/20 to-green-500/0"
                     animate={{ x: ["-100%", "100%"] }}
@@ -340,12 +379,12 @@ const TableLoader = ({
 
       <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm">
         <motion.div
-          className="flex items-center gap-2 text-green-500"
+          className="flex items-center gap-1 md:gap-2 text-green-500"
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          <Loader2 className="animate-spin" />
-          <span className="font-mono text-sm md:text-base">
+          <Loader2 className="w-4 h-4 md:w-6 md:h-6 animate-spin" />
+          <span className="font-mono text-xs md:text-sm lg:text-base">
             Loading data...
           </span>
         </motion.div>

@@ -6,13 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Competition } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
-import GameSelector from "./gameSelector";
+import { useTimeLeft } from "@/hooks/useTimeLeft";
+import { LeaderboardEntry } from "@/types";
 interface TimeUnit {
   label: string;
   value: number;
 }
 
 const CompetitionTimer = ({ endTime }: { endTime: number }) => {
+  const timeleft = useTimeLeft(endTime.toString());
   const [timeUnits, setTimeUnits] = useState<TimeUnit[]>([
     { label: "HOURS", value: 0 },
     { label: "MINUTES", value: 0 },
@@ -161,14 +163,6 @@ const CompetitionTimer = ({ endTime }: { endTime: number }) => {
   );
 };
 
-interface LeaderboardEntry {
-  rank: number;
-  name: string;
-  topPercent: number;
-  points: number;
-  bestTime: number;
-}
-
 type LeaderboardType = "today" | "yesterday" | "alltime";
 
 const CyberPunkLeaderboard = ({
@@ -178,33 +172,9 @@ const CyberPunkLeaderboard = ({
 }: {
   entries: LeaderboardEntry[];
   competition: Competition | null;
-  type?: LeaderboardType;
+  type: LeaderboardType;
 }) => {
   const [selectedType, setSelectedType] = useState<LeaderboardType>(type);
-  const games = [
-    {
-      id: "game1",
-      name: "Cyber Race",
-      icon: "gamepad",
-      description: "High-speed digital racing",
-    },
-    {
-      id: "game2",
-      name: "Neural Combat",
-      icon: "swords",
-      description: "Strategic battle simulation",
-    },
-    {
-      id: "game3",
-      name: "Mind Maze",
-      icon: "brain",
-      description: "Cognitive puzzle challenge",
-    },
-  ];
-
-  // In your leaderboard component:
-  const [selectedGame, setSelectedGame] = useState(games[0].id);
-
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
@@ -253,17 +223,12 @@ const CyberPunkLeaderboard = ({
           <div className="mb-8">
             <h2 className="text-4xl font-bold text-center mb-4">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-300">
-                Cyber Arena Rankings
+                Crypto Legends Leaderboard
               </span>
             </h2>
             <CompetitionTimer endTime={competition?.endTime.getTime() || 0} />
           </div>
 
-          <GameSelector
-            games={games}
-            selectedGame={selectedGame}
-            onSelectGame={setSelectedGame}
-          />
           {/* Type Selector */}
           <div className="flex justify-center gap-4 mb-8">
             {(["today", "yesterday", "alltime"] as LeaderboardType[]).map(
@@ -346,8 +311,12 @@ const CyberPunkLeaderboard = ({
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 font-medium">{entry.name}</td>
-                        <td className="p-4 text-center">{entry.topPercent}%</td>
+                        <td className="p-4 font-medium">
+                          {entry.name.slice(0, 10)}
+                        </td>
+                        <td className="p-4 text-center">
+                          {entry.topPercent.toFixed(2)}%
+                        </td>
                         <td className="p-4 text-center">
                           <motion.span
                             animate={{
@@ -359,11 +328,12 @@ const CyberPunkLeaderboard = ({
                             }}
                             className="text-green-400 font-mono"
                           >
-                            {entry.points.toLocaleString()}
+                            {entry.points}
                           </motion.span>
                         </td>
                         <td className="p-4 text-right font-mono">
                           {formatTime(entry.bestTime)}
+                          {/* <span className="text-green-400">s</span> */}
                         </td>
                       </motion.tr>
                     ))}

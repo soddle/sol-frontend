@@ -5,19 +5,19 @@ import { LaughingEmojiIcon } from "@/components/icons";
 
 const GAME_TYPES = [
   {
-    title: "Attributes Game",
+    title: "Game 1",
     description: "Find the daily KOL through clues on every try",
     type: GameType.Attributes,
     icon: "A",
   },
   {
-    title: "Tweets Game",
+    title: "Game 2",
     description: "Match an infamous tweet to its publisher",
     type: GameType.Tweets,
     icon: <HashtagIcon className="size-6" />,
   },
   {
-    title: "Emoji's Game",
+    title: "Game 3",
     description: "Guess the right KOL using emojis",
     type: GameType.Emojis,
     icon: <LaughingEmojiIcon className="size-6" />,
