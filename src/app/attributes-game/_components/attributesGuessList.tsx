@@ -1,281 +1,304 @@
-"use client";
-import { motion } from "framer-motion";
-import Image from "next/image";
-import React from "react";
-import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
-import { GuessWithGuessedKol } from "@/lib/chains/types";
-import { KOL } from "@/types";
-import { Container } from "@/components/layout/mainLayoutClient";
+// "use client";
+// import { motion } from "framer-motion";
+// import Image from "next/image";
+// import React from "react";
 
-interface AttributesGuessListProps {
-  guesses: GuessWithGuessedKol[];
-  loadingGuesses: boolean;
-}
+// import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
 
-interface CellProps {
-  children: React.ReactNode;
-  feedback: string;
-  className?: string;
-  isPfp?: boolean;
-}
+// interface AttributesGuessListProps {
+//   gameSessionFromApi: GameSessionFromApi | null;
+//   loadingApiGameSession: boolean;
+//   allKols: KolWithTweets[];
+// }
 
-const Cell: React.FC<CellProps> = ({
-  children,
-  feedback,
-  className,
-  isPfp = false,
-}) => {
-  const cellStyle = isPfp
-    ? { background: "transparent" }
-    : {
-        background:
-          LEGEND_BOX_COLORS[feedback as keyof typeof LEGEND_BOX_COLORS] || "",
-      };
-  const icon =
-    feedback === LEGEND_BOX_TYPES.higher
-      ? "/images/legend-up.png"
-      : feedback === LEGEND_BOX_TYPES.lower
-      ? "/images/legend-down.png"
-      : null;
+// interface CellProps {
+//   children: React.ReactNode;
+//   attributeResult: string;
+//   className?: string;
+//   isPfp?: boolean;
+// }
 
-  return (
-    <div style={cellStyle} className={`overflow-hidden ${className}`}>
-      <div
-        className={`w-full aspect-square flex items-center justify-center relative`}
-      >
-        {icon && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <img
-              src={icon}
-              alt={feedback}
-              className="max-w-full max-h-full object-contain opacity-"
-            />
-          </div>
-        )}
-        <div className="relative z-10 text-center break-words">{children}</div>
-      </div>
-    </div>
-  );
-};
+// const Cell: React.FC<CellProps> = ({
+//   children,
+//   attributeResult,
+//   className,
+//   isPfp = false,
+// }) => {
+//   const cellStyle = isPfp
+//     ? { background: "transparent" }
+//     : {
+//         background:
+//           attributeResult === LEGEND_BOX_TYPES.Correct
+//             ? LEGEND_BOX_COLORS.Correct
+//             : attributeResult === LEGEND_BOX_TYPES.Higher
+//             ? LEGEND_BOX_COLORS.Higher
+//             : attributeResult === LEGEND_BOX_TYPES.Incorrect
+//             ? LEGEND_BOX_COLORS.Incorrect
+//             : attributeResult === LEGEND_BOX_TYPES.Lower
+//             ? LEGEND_BOX_COLORS.Lower
+//             : "",
+//       };
 
-const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className={`overflow-hidden`}>
-    <div
-      className={`w-full h-full flex items-center justify-center aspect-[2/1]`}
-    >
-      <span
-        className={
-          "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
-        }
-      >
-        {children}
-      </span>
-    </div>
-  </div>
-);
+//   const icon =
+//     attributeResult === LEGEND_BOX_TYPES.Higher
+//       ? "/legend-up.png"
+//       : attributeResult === LEGEND_BOX_TYPES.Lower
+//       ? "/legend-down.png"
+//       : null;
 
-export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
-  loadingGuesses,
-  guesses,
-}) => {
-  if (loadingGuesses) {
-    return <TableLoader />;
-  }
+//   return (
+//     <div style={cellStyle} className={`overflow-hidden ${className}`}>
+//       <div
+//         className={`w-full aspect-square flex items-center justify-center relative`}
+//       >
+//         {icon && (
+//           <div className="absolute inset-0 flex items-center justify-center">
+//             <img
+//               src={icon}
+//               alt={attributeResult}
+//               className="max-w-full max-h-full object-contain opacity-"
+//             />
+//           </div>
+//         )}
+//         <div className="relative z-10 text-center break-words">{children}</div>
+//       </div>
+//     </div>
+//   );
+// };
 
-  if (guesses.length === 0) {
-    return (
-      <Container>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center text-green-500 p-4 bg-[#111411] rounded-md"
-        >
-          You have no guesses yet. Try making some guesses!
-        </motion.div>
-      </Container>
-    );
-  }
+// const HeaderCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+//   <div className={`overflow-hidden`}>
+//     <div
+//       className={`w-full h-full flex items-center justify-center aspect-[2/1]`}
+//     >
+//       <span
+//         className={
+//           "text-[0.7rem] sm:text-xs md:text-sm break-words text-center"
+//         }
+//       >
+//         {children}
+//       </span>
+//     </div>
+//   </div>
+// );
 
-  const headers = [
-    "KOL",
-    "Age",
-    "Country",
-    "Pfp",
-    "Account creation",
-    "Followers",
-    "Ecosystem",
-  ];
+// export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
+//   loadingApiGameSession,
+//   gameSessionFromApi,
+//   allKols,
+// }) => {
+//   if (loadingApiGameSession || !gameSessionFromApi) {
+//     return <TableLoader />;
+//   }
 
-  return (
-    <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
-      <div className="">
-        <div className="grid grid-cols-7 gap-2 ">
-          {headers.map((header) => (
-            <HeaderCell key={header}>{header}</HeaderCell>
-          ))}
-          {guesses.map((guess, index) => (
-            <TableRow key={guess.id} guess={guess} index={index} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-interface TableRowProps {
-  guess: GuessWithGuessedKol;
-  index: number;
-}
+//   const game1Guesses = [...gameSessionFromApi.game1Guesses].reverse();
 
-function TableRow({ guess }: TableRowProps) {
-  const attributes = guess.guessedKOL;
-  const feedback = guess.feedback as {
-    pfpType: string;
-    age: string;
-    country: string;
-    twitterAccountCreationYear: string;
-    followers: string;
-    ecosystem: string;
-  };
+//   if (game1Guesses.length <= 0) {
+//     return (
+//       <div className="text-center text-green-500">
+//         You have no guesses here yet. Try making some guesses.
+//       </div>
+//     );
+//   }
 
-  return (
-    <>
-      <Cell
-        feedback={feedback.pfpType}
-        className="bg-transparent p-0 m-0"
-        isPfp={true}
-      >
-        <Image
-          unoptimized
-          src={attributes.pfp || "/images/user-icon.svg"}
-          className="rounded-full"
-          alt="user"
-          width={40}
-          height={20}
-          objectFit="cover"
-        />
-      </Cell>
+//   return (
+//     <div className="w-full max-w-[700px] mx-auto overflow-x-auto ">
+//       <div className="">
+//         <div className="grid grid-cols-7 gap-2 ">
+//           {[
+//             "KOL",
+//             "Age",
+//             "Country",
+//             "Pfp",
+//             "Account creation",
+//             "Followers",
+//             "Ecosystem",
+//           ].map((header) => (
+//             <HeaderCell key={header}>{header}</HeaderCell>
+//           ))}
+//           {game1Guesses?.map((game1guess) => {
+//             const kolAndTweets = allKols.find(
+//               (kol) =>
+//                 kol.id === game1guess.guess.id &&
+//                 kol.age === game1guess.guess.age
+//             );
 
-      <Cell feedback={feedback.age}>
-        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.ageRange}
-        </span>
-      </Cell>
-      <Cell feedback={feedback.country}>
-        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.country}
-        </span>
-      </Cell>
-      <Cell feedback={feedback.pfpType}>
-        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.pfpType}
-        </span>
-      </Cell>
-      <Cell feedback={feedback.twitterAccountCreationYear}>
-        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.twitterFollowersRange}
-        </span>
-      </Cell>
-      <Cell feedback={feedback.followers}>
-        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.followers}
-        </span>
-      </Cell>
-      <Cell feedback={feedback.ecosystem}>
-        <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.ecosystem}
-        </span>
-      </Cell>
-    </>
-  );
-}
+//             if (kolAndTweets) {
+//               return (
+//                 <TableRow
+//                   game1guess={{
+//                     result: game1guess.result,
+//                     guess: kolAndTweets,
+//                   }}
+//                 />
+//               );
+//             }
+//             return null;
+//           })}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+// interface TableRowProps {
+//   game1guess: {
+//     guess: KolWithTweets;
+//     result: Game1Guess["result"];
+//   };
+// }
 
-function TableRowLoader() {
-  return (
-    <>
-      {[...Array(7)].map((_, index) => (
-        <div key={index} className="overflow-hidden bg-[#111411] rounded-md">
-          <div className="w-full h-full flex items-center justify-center aspect-[2/1]">
-            <motion.div
-              className="w-3/4 h-3/4 bg-gradient-to-r from-[#1a1e1b] via-[#2FFF2B20] to-[#1a1e1b] rounded-md"
-              animate={{
-                opacity: [0.5, 0.8, 0.5],
-                scale: [0.97, 1, 0.97],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </div>
-        </div>
-      ))}
-    </>
-  );
-}
+// function TableRow({ game1guess }: TableRowProps) {
+//   const { guess, result: attributesResults } = game1guess;
 
-function TableLoader() {
-  const headers = [
-    "KOL",
-    "Age",
-    "Country",
-    "Pfp",
-    "Account creation",
-    "Followers",
-    "Ecosystem",
-  ];
+//   const {
+//     account_creation: accountCreation,
+//     age,
+//     country,
+//     ecosystem,
+//     followers,
+//     name,
+//     pfpType,
+//   } = attributesResults;
 
-  return (
-    <div className="w-full max-w-[700px] mx-auto overflow-x-auto">
-      <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
-        <div className="grid grid-cols-7 gap-2">
-          {headers.map((header) => (
-            <HeaderCell key={header}>
-              <motion.div
-                className="w-full h-4 bg-[#2FFF2B20] rounded"
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </HeaderCell>
-          ))}
-          {[...Array(5)].map((_, rowIndex) => (
-            <React.Fragment key={rowIndex}>
-              {[...Array(7)].map((_, colIndex) => (
-                <motion.div
-                  key={`${rowIndex}-${colIndex}`}
-                  className="overflow-hidden bg-[#111411] rounded-md"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: rowIndex * 0.1 + colIndex * 0.05,
-                  }}
-                >
-                  <div className="w-full h-full flex items-center justify-center aspect-[2/1]">
-                    <motion.div
-                      className="w-3/4 h-3/4 bg-gradient-to-r from-[#1a1e1b] via-[#2FFF2B20] to-[#1a1e1b] rounded-md"
-                      animate={{
-                        opacity: [0.5, 0.8, 0.5],
-                        scale: [0.97, 1, 0.97],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: rowIndex * 0.2 + colIndex * 0.1,
-                      }}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+//   return (
+//     <>
+//       <Cell
+//         attributeResult={pfpType}
+//         className="bg-transparent p-0 m-0"
+//         isPfp={true}
+//       >
+//         <Image
+//           unoptimized
+//           src={guess?.pfp || "/user-icon.svg"}
+//           className="rounded-full"
+//           alt="user"
+//           width={40}
+//           height={20}
+//           objectFit="cover"
+//         />
+//       </Cell>
+
+//       <Cell attributeResult={age}>
+//         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+//           {guess.ageDisplay}
+//         </span>
+//       </Cell>
+//       <Cell attributeResult={country}>
+//         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+//           {guess.country}
+//         </span>
+//       </Cell>
+//       <Cell attributeResult={name}>
+//         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+//           {guess.pfpType}
+//         </span>
+//       </Cell>
+//       <Cell attributeResult={accountCreation}>
+//         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+//           {guess.accountCreation}
+//         </span>
+//       </Cell>
+//       <Cell attributeResult={followers}>
+//         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+//           {guess.followersDisplay}
+//         </span>
+//       </Cell>
+//       <Cell attributeResult={ecosystem}>
+//         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
+//           {guess.ecosystem}
+//         </span>
+//       </Cell>
+//     </>
+//   );
+// }
+
+// function TableRowLoader() {
+//   return (
+//     <>
+//       {[...Array(7)].map((_, index) => (
+//         <div key={index} className="overflow-hidden bg-[#111411] rounded-md">
+//           <div className="w-full h-full flex items-center justify-center aspect-[2/1]">
+//             <motion.div
+//               className="w-3/4 h-3/4 bg-gradient-to-r from-[#1a1e1b] via-[#2FFF2B20] to-[#1a1e1b] rounded-md"
+//               animate={{
+//                 opacity: [0.5, 0.8, 0.5],
+//                 scale: [0.97, 1, 0.97],
+//               }}
+//               transition={{
+//                 duration: 2,
+//                 repeat: Infinity,
+//                 ease: "easeInOut",
+//               }}
+//             />
+//           </div>
+//         </div>
+//       ))}
+//     </>
+//   );
+// }
+
+// function TableLoader() {
+//   const headers = [
+//     "KOL",
+//     "Age",
+//     "Country",
+//     "Pfp",
+//     "Account creation",
+//     "Followers",
+//     "Ecosystem",
+//   ];
+
+//   return (
+//     <div className="w-full max-w-[700px] mx-auto overflow-x-auto">
+//       <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+//         <div className="grid grid-cols-7 gap-2">
+//           {headers.map((header) => (
+//             <HeaderCell key={header}>
+//               <motion.div
+//                 className="w-full h-4 bg-[#2FFF2B20] rounded"
+//                 animate={{ opacity: [0.5, 1, 0.5] }}
+//                 transition={{
+//                   duration: 1.5,
+//                   repeat: Infinity,
+//                   ease: "easeInOut",
+//                 }}
+//               />
+//             </HeaderCell>
+//           ))}
+//           {[...Array(5)].map((_, rowIndex) => (
+//             <React.Fragment key={rowIndex}>
+//               {[...Array(7)].map((_, colIndex) => (
+//                 <motion.div
+//                   key={`${rowIndex}-${colIndex}`}
+//                   className="overflow-hidden bg-[#111411] rounded-md"
+//                   initial={{ opacity: 0, y: 20 }}
+//                   animate={{ opacity: 1, y: 0 }}
+//                   transition={{
+//                     duration: 0.5,
+//                     delay: rowIndex * 0.1 + colIndex * 0.05,
+//                   }}
+//                 >
+//                   <div className="w-full h-full flex items-center justify-center aspect-[2/1]">
+//                     <motion.div
+//                       className="w-3/4 h-3/4 bg-gradient-to-r from-[#1a1e1b] via-[#2FFF2B20] to-[#1a1e1b] rounded-md"
+//                       animate={{
+//                         opacity: [0.5, 0.8, 0.5],
+//                         scale: [0.97, 1, 0.97],
+//                       }}
+//                       transition={{
+//                         duration: 2,
+//                         repeat: Infinity,
+//                         ease: "easeInOut",
+//                         delay: rowIndex * 0.2 + colIndex * 0.1,
+//                       }}
+//                     />
+//                   </div>
+//                 </motion.div>
+//               ))}
+//             </React.Fragment>
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }

@@ -303,6 +303,7 @@ export const makeGuess = async (
       (result) => result === "correct"
     );
     const score = calculateScore(gameSession.guesses.length + 1, isCorrect);
+    const rank = calculateRank(gameSession.guesses.length + 1);
 
     const newGuess = await prisma.guess.create({
       data: {
@@ -347,4 +348,8 @@ export const makeGuess = async (
     console.error("Error making guess:", error);
     throw new Error("Failed to make guess");
   }
+};
+
+export const calculateRank = async (attemptNumber: number): Promise<number> => {
+  return Math.floor(attemptNumber / 10) + 1;
 };

@@ -9,7 +9,6 @@ import { Container } from "@/components/layout/mainLayoutClient";
 import { GameSession, KOL, Competition } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
-import { AttributesGuessListTable } from "./_components/attributesGuessList";
 import {
   GuessWithGuessedKol,
   GuessWithSessionAndGuessedKol,
@@ -24,6 +23,7 @@ import {
 } from "@/lib/errors";
 import CompetitionTimer from "@/components/competitionTimer";
 import EnhancedQuestionSection from "@/components/questionSection";
+import CyberpunkTable from "./_components/cyberpunkTable";
 
 export default function AttributesGameClient({
   kols,
@@ -130,6 +130,8 @@ export default function AttributesGameClient({
     }
   };
 
+  console.log(userGuesses);
+
   return (
     <AnimatePresence>
       <motion.div
@@ -154,9 +156,18 @@ export default function AttributesGameClient({
           />
         </Container>
 
-        <AttributesGuessListTable
-          guesses={userGuesses}
-          loadingGuesses={false}
+        <CyberpunkTable
+          data={userGuesses}
+          headers={[
+            "KOL",
+            "Age",
+            "Country",
+            "Pfp",
+            "Account creation",
+            "Followers",
+            "Ecosystem",
+          ]}
+          isLoading={false}
         />
 
         {isLegendOpen && (
