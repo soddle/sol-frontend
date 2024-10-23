@@ -14,8 +14,9 @@ import {
   GameSessionWithGuesses,
   GuessWithGuessedKol,
 } from "../types";
-import { KOL } from "@/types";
+import { KOL, LeaderboardEntry } from "@/types";
 import { Competition, GameSession, Guess } from "@prisma/client";
+import { LeaderboardType } from "@/app/(activityPages)/leaderboard/leaderboardPageClient";
 
 export class EthereumAdapter implements EVMChainAdapter {
   protected currentNetwork: SupportedNetwork;
@@ -259,6 +260,13 @@ export class EthereumAdapter implements EVMChainAdapter {
   async getGasPrice(): Promise<string> {
     const feeData = await this.provider.getFeeData();
     return ethers.formatUnits(feeData.gasPrice || 3000000, "gwei");
+  }
+
+  async fetchLeaderboard(
+    gameType: 1 | 2 | 3,
+    leaderboardType: LeaderboardType
+  ): Promise<{ entries: LeaderboardEntry[]; totalEntries: number }> {
+    return { entries: [], totalEntries: 0 };
   }
 
   async getBlockNumber(): Promise<number> {

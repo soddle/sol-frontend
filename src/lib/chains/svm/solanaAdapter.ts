@@ -33,6 +33,7 @@ import {
   ProgramNotInitializedError,
   SoddleError,
 } from "@/lib/errors";
+import { LeaderboardType } from "@/app/(activityPages)/leaderboard/leaderboardPageClient";
 
 export class SolanaAdapter implements SVMChainAdapter {
   private connection: Connection;
@@ -356,8 +357,8 @@ export class SolanaAdapter implements SVMChainAdapter {
 
   // Leaderboard functions
   fetchLeaderboard = async (
-    gameType: number,
-    leaderboardType: "today" | "yesterday" | "alltime"
+    gameType: 1 | 2 | 3,
+    leaderboardType: LeaderboardType
   ): Promise<{ entries: LeaderboardEntry[]; totalEntries: number }> => {
     return fetchLeaderboard(gameType, leaderboardType);
   };
@@ -367,7 +368,10 @@ export class SolanaAdapter implements SVMChainAdapter {
     gameType: number,
     leaderboardType: "today" | "yesterday" | "alltime"
   ): Promise<number | null> => {
-    const leaderboard = await this.fetchLeaderboard(gameType, leaderboardType);
+    const leaderboard = await this.fetchLeaderboard(
+      gameType as 1 | 2 | 3,
+      leaderboardType
+    );
     const userEntry = leaderboard.entries.find(
       (entry: any) => entry.player === walletAddress
     );

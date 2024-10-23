@@ -4,6 +4,8 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Cluster as SolanaCluster } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import { Competition, GameSession, Prisma } from "@prisma/client";
+import { LeaderboardType } from "@/app/(activityPages)/leaderboard/leaderboardPageClient";
+import { LeaderboardEntry } from "@/types";
 
 // Define supported chains
 export type SupportedChain = "SOLANA" | "ETHEREUM" | "ECLIPSE" | "BLAST";
@@ -47,6 +49,10 @@ export interface BaseChainAdapter {
     wallet: AnchorWallet
   ): Promise<GameSession>;
   makeGuess(sessionId: string, guessedKOLId: string): Promise<any>;
+  fetchLeaderboard(
+    gameType: 1 | 2 | 3,
+    leaderboardType: LeaderboardType
+  ): Promise<{ entries: LeaderboardEntry[]; totalEntries: number }>;
 }
 
 export interface SVMChainAdapter extends BaseChainAdapter {
@@ -58,7 +64,6 @@ export interface SVMChainAdapter extends BaseChainAdapter {
     sessionId: string,
     guessedKOLId: string
   ): Promise<SVMGuessResult>;
-
   claimSVMRewards(gameSessionId: string): Promise<SVMClaimResult>;
 }
 

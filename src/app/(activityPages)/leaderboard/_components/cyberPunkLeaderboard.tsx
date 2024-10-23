@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { useTimeLeft } from "@/hooks/useTimeLeft";
 import { LeaderboardEntry } from "@/types";
+import { LeaderboardType } from "../leaderboardPageClient";
 interface TimeUnit {
   label: string;
   value: number;
@@ -163,18 +164,17 @@ const CompetitionTimer = ({ endTime }: { endTime: number }) => {
   );
 };
 
-type LeaderboardType = "today" | "yesterday" | "alltime";
-
 const CyberPunkLeaderboard = ({
   entries,
   competition,
-  type = "today",
+  type,
+  onSelectType,
 }: {
   entries: LeaderboardEntry[];
   competition: Competition | null;
   type: LeaderboardType;
+  onSelectType: (type: LeaderboardType) => void;
 }) => {
-  const [selectedType, setSelectedType] = useState<LeaderboardType>(type);
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
@@ -231,27 +231,25 @@ const CyberPunkLeaderboard = ({
 
           {/* Type Selector */}
           <div className="flex justify-center gap-4 mb-8">
-            {(["today", "yesterday", "alltime"] as LeaderboardType[]).map(
-              (t) => (
-                <motion.button
-                  key={t}
-                  onClick={() => setSelectedType(t)}
-                  className={`px-4 py-2 uppercase tracking-wider font-bold border-2 ${
-                    selectedType === t
-                      ? "border-green-500 text-green-400"
-                      : "border-green-500/30 text-green-500/50"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  style={{
-                    clipPath:
-                      "polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%)",
-                  }}
-                >
-                  {t}
-                </motion.button>
-              )
-            )}
+            {(["today", "yesterday", "alltime"] as string[]).map((t) => (
+              <motion.button
+                key={t}
+                onClick={() => onSelectType(t as LeaderboardType)}
+                className={`px-4 py-2 uppercase tracking-wider font-bold border-2 ${
+                  type === t
+                    ? "border-green-500 text-green-400"
+                    : "border-green-500/30 text-green-500/50"
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  clipPath:
+                    "polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%)",
+                }}
+              >
+                {t}
+              </motion.button>
+            ))}
           </div>
 
           {/* Leaderboard Table */}

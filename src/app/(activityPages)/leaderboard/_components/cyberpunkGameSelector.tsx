@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 interface Game {
-  id: string;
+  id: number;
   name: string;
   icon: "usersearch" | "messagesquare" | "emoji" | string;
   description: string;
@@ -19,8 +19,8 @@ interface Game {
 
 interface GameSelectorProps {
   games: Game[];
-  selectedGame: string;
-  onSelectGame: (gameId: string) => void;
+  selectedGame: number;
+  onSelectGame: (gameId: number) => void;
 }
 
 const GameSelector = ({
