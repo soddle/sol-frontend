@@ -24,6 +24,7 @@ import {
 import CompetitionTimer from "@/components/competitionTimer";
 import EnhancedQuestionSection from "@/components/questionSection";
 import CyberpunkTable from "./_components/cyberpunkTable";
+import CyberPunkLegend from "./_components/cyberpunkLegend";
 
 export default function AttributesGameClient({
   kols,
@@ -172,7 +173,7 @@ export default function AttributesGameClient({
 
         {isLegendOpen && (
           <Container>
-            <Legend />
+            <CyberPunkLegend />
           </Container>
         )}
       </motion.div>
