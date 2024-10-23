@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import React from "react";
 import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
-import { GuessWithFeedbackAndGussedKOL } from "@/lib/chains/types";
+import { GuessWithGuessedKol } from "@/lib/chains/types";
 import { KOL } from "@/types";
-import { Guess } from "@prisma/client";
+import { Container } from "@/components/layout/mainLayoutClient";
 
 interface AttributesGuessListProps {
-  guesses: Guess[];
+  guesses: GuessWithGuessedKol[];
   loadingGuesses: boolean;
 }
 
@@ -84,13 +84,15 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
 
   if (guesses.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center text-green-500 p-4 bg-[#111411] rounded-md"
-      >
-        You have no guesses yet. Try making some guesses!
-      </motion.div>
+      <Container>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center text-green-500 p-4 bg-[#111411] rounded-md"
+        >
+          You have no guesses yet. Try making some guesses!
+        </motion.div>
+      </Container>
     );
   }
 
@@ -120,12 +122,12 @@ export const AttributesGuessListTable: React.FC<AttributesGuessListProps> = ({
   );
 };
 interface TableRowProps {
-  guess: Guess;
+  guess: GuessWithGuessedKol;
   index: number;
 }
 
 function TableRow({ guess }: TableRowProps) {
-  const attributes = guess.attributes as KOL;
+  const attributes = guess.guessedKOL;
   const feedback = guess.feedback as {
     pfpType: string;
     age: string;
@@ -155,7 +157,7 @@ function TableRow({ guess }: TableRowProps) {
 
       <Cell feedback={feedback.age}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.age}
+          {attributes.ageRange}
         </span>
       </Cell>
       <Cell feedback={feedback.country}>
@@ -170,7 +172,7 @@ function TableRow({ guess }: TableRowProps) {
       </Cell>
       <Cell feedback={feedback.twitterAccountCreationYear}>
         <span className="text-[0.7rem] sm:text-xs md:text-sm break-words text-center">
-          {attributes.accountCreation}
+          {attributes.twitterFollowersRange}
         </span>
       </Cell>
       <Cell feedback={feedback.followers}>

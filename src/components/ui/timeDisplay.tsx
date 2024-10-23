@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-import { useRootStore } from "@/stores/storeProvider";
+
 import { motion, AnimatePresence } from "framer-motion";
+import { useGameStore } from "@/stores/gameStore";
 
 const TimerDisplay: React.FC = () => {
-  const { game } = useRootStore();
-  const currentCompetition = game((state) => state.currentCompetition);
+  const currentCompetition = useGameStore((state) => state.currentCompetition);
 
   const endTime = useMemo(() => {
     if (currentCompetition && currentCompetition.endTime) {

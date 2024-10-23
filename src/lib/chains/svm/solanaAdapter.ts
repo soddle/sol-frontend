@@ -11,17 +11,28 @@ import {
   SupportedNetwork,
   OnchainGameSession,
   GameSessionWithGuesses,
+  OnchainGameState,
+  GuessWithGuessedKol,
 } from "../types";
 import {
   createGameSession,
-  fetchCurrentActiveSession,
-  fetchLatestCompetition,
+  fetchTodaySession,
   fetchUserGuesses,
   makeGuess,
+  upsertCurrentCompetition,
 } from "@/actions/gameActions";
 import { fetchRandomKOL } from "@/actions/kolActions";
-import { Competition, GameSession, Guess, KOL } from "@prisma/client";
+import { Competition, GameSession, Guess } from "@prisma/client";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
+import { fetchLeaderboard } from "@/actions/leaderboardActions";
+import { LeaderboardEntry } from "@/types";
+import {
+  DailyGameLimitReachedError,
+  GameSessionCreationError,
+  NoActiveCompetitionError,
+  ProgramNotInitializedError,
+  SoddleError,
+} from "@/lib/errors";
 
 export class SolanaAdapter implements SVMChainAdapter {
   private connection: Connection;
@@ -70,7 +81,9 @@ export class SolanaAdapter implements SVMChainAdapter {
     return this.program.provider;
   };
 
-  fetchUserGuesses = async (sessionId: string): Promise<Guess[]> => {
+  fetchUserGuesses = async (
+    sessionId: string
+  ): Promise<GuessWithGuessedKol[]> => {
     return fetchUserGuesses(sessionId);
   };
   connect = async (wallet: AnchorWallet): Promise<anchor.Program> => {
@@ -158,12 +171,16 @@ export class SolanaAdapter implements SVMChainAdapter {
 
   fetchCurrentCompetition = async (): Promise<Competition | null> => {
     try {
-      await this.connect(this.wallet!);
-      const competition = await fetchLatestCompetition();
-      if (!competition) {
-        console.log("No current competition found");
-        return null;
-      }
+      const gameState = await this.fetchOnChainGameState();
+
+      // Use the upsertCurrentCompetition server action
+      const competition = await upsertCurrentCompetition({
+        onChainId: gameState.currentCompetition.id,
+        startTime: gameState.currentCompetition.startTime.toNumber(),
+        endTime: gameState.currentCompetition.endTime.toNumber(),
+        prize: 10000,
+      });
+
       return competition;
     } catch (error) {
       console.error("Error fetching current competition:", error);
@@ -171,60 +188,56 @@ export class SolanaAdapter implements SVMChainAdapter {
     }
   };
 
-  fetchOnchainGameSession = async (
-    playerAddress: string
-  ): Promise<OnchainGameSession | null> => {
-    if (!this.program) throw new Error("Program not initialized");
-
-    const competition = await this.fetchCurrentCompetition();
-    if (!competition) throw new Error("No active competition found");
-
-    const playerPublicKey = new PublicKey(playerAddress);
-
-    const [gameSessionPDA] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("game_session"),
-        playerPublicKey.toBuffer(),
-        Buffer.from(competition.onChainId),
-      ],
-      this.program.programId
-    );
-
-    // @ts-expect-error types
-    const gameSessionAccount = await this.program.account.gameSession.fetch(
-      gameSessionPDA
-    );
-
-    return gameSessionAccount;
-  };
-
   fetchOnChainGameSession = async (
     program: anchor.Program,
     playerPublicKey: PublicKey,
     competition: Competition
   ): Promise<OnchainGameSession> => {
-    const [gameSessionPDA] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("game_session"),
-        playerPublicKey.toBuffer(),
-        Buffer.from(competition.onChainId),
-      ],
-      program.programId
-    );
+    try {
+      const [gameSessionPDA] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("game_session"),
+          playerPublicKey.toBuffer(),
+          Buffer.from(competition.onChainId),
+        ],
+        program.programId
+      );
 
-    // @ts-expect-error types
-    const gameSessionAccount = await program.account.gameSession.fetch(
-      gameSessionPDA
-    );
+      // @ts-expect-error types
+      const gameSessionAccount = await program.account.gameSession.fetch(
+        gameSessionPDA
+      );
 
-    return gameSessionAccount as OnchainGameSession;
+      return gameSessionAccount as OnchainGameSession;
+    } catch (error) {
+      console.error("Error fetching on-chain game session:", error);
+      throw new Error("Failed to fetch on-chain game session");
+    }
   };
 
-  fetchGameSession = async (
+  fetchOnChainGameState = async (): Promise<OnchainGameState> => {
+    const program = await this.connect(this.wallet!);
+    if (!program) throw new Error("Program not initialized");
+
+    // Fetch on-chain game state
+    const [gameStatePDA] = PublicKey.findProgramAddressSync(
+      [Buffer.from("game_state")],
+      program.programId
+    );
+    // @ts-expect-error types
+    const gameState = (await program.account.gameState.fetch(
+      gameStatePDA
+    )) as OnchainGameState;
+
+    console.log("On-chain game state:", gameState);
+    return gameState;
+  };
+
+  fetchTodaySession = async (
     playerAddress: string
   ): Promise<GameSessionWithGuesses | null> => {
-    const activeSession = await fetchCurrentActiveSession(playerAddress);
-    return activeSession;
+    const todaySession = await fetchTodaySession(playerAddress);
+    return todaySession;
   };
 
   private _startOnChainGameSession = async (
@@ -234,9 +247,11 @@ export class SolanaAdapter implements SVMChainAdapter {
     gameType: number
   ): Promise<OnchainGameSession> => {
     const targetKOL = await fetchRandomKOL();
-    console.log("🎯 Target KOL selected:", targetKOL?.twitterHandle);
+    console.log(
+      "🎯 Target KOL selected: 😂😂😂😂😂😂😂😂😂😂😂😂🤣🤣🤣🤣🤣🤣🤣🤣🤣🤣🤣🤣",
+      targetKOL?.name
+    );
 
-    console.log("🔑 Generating program derived addresses...");
     const [gameStatePDA] = PublicKey.findProgramAddressSync(
       [Buffer.from("game_state")],
       program.programId
@@ -258,7 +273,6 @@ export class SolanaAdapter implements SVMChainAdapter {
       program.programId
     );
 
-    console.log("🚀 Initiating on-chain transaction to start game session...");
     await program.methods
       .startGameSession(gameType, targetKOL)
       .accounts({
@@ -270,9 +284,7 @@ export class SolanaAdapter implements SVMChainAdapter {
         systemProgram: SystemProgram.programId,
       })
       .rpc();
-    console.log("✅ On-chain transaction completed successfully!");
 
-    console.log("📡 Fetching newly created game session from chain...");
     const newOnchainGameSession = await this.fetchOnChainGameSession(
       program,
       playerPublicKey,
@@ -281,89 +293,85 @@ export class SolanaAdapter implements SVMChainAdapter {
     return newOnchainGameSession;
   };
 
-  // fetchOnChainGameState = async (): Promise<any> => {
-  //   if (!this.program) throw new Error("Program not initialized");
-
-  //   const [gameStatePDA] = PublicKey.findProgramAddressSync(
-  //     [Buffer.from("game_state")],
-  //     this.program.programId
-  //   );
-
-  //   try {
-  //     // @ts-expect-error types
-  //     const gameStateAccount = await this.program.account.gameState.fetch(
-  //       gameStatePDA
-  //     );
-
-  //     console.log(gameStateAccount);
-
-  //     return gameStateAccount as any;
-  //   } catch (error) {
-  //     console.error("Error fetching on-chain game state:", error);
-  //     throw error;
-  //   }
-  // };
-
   startGameSession = async (
     gameType: number,
     wallet: AnchorWallet
   ): Promise<GameSession> => {
     const program = await this.connect(wallet);
-    if (!program) throw new Error("🚫 Program not initialized");
-    const playerPublicKey = program.provider.publicKey;
+    if (!program) throw new ProgramNotInitializedError();
 
-    console.log("🕵️ Checking if an active session is available...");
-    const activeSession = await fetchCurrentActiveSession(
-      playerPublicKey?.toString()!
-    );
-    if (activeSession) {
-      console.log("🎉 Active session found! Returning existing session.");
-      return activeSession;
+    try {
+      const playerPublicKey = program.provider.publicKey;
+      const todaySession = await this.fetchTodaySession(
+        playerPublicKey?.toString()!
+      );
+      if (todaySession) {
+        return todaySession;
+      }
+
+      const competition = await this.fetchCurrentCompetition();
+      if (!competition) throw new NoActiveCompetitionError();
+
+      const newOnchainGameSession = await this._startOnChainGameSession(
+        program,
+        playerPublicKey!,
+        competition,
+        gameType
+      );
+
+      const newSession: Partial<OnchainGameSession> = {
+        competitionId: competition.id,
+        completed: newOnchainGameSession.completed,
+        deposit: (newOnchainGameSession.deposit as anchor.BN).toString(),
+        game1Completed: newOnchainGameSession.game1Completed,
+        game1GuessesCount: newOnchainGameSession.game1GuessesCount,
+        game1Score: newOnchainGameSession.game1Score,
+        game2Completed: newOnchainGameSession.game2Completed,
+        game2GuessesCount: newOnchainGameSession.game2GuessesCount,
+        game2Score: newOnchainGameSession.game2Score,
+        gameType: newOnchainGameSession.gameType,
+        kol: newOnchainGameSession.kol,
+        player: newOnchainGameSession.player.toString(),
+        score: newOnchainGameSession.score,
+        startTime: newOnchainGameSession.startTime.toString(),
+        targetIndex: newOnchainGameSession.targetIndex,
+        totalScore: newOnchainGameSession.totalScore,
+      };
+
+      return createGameSession(newSession);
+    } catch (error) {
+      if (error instanceof SoddleError) {
+        throw error;
+      }
+      throw new GameSessionCreationError((error as Error).message);
     }
-
-    console.log("🆕 No active session found. Starting a new game session...");
-    const competition = await this.fetchCurrentCompetition();
-    if (!competition) {
-      throw new Error("No active competition found");
-    }
-    console.log("🌍 Current competition fetched successfully.");
-
-    const newOnchainGameSession = await this._startOnChainGameSession(
-      program,
-      playerPublicKey!,
-      competition,
-      gameType
-    );
-
-    console.log("💾 Creating off-chain game session record...");
-    console.log("New onchain Game Session: ", newOnchainGameSession);
-    const newSession: Partial<OnchainGameSession> = {
-      competitionId: competition.id,
-      completed: newOnchainGameSession.completed,
-      deposit: (newOnchainGameSession.deposit as anchor.BN).toString(),
-      game1Completed: newOnchainGameSession.game1Completed,
-      game1GuessesCount: newOnchainGameSession.game1GuessesCount,
-      game1Score: newOnchainGameSession.game1Score,
-      game2Completed: newOnchainGameSession.game2Completed,
-      game2GuessesCount: newOnchainGameSession.game2GuessesCount,
-      game2Score: newOnchainGameSession.game2Score,
-      gameType: newOnchainGameSession.gameType,
-      kol: newOnchainGameSession.kol,
-      player: newOnchainGameSession.player.toString(),
-      score: newOnchainGameSession.score,
-      startTime: (newOnchainGameSession.startTime as anchor.BN).toString(),
-      targetIndex: newOnchainGameSession.targetIndex,
-      totalScore: newOnchainGameSession.totalScore,
-    };
-    const newGameSession = await createGameSession(newSession);
-    console.log("🎮 New game session created and ready to play!");
-    console.log("New game session: ", newGameSession);
-
-    return newGameSession;
   };
 
-  makeGuess = async (sessionId: string, guessedKOLId: string): Promise<any> => {
+  makeGuess = async (
+    sessionId: string,
+    guessedKOLId: string
+  ): Promise<Guess> => {
     return makeGuess(sessionId, guessedKOLId);
+  };
+
+  // Leaderboard functions
+  fetchLeaderboard = async (
+    gameType: number,
+    leaderboardType: "today" | "yesterday" | "alltime"
+  ): Promise<{ entries: LeaderboardEntry[]; totalEntries: number }> => {
+    return fetchLeaderboard(gameType, leaderboardType);
+  };
+
+  getUserRank = async (
+    walletAddress: string,
+    gameType: number,
+    leaderboardType: "today" | "yesterday" | "alltime"
+  ): Promise<number | null> => {
+    const leaderboard = await this.fetchLeaderboard(gameType, leaderboardType);
+    const userEntry = leaderboard.entries.find(
+      (entry: any) => entry.player === walletAddress
+    );
+    return userEntry ? userEntry.rank : null;
   };
 }
 

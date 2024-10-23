@@ -1,7 +1,7 @@
-import { useRootStore } from "@/stores/storeProvider";
 import React from "react";
 
 import { LEGEND_BOX_COLORS, LEGEND_BOX_TYPES } from "@/lib/constants";
+import { useUiStore } from "@/stores/uiStore";
 
 interface LegendItemProps {
   type: LEGEND_BOX_TYPES;
@@ -30,9 +30,8 @@ const LegendItem: React.FC<LegendItemProps> = ({ type, color, icon }) => (
 interface LegendProps {}
 
 const Legend: React.FC<LegendProps> = () => {
-  const { ui } = useRootStore();
-  const isLegendOpen = ui((state) => state.isLegendOpen);
-  const setIsLegendOpen = ui((state) => state.setIsLegendOpen);
+  const isLegendOpen = useUiStore((state) => state.isLegendOpen);
+  const setIsLegendOpen = useUiStore((state) => state.setIsLegendOpen);
 
   const items: LegendItemProps[] = [
     { type: LEGEND_BOX_TYPES.correct, color: LEGEND_BOX_COLORS.correct },

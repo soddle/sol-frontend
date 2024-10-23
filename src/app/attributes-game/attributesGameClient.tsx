@@ -6,122 +6,126 @@ import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useRootStore } from "@/stores/storeProvider";
 import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
-import { Competition, KOL } from "@prisma/client";
+import { GameSession, KOL, Competition } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
-import { GameSessionWithGuesses } from "@/lib/chains/types";
+import { GuessWithGuessedKol } from "@/lib/chains/types";
+import GameResultPopup from "@/components/modals/gameResultPopup";
+import { useUiStore } from "@/stores/uiStore";
+import Announcement from "@/components/announcement";
+import {
+  GameSessionNotFoundError,
+  NoActiveCompetitionError,
+  SoddleError,
+} from "@/lib/errors";
 
-export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
-  const [currentCompetition, setCurrentCompetition] =
-    useState<Competition | null>(null);
-  const [gameSession, setGameSession] = useState<GameSessionWithGuesses | null>(
-    null
+export default function AttributesGameClient({
+  kols,
+  todaySession: initialTodaySession,
+  userGuesses: initialUserGuesses,
+  currentCompetition,
+}: {
+  kols: KOL[];
+  todaySession: GameSession | null;
+  userGuesses: GuessWithGuessedKol[];
+  currentCompetition: Competition | null;
+}) {
+  const [todaySession, setTodaySession] = useState<GameSession | null>(
+    initialTodaySession
   );
-  const [remainingGuesses, setRemainingGuesses] = useState<KOL[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userGuesses, setUserGuesses] =
+    useState<GuessWithGuessedKol[]>(initialUserGuesses);
+  const [remainingGuessKOLs, setRemainingGuessKOLs] = useState<KOL[]>(
+    kols.filter(
+      (kol) =>
+        !initialUserGuesses.map((guess) => guess.guessedKOLId).includes(kol.id)
+    )
+  );
+
+  const { setLoading, isLegendOpen, openModal } = useUiStore((state) => state);
+
   const router = useRouter();
   const { publicKey } = useWallet();
-  const {
-    fetchUserGuesses,
-    makeGuess,
-    fetchCurrentCompetition,
-    fetchGameSession,
-  } = useGame();
-
-  const { ui } = useRootStore();
-  const uiStore = ui((state) => state);
+  const { makeGuess } = useGame();
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!publicKey) {
-        toast.error("Please connect your wallet to play.");
-        router.push("/");
-        return;
-      }
-
       try {
-        setIsLoading(true);
-        const competition = await fetchCurrentCompetition();
-        if (!competition) {
-          toast.error("No active competition found.");
-          router.push("/");
-          return;
+        setLoading(true);
+        if (!currentCompetition) {
+          throw new NoActiveCompetitionError();
         }
-        setCurrentCompetition(competition);
-
-        const session = await fetchGameSession(publicKey.toString());
-        if (!session) {
-          toast.error("No active game session!");
-          router.push("/");
-          return;
+        if (!todaySession) {
+          throw new GameSessionNotFoundError();
         }
-        setGameSession(session);
-
-        const userGuesses = await fetchUserGuesses(session.id);
         const guessedKolIds = new Set(
           userGuesses.map((guess) => guess.guessedKOLId)
         );
         const remainingKols = kols.filter((kol) => !guessedKolIds.has(kol.id));
-        setRemainingGuesses(remainingKols);
+        setRemainingGuessKOLs(remainingKols);
       } catch (error) {
-        console.error("Error fetching game data:", error);
-        toast.error("Failed to load game data");
+        console.log("error", error);
+        if (error instanceof SoddleError) {
+          toast.error(error.message);
+        }
         router.push("/");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [
-    publicKey,
-    router,
-    fetchCurrentCompetition,
-    fetchGameSession,
-    fetchUserGuesses,
-    kols,
-  ]);
+  }, [publicKey, router, kols]);
 
   const handleGuess = async (kol: KOL) => {
-    if (!gameSession) return;
+    if (!todaySession) return;
 
     try {
-      uiStore.setLoading(true);
-      console.log("gameSession", gameSession);
-      const guess = await makeGuess(gameSession.id, kol.id);
-      setRemainingGuesses((prevGuesses) =>
-        prevGuesses.filter((g) => g.id !== kol.id)
+      setLoading(true);
+      console.log("currentSession", todaySession);
+      const guess = (await makeGuess(
+        todaySession.id,
+        kol.id
+      )) as GuessWithGuessedKol;
+
+      setUserGuesses([guess, ...userGuesses]);
+
+      setRemainingGuessKOLs(
+        remainingGuessKOLs.filter((kol) => kol.id !== guess.guessedKOLId)
       );
-      toast.success("Guess submitted successfully!");
-      if (guess.isCorrect && gameSession.completed) {
+
+      if (guess.isCorrect) {
         toast.success("Congratulations! You've guessed correctly!");
-        // Handle game completion (e.g., show results, update UI)
+
+        console.log("gameResult", guess);
+        openModal(
+          <GameResultPopup
+            correctKOL={guess.guessedKOL as KOL}
+            playerStats={{
+              rank: 1,
+              score: 100,
+              totalPlayers: 100,
+              attempts: 1,
+              duration: 100,
+            }}
+            playerAddress={publicKey?.toString() || ""}
+          />
+        );
       }
     } catch (error) {
       console.error("Error making guess:", error);
-      toast.error("Error making guess");
+      if (error instanceof SoddleError) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error making guess");
+      }
     } finally {
-      uiStore.setLoading(false);
+      setLoading(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <Container>
-        <div className="flex justify-center items-center h-screen">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-[#2FFF2B] border-t-transparent rounded-full"
-          />
-        </div>
-      </Container>
-    );
-  }
 
   return (
     <AnimatePresence>
@@ -158,41 +162,32 @@ export default function AttributesGameClient({ kols }: { kols: KOL[] }) {
                 </motion.div>
                 <motion.span
                   className="ml-2 text-xl font-bold text-[#2FFF2B]"
-                  key={remainingGuesses.length}
+                  key={remainingGuessKOLs.length}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {remainingGuesses.length}
+                  {remainingGuessKOLs.length}
                 </motion.span>
               </div>
             </section>
           </QuestionBox>
         </Container>
-
+        <Announcement />
         <Container>
-          {remainingGuesses.length > 0 ? (
-            <SearchBar kols={remainingGuesses} handleGuess={handleGuess} />
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center text-[#2FFF2B] p-4 bg-[#111411] rounded-md"
-            >
-              You've used all your guesses! Check your results below.
-            </motion.div>
-          )}
-        </Container>
-
-        <Container>
-          <AttributesGuessListTable
-            guesses={gameSession?.guesses || []}
-            loadingGuesses={false}
+          <SearchBar
+            remainingGuessKOLs={remainingGuessKOLs}
+            handleGuess={handleGuess}
           />
         </Container>
 
-        {uiStore.isLegendOpen && (
+        <AttributesGuessListTable
+          guesses={userGuesses}
+          loadingGuesses={false}
+        />
+
+        {isLegendOpen && (
           <Container>
             <Legend />
           </Container>

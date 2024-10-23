@@ -5,23 +5,25 @@ import { ReactNode } from "react";
 import Footer from "./footer";
 import Header from "./header";
 import Spinner from "../loadingUi";
-import { useRootStore } from "@/stores/storeProvider";
+
 import { useChainAdapter } from "@/hooks/useChainAdapter";
+import { useUiStore } from "@/stores/uiStore";
+import { useGameStore } from "@/stores/gameStore";
 
 export function MainLayoutClient({ children }: { children: ReactNode }) {
   const chainAdapter = useChainAdapter();
-  const { ui, game } = useRootStore();
-  const isLoading = ui((state) => state.isLoading);
-  const { setCurrentCompetition } = game((state) => ({
+
+  const isLoading = useUiStore((state) => state.isLoading);
+  const { setCurrentCompetition } = useGameStore((state) => ({
     setCurrentCompetition: state.setCurrentCompetition,
     currentCompetition: state.currentCompetition,
-    gameSession: state.gameSession,
-    setGameSession: state.setGameSession,
+    gameSession: state.currentPlaySession,
+    setGameSession: state.setPlaySession,
   }));
 
-  const { isModalOpen, ModalComponent } = ui((state) => ({
-    isModalOpen: state.isModalOpen,
-    ModalComponent: state.modalContent,
+  const { isModalOpen, ModalComponent } = useUiStore((state) => ({
+    isModalOpen: state.isPopupOpen,
+    ModalComponent: state.ModalComponent,
     openModal: state.openModal,
     closeModal: state.closeModal,
   }));
@@ -46,7 +48,7 @@ export function MainLayoutClient({ children }: { children: ReactNode }) {
           <Spinner />
         </div>
       )}
-      {isModalOpen && <ModalWrapper>{ModalComponent}</ModalWrapper>}
+      {isModalOpen && <ModalBackground>{ModalComponent}</ModalBackground>}
       <div className="min-h-screen flex flex-col text-white">
         <Header />
         <main className="flex-1 flex flex-col">{children}</main>
@@ -56,7 +58,7 @@ export function MainLayoutClient({ children }: { children: ReactNode }) {
   );
 }
 
-export function ModalWrapper({ children }: { children: ReactNode }) {
+export function ModalBackground({ children }: { children: ReactNode }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 modal text-white">
       <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
@@ -64,8 +66,7 @@ export function ModalWrapper({ children }: { children: ReactNode }) {
     </div>
   );
 }
-/*
-curl https://staging-rpc.dev2.eclipsenetwork.xyz -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","id":1, "method":"requestAirdrop", "params":["DWcQ72YcxVN783QVeLHeLoegELtjEdudEvdiTuBuM1Tm", 1000000000]}' */
+
 export function Container({
   children,
   className,
