@@ -10,7 +10,10 @@ import { GameSession, KOL, Competition } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
 import { motion, AnimatePresence } from "framer-motion";
 import { AttributesGuessListTable } from "./_components/attributesGuessList";
-import { GuessWithGuessedKol } from "@/lib/chains/types";
+import {
+  GuessWithGuessedKol,
+  GuessWithSessionAndGuessedKol,
+} from "@/lib/chains/types";
 import GameResultPopup from "@/components/modals/gameResultPopup";
 import { useUiStore } from "@/stores/uiStore";
 import Announcement from "@/components/announcement";
@@ -89,7 +92,7 @@ export default function AttributesGameClient({
       const guess = (await makeGuess(
         todaySession.id,
         kol.id
-      )) as GuessWithGuessedKol;
+      )) as GuessWithSessionAndGuessedKol;
 
       setUserGuesses([guess, ...userGuesses]);
 
@@ -106,10 +109,10 @@ export default function AttributesGameClient({
             correctKOL={guess.guessedKOL as KOL}
             playerStats={{
               rank: 1,
-              score: 100,
-              totalPlayers: 100,
-              attempts: 1,
-              duration: 100,
+              score: guess.session.score,
+              totalPlayers: 0,
+              attempts: guess.session.mistakes,
+              duration: guess.session.playDuration,
             }}
             playerAddress={publicKey?.toString() || ""}
           />

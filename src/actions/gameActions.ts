@@ -8,6 +8,7 @@ import {
 import { compareKOLs } from "@/lib/cmp";
 import { GameAlreadyCompletedError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
+
 import { Competition, GameSession, Guess } from "@prisma/client";
 
 const onChainId = "COMP23201";

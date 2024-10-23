@@ -1,10 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { rawKOL } from "@/types/kol";
 import { KOL } from "@prisma/client";
 import crypto from "crypto";
 
-export async function fetchRandomKOL(): Promise<KOL | null> {
+export async function fetchRandomKOL(): Promise<any> {
   const kolCount = await prisma.kOL.count();
 
   if (kolCount === 0) {

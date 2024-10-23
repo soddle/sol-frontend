@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import GuessCounter from "./guessCountDown";
 
 interface QuestionBoxProps {
   children: ReactNode;
@@ -87,63 +88,6 @@ const QuestionBox: React.FC<QuestionBoxProps> = ({
         <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-green-500 group-hover:animate-pulse" />
 
         <div className="relative flex-grow p-4 overflow-auto">{children}</div>
-      </div>
-    </div>
-  );
-};
-
-const GuessCounter = ({ count }: { count: number }) => {
-  return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 via-emerald-300 to-green-500 rounded-full opacity-75 blur group-hover:opacity-100 transition duration-300"></div>
-
-      <div className="relative flex items-center justify-center bg-[#1a1e1b] rounded-full p-2 border border-[#2FFF2B]">
-        <motion.div
-          className="text-[#2FFF2B] font-semibold"
-          animate={{
-            textShadow: [
-              "0 0 4px #2FFF2B",
-              "0 0 8px #2FFF2B",
-              "0 0 4px #2FFF2B",
-            ],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          Guesses left:
-        </motion.div>
-
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={count}
-            className="relative ml-2 text-xl font-bold text-[#2FFF2B]"
-            initial={{ opacity: 0, scale: 0.5, y: -10 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              y: 0,
-              textShadow: [
-                "0 0 10px rgba(47,255,43,0.5)",
-                "0 0 20px rgba(47,255,43,0.8)",
-                "0 0 10px rgba(47,255,43,0.5)",
-              ],
-            }}
-            exit={{ opacity: 0, scale: 0.5, y: 10 }}
-            transition={{
-              duration: 0.3,
-              textShadow: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              },
-            }}
-          >
-            {count}
-          </motion.span>
-        </AnimatePresence>
       </div>
     </div>
   );

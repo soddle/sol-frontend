@@ -26,15 +26,18 @@ model Competition {
 }
 
 model GameSession {
-  id            String      @id @map("_id") @db.ObjectId
-  userAddress   String
-  user          User        @relation(fields: [userAddress], references: [address])
-  gameType      Int
-  startTime     DateTime
-  endTime       DateTime?
-  completed     Boolean     @default(false)
-  score         Int         @default(0)
-  playDuration  Int         @default(0)
+  id           String    @id @map("_id") @db.ObjectId
+  userAddress  String
+  user         User      @relation(fields: [userAddress], references: [address])
+  gameType     Int
+  startTime    DateTime
+  endTime      DateTime?
+  completed    Boolean   @default(false)
+  score        Int       @default(0)
+  playDuration Int       @default(0)
+
+  rank Int @default(0)
+
   mistakes      Int         @default(0)
   difficulty    Int         @default(1)
   guesses       Guess[]
