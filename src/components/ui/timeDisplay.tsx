@@ -5,15 +5,14 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const TimerDisplay: React.FC = () => {
   const { game } = useRootStore();
-  const gameState = game((state) => state.gameState);
+  const currentCompetition = game((state) => state.currentCompetition);
 
   const endTime = useMemo(() => {
-    if (gameState) {
-      const inMill = Number(gameState.currentCompetition.endTime);
-      return inMill * 1000;
+    if (currentCompetition && currentCompetition.endTime) {
+      return new Date(currentCompetition.endTime).getTime();
     }
     return 0;
-  }, [gameState]);
+  }, [currentCompetition]);
 
   const [timeLeft, setTimeLeft] = useState({
     hours: "00",
@@ -63,7 +62,7 @@ const TimerDisplay: React.FC = () => {
     exit: { opacity: 0, y: -10 },
   };
 
-  if (!gameState || Number.isNaN(endTime)) {
+  if (!currentCompetition || Number.isNaN(endTime)) {
     return <LoadingTime />;
   }
 

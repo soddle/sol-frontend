@@ -3,25 +3,32 @@ import Image from "next/image";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useEffect, useState, useCallback } from "react";
 import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { useEclipseCluster } from "@/hooks/useEclipseCluster";
-import { WalletIcon } from "@heroicons/react/24/outline";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import Link from "next/link";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { useChainAdapter } from "@/hooks/useChainAdapter";
+import { ChainControls } from "@/components/chainControl";
+import { useChain } from "@/components/providers/chainProvider";
 
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function UserInfoCard() {
   const { publicKey, disconnect, connecting, connected, wallet } = useWallet();
-  const [balance, setBalance] = useState<number | null>(null);
-  const { endpoint, cluster } = useEclipseCluster();
-  const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
+
   const { setVisible } = useWalletModal();
+  const chainAdapter = useChainAdapter();
+  const { currentChain, currentNetwork } = useChain();
+  const chainConfig = chainAdapter.chainConfig;
+
+  const [balance, setBalance] = useState<number | null>(null);
+  const [solPrice, setSolPrice] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
 
   const handleConnectWallet = () => {
     if (connected) {
@@ -34,7 +41,9 @@ export default function UserInfoCard() {
   const fetchBalance = useCallback(async () => {
     if (!publicKey) return;
 
-    const connection = new Connection(endpoint);
+    const connection = new Connection(
+      chainConfig.networks[currentNetwork]!.rpcEndpoint
+    );
 
     try {
       const balance = await connection.getBalance(publicKey);
@@ -43,22 +52,36 @@ export default function UserInfoCard() {
     } catch (error) {
       console.error("Error fetching balance:", error);
     }
-  }, [publicKey, endpoint]);
+  }, [publicKey, chainConfig.networks]);
+
+  const fetchSolPrice = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT"
+      );
+      const data = await response.json();
+      setSolPrice(parseFloat(data.price));
+    } catch (error) {
+      console.error("Error fetching SOL price:", error);
+    }
+  }, []);
 
   useEffect(() => {
     fetchBalance();
+    fetchSolPrice();
     const interval = setInterval(() => {
       setCountdown((prev) => (prev > 0 ? prev - 1 : REFRESH_INTERVAL / 1000));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [fetchBalance]);
+  }, [fetchBalance, fetchSolPrice]);
 
   useEffect(() => {
     if (countdown === 0) {
       fetchBalance();
+      fetchSolPrice();
     }
-  }, [countdown, fetchBalance]);
+  }, [countdown, fetchBalance, fetchSolPrice]);
 
   const copyAddress = () => {
     if (publicKey) {
@@ -80,14 +103,14 @@ export default function UserInfoCard() {
       <div className="flex items-center">
         <Link href={"/profile"}>
           <Image
-            src="/user-icon.svg"
+            src="/icons/user-icon.svg"
             width={25}
             height={25}
             alt="user"
             className="mr-2 w-10 h-10 cursor-pointer"
           />
         </Link>
-
+        {/* <ChainControls /> */}
         <Tooltip>
           <TooltipTrigger>
             <p
@@ -101,13 +124,12 @@ export default function UserInfoCard() {
             <p>{publicKey?.toBase58()}</p>
           </TooltipContent>
         </Tooltip>
-        {/* <button onClick={copyAddress} className="ml-2">
-          <ClipboardDocumentIcon className="h-5 w-5" />
-        </button> */}
-        <p className="ml-2 text-sm">({cluster.name})</p>
+        <p className="ml-2 text-xs">
+          ({currentChain}) ({currentNetwork})
+        </p>
 
         <Image
-          src={"/logout.svg"}
+          src={"/icons/logout.svg"}
           width={30}
           height={30}
           alt="Logout"
@@ -117,8 +139,14 @@ export default function UserInfoCard() {
       </div>
       <div className="flex gap-3 items-center">
         <div className="flex items-center justify-center">
-          <Image src={"/ethereum.svg"} width={25} height={25} alt="ETH icon" />
-          <span>ETH</span>
+          <Image
+            src={"/icons/solana.svg"}
+            width={25}
+            height={25}
+            alt="ETH icon"
+            className="mr-1"
+          />
+          <span>Sol</span>
         </div>
         <div className="flex items-center justify-center">
           <span className="text-3xl font-bold">
@@ -128,26 +156,17 @@ export default function UserInfoCard() {
             ~ $
           </span>
           <span className="text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">
-            {balance !== null ? (balance * 5000).toFixed(2) : "..."}
+            {balance !== null && solPrice !== null
+              ? (balance * solPrice).toFixed(2)
+              : "..."}
           </span>
         </div>
-        {/* <button onClick={fetchBalance} className="ml-2">
-          <ArrowPathIcon className="h-5 w-5" />
-        </button> */}
-        {/* <span className="text-xs">Refresh in {countdown}s</span> */}
         <Link href="/leaderboard" className="flex-1">
           <button className="w-full bg-[#181716] border-2 border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider  transition-colors ">
             Leaderboard
           </button>
         </Link>
       </div>
-      {/* <div className="flex gap-3">
-        <Link href="/transactions" className="flex-1">
-          <button className="w-full bg-[#181716] border border-[#2A342A] text-white py-1 px-2 text-sm font-semibold uppercase tracking-wider  transition-colors ">
-            Transactions
-          </button>
-        </Link>
-      </div> */}
     </div>
   );
 }
@@ -179,7 +198,7 @@ function NoWallet({
   );
 }
 
-function Skeleton() {
+export function Skeleton() {
   return (
     <div
       className="p-5 grid gap-5 border-[#03B500] border bg-[#111411] relative overflow-hidden animate-pulse"
@@ -206,8 +225,7 @@ function Skeleton() {
   );
 }
 
-export function shortenAddress(address: string, chars = 4): string {
+function shortenAddress(address: string, chars = 4): string {
   if (!address) return "";
-
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }

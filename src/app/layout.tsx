@@ -1,8 +1,7 @@
 import "./globals.css";
-import { MainLayout } from "@/components/layout/main";
+import { MainLayoutClient } from "@/components/layout/mainLayoutClient";
 import Providers from "@/components/providers";
 import { satoshi } from "@/lib/fonts";
-import LeaderBoard from "./leaderboard/page";
 
 export const metadata = {
   title: "Soddle",
@@ -28,7 +27,7 @@ export default function RootLayout({
         `}
       >
         <Providers>
-          <MainLayout>{children}</MainLayout>
+          <MainLayoutClient>{children}</MainLayoutClient>
         </Providers>
       </body>
     </html>

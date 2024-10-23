@@ -1,4 +1,3 @@
-import Container from "@/components/layout/container";
 import Navigation from "./_components/navigation";
 
 export default function Layout({ children }: { children: React.ReactNode }) {

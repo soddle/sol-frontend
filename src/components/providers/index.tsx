@@ -3,24 +3,24 @@ import * as React from "react";
 import { Toaster } from "sonner";
 
 import { RootStoreProvider } from "@/stores/storeProvider";
+import { ChainProvider } from "./chainProvider";
 import AppWalletProvider from "./appWalletProvider";
 import { ReactQueryProvider } from "./reactQueryProvider";
-import { StoreProvider } from "./storesProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <RootStoreProvider>
-      {/* <StoreProvider> */}
       <TooltipProvider>
         <ReactQueryProvider>
-          <AppWalletProvider>
-            <Toaster />
-            {children}
-          </AppWalletProvider>
+          <ChainProvider>
+            <AppWalletProvider>
+              <Toaster />
+              {children}
+            </AppWalletProvider>
+          </ChainProvider>
         </ReactQueryProvider>
       </TooltipProvider>
-      {/* </StoreProvider> */}
     </RootStoreProvider>
   );
 }

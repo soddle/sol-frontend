@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "env": {
+    "CRON_SECRET": "@cron_secret",
+    "UPSTASH_REDIS_REST_URL": "@upstash_redis_rest_url",
+    "UPSTASH_REDIS_REST_TOKEN": "@upstash_redis_rest_token",
+    "CRON_PRIVATE_KEY": "@cron_private_key",
+    "SOLANA_RPC_URL": "@solana_rpc_url"
+  }
+}

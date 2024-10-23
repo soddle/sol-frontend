@@ -1,17 +1,20 @@
 import Image from "next/image";
 import * as React from "react";
 import Button2 from "@/components/ui/button2";
-import { GameSession, GameSessionFromApi } from "@/types";
+
 import { shortenAddress } from "@/lib/utils";
 import { useRootStore } from "@/stores/storeProvider";
 import Trapezoid from "@/components/ui/trapezoid";
+import { useRouter } from "next/navigation";
+import { GameSession } from "@prisma/client";
 
 export default function UserProfileModal({
   gameSession,
 }: {
-  gameSession: GameSessionFromApi;
+  gameSession: GameSession;
 }) {
   const { ui } = useRootStore();
+  const router = useRouter();
 
   const closeModal = ui((state) => state.closeModal);
   const handleShareOnX = () => {
@@ -46,7 +49,7 @@ export default function UserProfileModal({
         />
         <h3 className="text-2xl font-bold">
           {" "}
-          {shortenAddress(gameSession.player.toString())}
+          {shortenAddress(gameSession.userAddress)}
         </h3>
         <p className="text-xl text-center">
           “White knight of the crypto ecosystem, feared by scammers around the
@@ -54,9 +57,7 @@ export default function UserProfileModal({
         </p>
         <Trapezoid className="w-[80%] h-[150px] flex flex-col text-[#39FF14] bg-gradient-to-r from-[rgba(1,52,1,0.5)] to-[rgba(17,20,17,0.5)]">
           <div className="w-full h-full flex flex-col gap-2 ">
-            <h3 className="text-3xl self-center">
-              {gameSession.game1Score} Points
-            </h3>
+            <h3 className="text-3xl self-center">{gameSession.score} Points</h3>
             <div className="flex justify-between items-center gap-1">
               <div className="w-full h-full text-2xl  py-1 px-2 text-center bg-gradient-to-r from-[rgba(1,52,1,0.5)] to-[rgba(17,20,17,0.5)]">
                 Rank 12{" "}
@@ -69,14 +70,14 @@ export default function UserProfileModal({
         </Trapezoid>
         <div className="flex  justify-between items-center">
           <div className="text-sm px-2 py-1 bg-[#181716] border border-[#2A342A]">
-            20 seconds
+            15 seconds
           </div>
           <div className="text-sm px-2 py-1 bg-[#181716] border border-[#2A342A] ">
-            13 mistakes
+            8 mistakes
           </div>
         </div>
         <div className="text-xl w-full h-52 flex items-center justify-center  bg-[#181716] border border-[#2A342A]">
-          "I solved the riddle in 20 seconds."
+          "I solved the riddle in 15 seconds."
         </div>
         <Button2
           className="text-black px-4 py-2 relative -top-8 max-w-[200px]"
@@ -84,7 +85,14 @@ export default function UserProfileModal({
         >
           Share on X
         </Button2>
-        <Button2 className="relative -bottom-4" onClick={closeModal}>
+
+        <Button2
+          className="relative -bottom-4"
+          onClick={() => {
+            closeModal();
+            router.push("/");
+          }}
+        >
           Continue{" "}
         </Button2>
       </div>

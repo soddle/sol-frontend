@@ -8,12 +8,12 @@ import { PlayIcon, ChartBarIcon, UserIcon } from "@heroicons/react/24/solid";
 const Navigation: React.FC = () => {
 	const pathname = usePathname();
 
-	const navItems = [
-		{ name: "PLAY", path: "/play", icon: PlayIcon },
-		{ name: "LEADERBORED", path: "/leaderbored", icon: ChartBarIcon },
-		{ name: "PROFILE", path: "/profile", icon: UserIcon },
-	];
-	const [orderedItems, setOrderedItems] = useState(navItems);
+  const navItems = [
+    { name: "PLAY", path: "/", icon: PlayIcon },
+    { name: "LEADERBOARD", path: "/leaderboard", icon: ChartBarIcon },
+    { name: "PROFILE", path: "/profile", icon: UserIcon },
+  ];
+  const [orderedItems, setOrderedItems] = useState(navItems);
 
 	useEffect(() => {
 		const activeIndex = orderedItems.findIndex(

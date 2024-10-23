@@ -1,7 +1,5 @@
-import { fetchKOLs } from "@/lib/api";
-import GamePlayPageClient from "./playPageClient";
-import Image from "next/image";
+import GameHomePageClient from "./homePageClient";
 
-export default async function GamePlayPage() {
-  return <GamePlayPageClient />;
+export default async function GameHomePage() {
+  return <GameHomePageClient />;
 }

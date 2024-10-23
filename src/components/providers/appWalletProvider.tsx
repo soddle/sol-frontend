@@ -1,39 +1,75 @@
 "use client";
-
 import React, { useMemo } from "react";
 import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import { clusterApiUrl } from "@solana/web3.js";
-import { SalmonWalletAdapter } from "@solana/wallet-adapter-wallets";
-import { useEclipseCluster } from "@/hooks/useEclipseCluster";
+import {
+  SalmonWalletAdapter,
+  SolflareWalletAdapter,
+  PhantomWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
+import { EthereumProvider } from "@/lib/chains/evm/ethereumProvider";
+import { SVMChainAdapter, EVMChainAdapter } from "@/lib/chains/types";
+import { useChain } from "./chainProvider";
 
-// Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
-
-// imports here
 
 export default function AppWalletProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cluster = useEclipseCluster();
-  const network = cluster.cluster.network;
-  const endpoint = cluster.cluster.endpoint;
+  const { currentChain, currentNetwork, chainManager } = useChain();
 
-  const wallets = useMemo(
-    () => [new SalmonWalletAdapter({ network })],
-    [network]
+  const adapter = chainManager.getAdapter(currentChain);
+  // alert(currentChain);
+
+  const solanaWallets = useMemo(
+    () => [
+      new SolflareWalletAdapter(),
+      new SalmonWalletAdapter(),
+      new PhantomWalletAdapter(),
+    ],
+    []
   );
 
-  return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-  );
+  if (chainManager.isSVMChain(currentChain)) {
+    const svmAdapter = adapter as SVMChainAdapter;
+    const config = svmAdapter.chainConfig;
+
+    // Check if the currentNetwork exists in the config.networks
+    const networkConfig = config.networks[currentNetwork];
+    if (!networkConfig) {
+      throw new Error(
+        `Network configuration for ${currentNetwork} is not defined.`
+      );
+    }
+
+    const endpoint = networkConfig.rpcEndpoint;
+    return (
+      <ConnectionProvider endpoint={endpoint}>
+        <WalletProvider wallets={solanaWallets} autoConnect={true}>
+          <WalletModalProvider>{children}</WalletModalProvider>
+        </WalletProvider>
+      </ConnectionProvider>
+    );
+  } else if (chainManager.isEVMChain(currentChain)) {
+    const evmAdapter = adapter as EVMChainAdapter;
+    const config = evmAdapter.chainConfig;
+
+    // Check if the currentNetwork exists in the config.networks
+    const networkConfig = config.networks[currentNetwork];
+    if (!networkConfig) {
+      throw new Error(
+        `Network configuration for ${currentNetwork} is not defined.`
+      );
+    }
+
+    const chainId = networkConfig.chainId;
+    return <EthereumProvider>{children}</EthereumProvider>;
+  }
+
+  return <>{children}</>; // Fallback for unsupported chains
 }
