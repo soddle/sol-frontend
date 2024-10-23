@@ -5,7 +5,6 @@ import Legend from "./_components/legends";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import QuestionBox from "./_components/questionBox";
 import { Container } from "@/components/layout/mainLayoutClient";
 import { GameSession, KOL, Competition } from "@prisma/client";
 import { useGame } from "@/hooks/useGame";
@@ -21,6 +20,7 @@ import {
   SoddleError,
 } from "@/lib/errors";
 import CompetitionTimer from "@/components/competitionTimer";
+import EnhancedQuestionSection from "@/components/questionSection";
 
 export default function AttributesGameClient({
   kols,
@@ -141,37 +141,7 @@ export default function AttributesGameClient({
           </section>
         </Container>
         <Container>
-          <QuestionBox>
-            <section className="text-white flex flex-col justify-between items-center">
-              <h1 className="text-2xl font-bold text-center mb-4">
-                Guess today's personality!
-              </h1>
-              <div className="flex items-center justify-center bg-[#1a1e1b] rounded-full p-2 border border-[#2FFF2B]">
-                <motion.div
-                  className="text-[#2FFF2B] font-semibold"
-                  initial={{ scale: 1 }}
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                  }}
-                >
-                  Guesses left:
-                </motion.div>
-                <motion.span
-                  className="ml-2 text-xl font-bold text-[#2FFF2B]"
-                  key={remainingGuessKOLs.length}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {remainingGuessKOLs.length}
-                </motion.span>
-              </div>
-            </section>
-          </QuestionBox>
+          <EnhancedQuestionSection remainingGuessKOLs={remainingGuessKOLs} />
         </Container>
         <Announcement />
         <Container>
